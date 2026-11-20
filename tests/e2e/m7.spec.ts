@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base';
 
 /** Milestone 7: documentation, feeds, metadata and index hygiene. */
 test.describe('final polish', () => {

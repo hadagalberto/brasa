@@ -6,8 +6,10 @@ import Container from '../../../components/Container.astro';
 import Icon from '../../../components/Icon.astro';
 import { docsHref, getDocs, groupDocs } from '../../../lib/docs';
 import { localizedPath, normalizeLocale, ui } from '../../../i18n';
+import { brasa } from '../../../brasa.config';
 
 export function getStaticPaths() {
+  if (!brasa.features.docs) return [];
   return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
 }
 

@@ -1,5 +1,5 @@
 ---
-import { brasa, featureEnabled } from '../brasa.config';
+import { brasa, featureEnabled, localizedLabel } from '../brasa.config';
 import { localizedPath, ui, unlocalizedPath, type Locale } from '../i18n';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
@@ -12,7 +12,7 @@ interface Props {
 
 const { lang } = Astro.props;
 const strings = ui(lang).common;
-const nav = ui(lang).nav.filter((item) => featureEnabled(item.href));
+const nav = brasa.nav.filter((item) => featureEnabled(item.href));
 const currentPath = unlocalizedPath(Astro.url.pathname).replace(/\/$/, '') || '/';
 
 const isActive = (href: string): boolean => {
@@ -40,7 +40,7 @@ const isActive = (href: string): boolean => {
               : 'text-ink-2 hover:bg-surface hover:text-ink',
           ]}
         >
-          {item.label}
+          {localizedLabel(item, lang)}
         </a>
       ))}
     </nav>
@@ -139,7 +139,7 @@ const isActive = (href: string): boolean => {
             {String(index + 1).padStart(2, '0')}
           </span>
           <span class="font-display text-[clamp(1.75rem,7vw,3rem)] leading-none tracking-tight">
-            {item.label}
+            {localizedLabel(item, lang)}
           </span>
         </a>
       ))}

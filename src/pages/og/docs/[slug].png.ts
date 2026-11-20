@@ -8,11 +8,13 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { docSlug } from '../../../lib/docs';
 import { renderDocsOg } from '../../../lib/og';
 import { ui } from '../../../i18n';
+import { brasa } from '../../../brasa.config';
 
 const assetSlug = (doc: CollectionEntry<'docs'>): string =>
   `${docSlug(doc)}${doc.data.lang === 'pt-br' ? '-pt-br' : ''}`;
 
 export async function getStaticPaths() {
+  if (!brasa.features.docs) return [];
   const docs = await getCollection('docs');
   return docs.map((doc) => ({ params: { slug: assetSlug(doc) } }));
 }

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base';
 
 /**
  * Home-page behavior: the product mock, code tabs, count-up metrics,

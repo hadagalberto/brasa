@@ -35,6 +35,8 @@ interface PagefindApi {
   ) => Promise<{ results: PagefindResult[] }>;
 }
 
+import { withBase } from '../lib/with-base';
+
 const MAX_RESULTS = 8;
 const DEBOUNCE_MS = 140;
 
@@ -114,11 +116,16 @@ function getStatus(): HTMLElement | null {
   return document.querySelector<HTMLElement>('[data-search-status]');
 }
 
+/** One joiner for every URL this island produces (result links, chips, index). */
+function searchUrl(url: string): string {
+  return withBase(url, getDialog()?.dataset.searchBase ?? undefined);
+}
+
 function loadIndex(): Promise<PagefindApi> {
   if (!indexPromise) {
-    const base = getDialog()?.dataset.searchBase ?? '/';
     // The file is emitted into dist at build time, not bundled by Vite.
-    indexPromise = import(/* @vite-ignore */ `${base}pagefind/pagefind.js`).then(
+    const moduleUrl = searchUrl('pagefind/pagefind.js');
+    indexPromise = import(/* @vite-ignore */ moduleUrl).then(
       (module) => (module.default ?? module) as PagefindApi,
     );
   }
@@ -152,14 +159,6 @@ function pathLabel(url: string): string {
   }
 }
 
-/** Pagefind returns root-relative URLs; keep them under a configured base path. */
-function withBase(url: string): string {
-  const base = (getDialog()?.dataset.searchBase ?? '/').replace(/\/$/, '');
-  return base && !url.startsWith(`${base}/`)
-    ? `${base}${url.startsWith('/') ? '' : '/'}${url}`
-    : url;
-}
-
 function element<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className?: string,
@@ -176,7 +175,6 @@ function showIntro(): void {
   if (!container) return;
   container.replaceChildren();
   const s = S();
-  const base = getDialog()?.dataset.searchBase ?? '/';
   const localePrefix = s.lang === 'en' ? '' : `${s.lang}/`;
   setStatus(s.intro);
 
@@ -186,19 +184,19 @@ function showIntro(): void {
   const suggestions = [
     {
       label: s.lang === 'pt-br' ? 'Instalação' : 'Installation',
-      href: `${base}${localePrefix}docs/installation`,
+      href: searchUrl(`${localePrefix}docs/installation`),
     },
     {
       label: s.lang === 'pt-br' ? 'Tokens de design' : 'Design tokens',
-      href: `${base}${localePrefix}docs/design-tokens`,
+      href: searchUrl(`${localePrefix}docs/design-tokens`),
     },
     {
       label: s.lang === 'pt-br' ? 'Componentes' : 'Components',
-      href: `${base}${localePrefix}docs/components`,
+      href: searchUrl(`${localePrefix}docs/components`),
     },
     {
       label: s.lang === 'pt-br' ? 'Deploy' : 'Deployment',
-      href: `${base}${localePrefix}docs/deployment`,
+      href: searchUrl(`${localePrefix}docs/deployment`),
     },
   ];
   for (const suggestion of suggestions) {
@@ -222,7 +220,7 @@ function showNoResults(query: string): void {
   );
   const chips = element('div', 'search-suggestions');
   const docs = element('a', 'search-chip', s.browseDocs);
-  docs.href = `${getDialog()?.dataset.searchBase ?? '/'}${s.docsHref.replace(/^\//, '')}`;
+  docs.href = searchUrl(s.docsHref);
   chips.append(docs);
   empty.append(chips);
   container.append(empty);
@@ -236,7 +234,7 @@ function render(data: PagefindData[]): void {
   for (const item of data) {
     const group = element('div', 'search-result-group');
     const link = element('a', 'search-result');
-    link.href = withBase(item.url);
+    link.href = searchUrl(item.url);
     link.setAttribute('data-search-result', '');
 
     const top = element('span', 'search-result-top');
@@ -263,7 +261,7 @@ function render(data: PagefindData[]): void {
           'search-result-section',
           sub.title ?? sub.anchor?.text ?? 'Section',
         );
-        anchor.href = withBase(sub.url);
+        anchor.href = searchUrl(sub.url);
         row.append(anchor);
       }
       group.append(row);

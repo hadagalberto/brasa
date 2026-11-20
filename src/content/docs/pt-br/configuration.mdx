@@ -20,7 +20,7 @@ Não há uma pilha de dotfiles para aprender. `src/brasa.config.ts` exporta um �
 export const brasa: BrasaConfig = {
   site: { name, tagline, description, author, github },
   logo: { text },
-  nav: [{ label, href, external? }],
+  nav: [{ label, href, external?, labels? }],
   footer: { columns, socials, newsletter, note },
   locales: { default, available: [{ code, label, lang }] },
   colors: { accentHue },
@@ -46,11 +46,15 @@ nav: [
 ],
 ```
 
-Entradas com `external: true` recebem uma seta de link externo e `target="_blank"` com `rel="noopener noreferrer"`. O cabeçalho marca um link como atual quando o caminho corresponde exatamente ou fica dentro da subárvore do link, por isso "Blog" permanece ativo nas páginas de tag e autor.
+Entradas com `external: true` recebem uma seta de link externo e `target="_blank"` com `rel="noopener noreferrer"`. O cabeçalho marca um link como atual quando o caminho corresponde exatamente ou fica dentro da subárvore do link, por isso "Blog" permanece ativo nas páginas de tag e autor. Este array é a única fonte da verdade tanto para a navegação desktop quanto para a folha mobile — o cabeçalho não lê mais um dicionário separado de links. `label` é o texto padrão (inglês); `labels` é um mapa opcional por código de idioma, por exemplo `{ 'pt-br': 'Documentação' }`, usado quando esse idioma está ativo. As colunas do rodapé funcionam igual, com `titleLabels` e o `labels` de cada link.
 
 <Callout variant="tip" title="A ordem é o design">
 A ordem do array é a ordem visual tanto na navegação desktop quanto na folha mobile de tela cheia, inclusive o atraso escalonado da animação de entrada. Mova uma entrada para movê-la em todos os lugares.
 </Callout>
+
+### Fontes
+
+`fonts.display`, `fonts.sans` e `fonts.mono` são os nomes das famílias emitidos como variáveis CSS (`--font-display`, `--font-sans`, `--font-mono`) no `<html>`. As fontes Fontsource carregadas por `BaseLayout` precisam corresponder a esses nomes; troque os dois juntos ao substituir uma tipografia. A fonte de display é a pré-carregada para os títulos acima da dobra.
 
 ### Rodapé e newsletter
 

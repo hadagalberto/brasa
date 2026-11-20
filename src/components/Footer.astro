@@ -1,5 +1,6 @@
 ---
-import { brasa, featureEnabled } from '../brasa.config';
+import { brasa, featureEnabled, localizedColumnTitle, localizedLabel } from '../brasa.config';
+import { withBase } from '../lib/with-base';
 import { localizedPath, ui, type Locale } from '../i18n';
 import Container from './Container.astro';
 import Logo from './Logo.astro';
@@ -17,7 +18,7 @@ const year = new Date().getFullYear();
 function linkHref(href: string): string {
   if (href.startsWith('http') || href.startsWith('#')) return href;
   // Feeds are global endpoints, not localized pages.
-  if (/\.(xml|json)$/.test(href)) return `${import.meta.env.BASE_URL}${href.replace(/^\//, '')}`;
+  if (/\.(xml|json)$/.test(href)) return withBase(href);
   return localizedPath(href, lang);
 }
 ---
@@ -46,16 +47,16 @@ function linkHref(href: string): string {
         <Newsletter {lang} />
       </div>
 
-      {strings.columns
+      {brasa.footer.columns
         .map((column) => ({
           ...column,
           links: column.links.filter((link) => featureEnabled(link.href)),
         }))
         .filter((column) => column.links.length > 0)
         .map((column) => (
-          <nav aria-label={column.title}>
+          <nav aria-label={localizedColumnTitle(column, lang)}>
             <h2 class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
-              {column.title}
+              {localizedColumnTitle(column, lang)}
             </h2>
             <ul class="mt-4 space-y-3">
               {column.links.map((link) => (
@@ -65,7 +66,7 @@ function linkHref(href: string): string {
                     {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     class="inline-flex items-center gap-1.5 text-sm text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
                   >
-                    {link.label}
+                    {localizedLabel(link, lang)}
                     {link.external && <Icon name="arrow-up-right" size={12} class="opacity-50" />}
                   </a>
                 </li>
@@ -79,7 +80,7 @@ function linkHref(href: string): string {
       <p class="text-xs text-ink-3">{strings.copyright(year, brasa.site.author)}</p>
       <p class="inline-flex items-center gap-1.5 text-xs text-ink-3">
         <Icon name="flame" size={13} class="text-ember-500" />
-        {strings.note}
+        {brasa.footer.note}
       </p>
     </div>
   </Container>

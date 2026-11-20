@@ -1,6 +1,6 @@
 ---
 import { brasa } from '../brasa.config';
-import { localizedPath, normalizeLocale } from '../i18n';
+import { localizedPath, normalizeLocale, ui } from '../i18n';
 
 interface Props {
   /** Hide the wordmark (used where the name is already visible). */
@@ -8,22 +8,15 @@ interface Props {
   href?: string;
 }
 
-// Unique gradient id per instance (Logo appears in header, sheet and footer).
-let logoSequence = 0;
-function nextLogoId(): string {
-  logoSequence += 1;
-  return `ember-mark-${logoSequence.toString(36)}`;
-}
-const gradientId = nextLogoId();
-const { markOnly = false, href = localizedPath('/', normalizeLocale(Astro.currentLocale)) } =
-  Astro.props;
+// Frontmatter runs per instance, so a local counter reset for every Logo and
+// every page got duplicate id="ember-mark-1". A UUID is unique per instance.
+const gradientId = `ember-mark-${crypto.randomUUID().replaceAll('-', '')}`;
+const lang = normalizeLocale(Astro.currentLocale);
+const { markOnly = false, href = localizedPath('/', lang) } = Astro.props;
+const homeLabel = ui(lang).common.homeLabel(brasa.site.name);
 ---
 
-<a
-  href={href}
-  class="group inline-flex items-center gap-2.5 rounded-lg"
-  aria-label={`${brasa.site.name} — home`}
->
+<a href={href} class="group inline-flex items-center gap-2.5 rounded-lg" aria-label={homeLabel}>
   <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
     <defs>
       <linearGradient id={gradientId} x1="0.15" y1="1" x2="0.9" y2="0.1">

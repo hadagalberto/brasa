@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, sitePath, test } from './base';
 
 /**
  * The blog is a product surface of its own: curation, archives, taxonomies,
@@ -63,7 +63,9 @@ test.describe('blog index and archives', () => {
     await expect(
       page.locator('[aria-label="Essays by Hadagalberto Junior"] .post-card'),
     ).toHaveCount(4);
-    await expect(page.locator('a[href="/blog/authors/hadjunior"]').first()).toBeVisible();
+    await expect(
+      page.locator(`a[href="${sitePath('/blog/authors/hadjunior')}"]`).first(),
+    ).toBeVisible();
   });
 });
 

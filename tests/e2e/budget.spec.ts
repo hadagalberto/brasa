@@ -1,5 +1,5 @@
 import { gzipSync } from 'node:zlib';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base';
 
 import { routes } from './helpers';
 

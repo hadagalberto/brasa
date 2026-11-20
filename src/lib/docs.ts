@@ -5,6 +5,7 @@
  */
 
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { withBase } from './with-base';
 import { localizedPath, ogLocale, type Locale } from '../i18n';
 
 export type Doc = CollectionEntry<'docs'>;
@@ -63,5 +64,5 @@ export function editUrl(doc: Doc, repo: string, branch = 'main'): string {
 }
 
 export function ogImagePath(doc: Doc): string {
-  return `${import.meta.env.BASE_URL}og/docs/${docSlug(doc)}-${doc.data.lang}.png`;
+  return withBase(`og/docs/${docSlug(doc)}-${doc.data.lang}.png`);
 }

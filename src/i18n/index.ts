@@ -3,6 +3,7 @@
  * Portuguese at `/pt-br/…`; these helpers keep paths, dictionaries and
  * alternate links in sync across every page.
  */
+import { withBase } from '../lib/with-base';
 import { en, type Dictionary } from './en';
 import { ptBr } from './pt-br';
 
@@ -48,11 +49,12 @@ export function localeParams<T extends Record<string, string | number> = Record<
  * `localizedPath('/blog', 'pt-br')` → `/pt-br/blog`.
  */
 export function localizedPath(path: string, locale: Locale): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  const clean = path.startsWith('/') ? path : `/${path}`;
-  const prefix = locale === 'en' ? '' : `/${locale}`;
-  const full = `${base}${prefix}${clean}`;
-  return full.length > 1 && full.endsWith('/') ? full.slice(0, -1) : full || '/';
+  const clean = path.replace(/^\/+/, '');
+  const prefix = locale === 'en' ? '/' : `/${locale}/`;
+  const full = withBase(`${prefix}${clean}`);
+  // Page links have historically been emitted without a trailing slash; only
+  // the home/root URL keeps it. SEO URLs use their own absolute() helper.
+  return full.endsWith('/') && clean !== '' ? full.slice(0, -1) : full;
 }
 
 /**
@@ -60,15 +62,14 @@ export function localizedPath(path: string, locale: Locale): string {
  * `/pt-br/blog/tags/performance` → `/blog/tags/performance` for `en`.
  */
 export function switchLocalePath(pathname: string, target: Locale): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const base = withBase('/').replace(/\/$/, ''); // '' for '/', '/brasa' otherwise
   let path = pathname;
-  if (base && path.startsWith(base)) path = path.slice(base.length);
+  if (base && (path === base || path.startsWith(`${base}/`))) path = path.slice(base.length);
   path = path.replace(/^\/pt-br(?=\/|$)/, '');
-  if (!path.startsWith('/')) path = `/${path}`;
-  const full = `${base}${target === 'en' ? '' : `/${target}`}${path}`;
-  const trimmed =
-    full.endsWith('/') && full.length > (base || '/').length ? full.slice(0, -1) : full;
-  return trimmed || '/';
+  const clean = path.replace(/^\/+/, '');
+  const prefix = target === 'en' ? '/' : `/${target}/`;
+  // Trailing slash is preserved here so canonical/hreflang/x-default agree.
+  return withBase(`${prefix}${clean}`);
 }
 
 /** Extract the page path without any locale prefix (for hreflang links). */

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, sitePath, test } from './base';
 
 import { toggleTheme } from './helpers';
 
@@ -18,7 +18,8 @@ test('applies the stored theme before first paint (no flash)', async ({ page }) 
 test('falls back to the system preference on first visit', async ({ browser }) => {
   const context = await browser.newContext({ colorScheme: 'light' });
   const page = await context.newPage();
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  // This page comes from browser.newContext(), not the wrapped `page` fixture.
+  await page.goto(sitePath('/'), { waitUntil: 'domcontentloaded' });
   expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('light');
   await context.close();
 });
@@ -26,7 +27,8 @@ test('falls back to the system preference on first visit', async ({ browser }) =
 test('defaults to dark when the system prefers dark', async ({ browser }) => {
   const context = await browser.newContext({ colorScheme: 'dark' });
   const page = await context.newPage();
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  // This page comes from browser.newContext(), not the wrapped `page` fixture.
+  await page.goto(sitePath('/'), { waitUntil: 'domcontentloaded' });
   expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark');
   await context.close();
 });

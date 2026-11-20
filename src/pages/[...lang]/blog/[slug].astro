@@ -29,8 +29,12 @@ import {
 import type { Post } from '../../../lib/posts';
 import { authorId } from '../../../lib/posts';
 import { locales, ui, type Locale } from '../../../i18n';
+import { brasa } from '../../../brasa.config';
+import { withBase } from '../../../lib/with-base';
 
 export async function getStaticPaths() {
+  // A disabled feature must not publish routes, not merely hide nav links.
+  if (!brasa.features.blog) return [];
   const paths: Array<{
     params: { lang: string | undefined; slug: string };
     props: { post: Post; lang: Locale };
@@ -63,10 +67,10 @@ const related = relatedPosts(allPosts, post, 2);
 const authorPosts = allPosts.filter((entry) => entry.data.author === post.data.author);
 
 const url = new URL(
-  `${import.meta.env.BASE_URL}${lang === 'pt-br' ? 'pt-br/' : ''}blog/${postSlug(post)}/`,
+  withBase(`${lang === 'pt-br' ? 'pt-br/' : ''}blog/${postSlug(post)}/`),
   Astro.site ?? Astro.url,
 ).toString();
-const ogImage = `${import.meta.env.BASE_URL}og/blog/${postSlug(post)}${lang === 'pt-br' ? '-pt-br' : ''}.png`;
+const ogImage = withBase(`og/blog/${postSlug(post)}${lang === 'pt-br' ? '-pt-br' : ''}.png`);
 
 const crumbs: Crumb[] = [
   { label: lang === 'pt-br' ? 'Início' : 'Home', href: lang === 'pt-br' ? '/pt-br/' : '/' },

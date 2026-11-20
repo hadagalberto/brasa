@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base';
 
 /** Pagefind search dialog: shortcuts, lazy index, keyboard navigation and focus. */
 

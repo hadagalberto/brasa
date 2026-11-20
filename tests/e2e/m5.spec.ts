@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base';
 
 /** Milestone 5: secondary pages, localized routing and interactive pricing. */
 

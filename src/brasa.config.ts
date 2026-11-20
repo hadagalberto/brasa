@@ -7,16 +7,20 @@
  */
 
 export interface NavLink {
-  /** Visible label. */
+  /** Default (English) label. */
   label: string;
   /** Absolute path ("/styleguide") or full URL for external links. */
   href: string;
   /** External links open in a new tab and get an icon. */
   external?: boolean;
+  /** Localized labels keyed by locale code; falls back to `label`. */
+  labels?: Record<string, string>;
 }
 
 export interface FooterColumn {
   title: string;
+  /** Localized column titles keyed by locale code; falls back to `title`. */
+  titleLabels?: Record<string, string>;
   links: NavLink[];
 }
 
@@ -112,48 +116,67 @@ export const brasa: BrasaConfig = {
   logo: {
     text: 'brasa',
   },
+  // Single source of truth for the header AND the mobile sheet. Localized
+  // labels live here too, so adopters edit one array instead of a dictionary.
   nav: [
-    { label: 'Home', href: '/' },
-    { label: 'Docs', href: '/docs' },
+    { label: 'Home', href: '/', labels: { 'pt-br': 'Início' } },
+    { label: 'Pricing', href: '/pricing', labels: { 'pt-br': 'Preços' } },
+    { label: 'Changelog', href: '/changelog', labels: { 'pt-br': 'Novidades' } },
+    {
+      label: 'Docs',
+      href: '/docs',
+      labels: { 'pt-br': 'Documentação' },
+    },
     { label: 'Blog', href: '/blog' },
-    { label: 'Styleguide', href: '/styleguide' },
+    {
+      label: 'Styleguide',
+      href: '/styleguide',
+      labels: { 'pt-br': 'Guia de estilos' },
+    },
   ],
   footer: {
     columns: [
       {
         title: 'Blog',
+        titleLabels: { 'pt-br': 'Blog' },
         links: [
-          { label: 'All essays', href: '/blog' },
-          { label: 'Topics', href: '/blog/tags' },
-          {
-            label: 'RSS feed',
-            href: '/rss.xml',
-          },
-          {
-            label: 'JSON feed',
-            href: '/feed.json',
-          },
+          { label: 'All essays', href: '/blog', labels: { 'pt-br': 'Todos os ensaios' } },
+          { label: 'Topics', href: '/blog/tags', labels: { 'pt-br': 'Temas' } },
+          { label: 'RSS feed', href: '/rss.xml', labels: { 'pt-br': 'Feed RSS' } },
+          { label: 'JSON feed', href: '/feed.json', labels: { 'pt-br': 'Feed JSON' } },
         ],
       },
       {
         title: 'Theme',
+        titleLabels: { 'pt-br': 'Tema' },
         links: [
-          { label: 'Documentation', href: '/docs' },
-          { label: 'Styleguide', href: '/styleguide' },
+          {
+            label: 'Documentation',
+            href: '/docs',
+            labels: { 'pt-br': 'Documentação' },
+          },
+          {
+            label: 'Styleguide',
+            href: '/styleguide',
+            labels: { 'pt-br': 'Guia de estilos' },
+          },
           {
             label: 'Report an issue',
             href: 'https://github.com/hadagalberto/brasa/issues/new',
             external: true,
+            labels: { 'pt-br': 'Reportar um problema' },
           },
           {
             label: 'Releases',
             href: 'https://github.com/hadagalberto/brasa/releases',
             external: true,
+            labels: { 'pt-br': 'Versões' },
           },
           {
             label: 'License (MIT)',
             href: 'https://github.com/hadagalberto/brasa/blob/main/LICENSE',
             external: true,
+            labels: { 'pt-br': 'Licença (MIT)' },
           },
         ],
       },
@@ -168,12 +191,14 @@ export const brasa: BrasaConfig = {
       },
       {
         title: 'Project',
+        titleLabels: { 'pt-br': 'Projeto' },
         links: [
           { label: 'GitHub', href: 'https://github.com/hadagalberto/brasa', external: true },
           {
             label: 'Discussions',
             href: 'https://github.com/hadagalberto/brasa/discussions',
             external: true,
+            labels: { 'pt-br': 'Discussões' },
           },
           {
             label: 'SPEC',
@@ -225,6 +250,16 @@ export const brasa: BrasaConfig = {
     action: process.env.CONTACT_FORM_ACTION ?? '',
   },
 };
+
+/** Resolve a nav/footer link's label for a locale (config is the source). */
+export function localizedLabel(link: NavLink, locale: string): string {
+  return link.labels?.[locale] ?? link.label;
+}
+
+/** Resolve a footer column's title for a locale. */
+export function localizedColumnTitle(column: FooterColumn, locale: string): string {
+  return column.titleLabels?.[locale] ?? column.title;
+}
 
 /** Map a route or feed path to the feature toggle that controls it. */
 export function featureForPath(path: string): keyof BrasaConfig['features'] | null {

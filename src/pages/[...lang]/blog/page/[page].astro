@@ -13,8 +13,10 @@ import {
   PAGE_SIZE,
 } from '../../../../lib/posts';
 import { localizedPath, locales, normalizeLocale, ui } from '../../../../i18n';
+import { brasa } from '../../../../brasa.config';
 
 export async function getStaticPaths() {
+  if (!brasa.features.blog) return [];
   const paths: Array<{ params: { lang: string | undefined; page: string } }> = [];
   for (const lang of locales) {
     const posts = await getPosts(lang);

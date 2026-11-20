@@ -1,5 +1,6 @@
 ---
 import { brasa } from '../brasa.config';
+import { withBase } from '../lib/with-base';
 import {
   localeLang,
   locales,
@@ -39,7 +40,7 @@ interface Props {
 const {
   title,
   description = brasa.site.description,
-  image = `${import.meta.env.BASE_URL}og.png`,
+  image = 'og.png',
   type = 'website',
   noindex = false,
   article,
@@ -48,14 +49,30 @@ const {
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://example.com');
-const canonical = new URL(Astro.url.pathname, site);
-const ogImage = new URL(image, site);
+
+/**
+ * Every internal URL goes through withBase() and one trailing-slash convention
+ * (directory URLs end in '/'). `new URL(path, site)` alone is not enough when
+ * `site` already contains the base path: it silently dropped /brasa from
+ * JSON-LD ids, breadcrumbs and OG images on the live site.
+ */
+function absolute(path: string): string {
+  const joined = withBase(path);
+  if (/^[a-z][a-z\d+.-]*:/i.test(joined)) return joined;
+  if (!joined.includes('#') && !joined.endsWith('/') && !/\.[a-z0-9]+$/i.test(joined)) {
+    return new URL(`${joined}/`, site).toString();
+  }
+  return new URL(joined, site).toString();
+}
+
+const canonical = absolute(Astro.url.pathname);
+const ogImage = absolute(image);
 const alternates = locales.map((code) => ({
   code,
   lang: localeLang[code],
-  href: new URL(switchLocalePath(Astro.url.pathname, code), site).toString(),
+  href: absolute(switchLocalePath(Astro.url.pathname, code)),
 }));
-const xDefault = new URL(unlocalizedPath(Astro.url.pathname), site).toString();
+const xDefault = absolute(unlocalizedPath(Astro.url.pathname));
 const fullTitle =
   title === brasa.site.name
     ? `${brasa.site.name} — ${brasa.site.tagline}`
@@ -65,11 +82,11 @@ const graph: object[] = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': new URL('/#organization', site).toString(),
+    '@id': absolute('#organization'),
     name: brasa.site.name,
     description: brasa.site.description,
-    url: site.toString(),
-    logo: new URL('favicon.svg', site).toString(),
+    url: absolute('/'),
+    logo: absolute('favicon.svg'),
     sameAs: [brasa.site.github],
   },
 ];
@@ -80,18 +97,18 @@ if (article && type === 'article') {
     '@type': 'BlogPosting',
     headline: title,
     description,
-    image: ogImage.toString(),
-    url: canonical.toString(),
+    image: ogImage,
+    url: canonical,
     datePublished: article.publishedTime.toISOString(),
     dateModified: (article.modifiedTime ?? article.publishedTime).toISOString(),
     keywords: article.tags.join(', '),
     author: {
       '@type': 'Person',
       name: article.authorName,
-      ...(article.authorUrl ? { url: new URL(article.authorUrl, site).toString() } : {}),
+      ...(article.authorUrl ? { url: absolute(article.authorUrl) } : {}),
     },
-    publisher: { '@id': new URL('/#organization', site).toString() },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical.toString() },
+    publisher: { '@id': absolute('#organization') },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
   });
 } else {
   graph.push({
@@ -99,8 +116,8 @@ if (article && type === 'article') {
     '@type': 'WebSite',
     name: brasa.site.name,
     description: brasa.site.description,
-    url: site.toString(),
-    publisher: { '@id': new URL('/#organization', site).toString() },
+    url: absolute('/'),
+    publisher: { '@id': absolute('#organization') },
     author: {
       '@type': 'Person',
       name: brasa.site.author,
@@ -117,7 +134,7 @@ if (breadcrumbs && breadcrumbs.length > 0) {
       '@type': 'ListItem',
       position: index + 1,
       name: crumb.label,
-      item: new URL(crumb.href, site).toString(),
+      item: absolute(crumb.href),
     })),
   });
 }

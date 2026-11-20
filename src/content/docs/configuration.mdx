@@ -19,7 +19,7 @@ There is no pile of dotfiles to learn. `src/brasa.config.ts` exports one typed o
 export const brasa: BrasaConfig = {
   site: { name, tagline, description, author, github },
   logo: { text },
-  nav: [{ label, href, external? }],
+  nav: [{ label, href, external?, labels? }],
   footer: { columns, socials, newsletter, note },
   locales: { default, available: [{ code, label, lang }] },
   colors: { accentHue },
@@ -45,11 +45,15 @@ nav: [
 ],
 ```
 
-Entries with `external: true` get an external-link arrow and `target="_blank"` with `rel="noopener noreferrer"`. The header marks a link current when the path matches exactly or sits under the link's subtree, which is why "Blog" stays active on tag and author pages.
+Entries with `external: true` get an external-link arrow and `target="_blank"` with `rel="noopener noreferrer"`. The header marks a link current when the path matches exactly or sits under the link's subtree, which is why "Blog" stays active on tag and author pages. This array is the single source of truth for both the desktop nav and the mobile sheet — the header no longer reads a separate dictionary of links. `label` is the default (English) text; `labels` is an optional map keyed by locale code, e.g. `{ 'pt-br': 'Documentação' }`, used whenever that locale is active. Footer columns work the same way via `titleLabels` and each link's `labels`.
 
 <Callout variant="tip" title="Order is the design">
 The array order is the visual order in both the desktop nav and the full-screen mobile sheet, including the staggered entrance delay. Move an entry to move it everywhere.
 </Callout>
+
+### Fonts
+
+`fonts.display`, `fonts.sans` and `fonts.mono` are the family names emitted as CSS custom properties (`--font-display`, `--font-sans`, `--font-mono`) on `<html>`. The self-hosted Fontsource faces loaded by `BaseLayout` must match these names; change them together when you swap a typeface. The display face is the one preloaded for above-the-fold headlines.
 
 ### Footer and newsletter
 

@@ -5,7 +5,8 @@
  * inert background; search.ts adds result navigation and live status.
  */
 import Icon from './Icon.astro';
-import { ui, type Locale } from '../i18n';
+import { withBase } from '../lib/with-base';
+import { localizedPath, ui, type Locale } from '../i18n';
 
 interface Props {
   lang: Locale;
@@ -31,7 +32,7 @@ const clientStrings = {
   open: strings.searchOpen,
   close: strings.searchClose,
   powered: strings.searchPowered,
-  docsHref: lang === 'pt-br' ? '/pt-br/docs' : '/docs',
+  docsHref: localizedPath('/docs', lang),
   lang,
 };
 ---
@@ -39,7 +40,7 @@ const clientStrings = {
 <dialog
   id="search-dialog"
   data-search-dialog
-  data-search-base={import.meta.env.BASE_URL}
+  data-search-base={withBase('/')}
   data-search-strings={JSON.stringify(clientStrings)}
   aria-label={strings.searchDialog}
   class="search-dialog"
@@ -57,7 +58,7 @@ const clientStrings = {
         autocapitalize="off"
         spellcheck="false"
       />
-      <button type="button" data-search-close aria-label={strings.closeMenu} class="search-close">
+      <button type="button" data-search-close aria-label={strings.closeSearch} class="search-close">
         <Icon name="close" size={15} />
       </button>
     </div>

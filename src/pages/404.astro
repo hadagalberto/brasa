@@ -18,7 +18,9 @@ import { ui } from '../i18n';
   </div>
   <script is:inline>
     (() => {
-      const portuguese = window.location.pathname.replace(/^\/+/, '').startsWith('pt-br');
+      // Match the pt-br segment anywhere in the path: under a deploy base
+      // path the URL is /brasa/pt-br/..., not /pt-br/....
+      const portuguese = /(^|\/)pt-br(\/|$)/.test(window.location.pathname);
       const active = document.querySelector(
         portuguese ? '[data-locale="pt-br"]' : '[data-locale="en"]',
       );

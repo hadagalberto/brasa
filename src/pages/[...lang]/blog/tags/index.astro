@@ -4,8 +4,10 @@ import Container from '../../../../components/Container.astro';
 import TagPill from '../../../../components/blog/TagPill.astro';
 import { collectTags, getPosts, tagHref } from '../../../../lib/posts';
 import { normalizeLocale, ui } from '../../../../i18n';
+import { brasa } from '../../../../brasa.config';
 
 export function getStaticPaths() {
+  if (!brasa.features.blog) return [];
   return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
 }
 

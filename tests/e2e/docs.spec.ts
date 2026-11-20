@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, sitePath, test } from './base';
 
 /** Docs manual: sidebar, TOC, breadcrumbs, prev/next, edit link and MDX components. */
 
@@ -13,7 +13,7 @@ test.describe('docs manual', () => {
     expect(await groupLinks.count()).toBeGreaterThanOrEqual(11);
 
     for (const name of ['installation', 'components', 'faq']) {
-      const link = page.locator(`a[href="/docs/${name}"]`).first();
+      const link = page.locator(`a[href="${sitePath(`/docs/${name}`)}"]`).first();
       await expect(link).toBeVisible();
     }
   });
@@ -98,7 +98,9 @@ test.describe('docs manual', () => {
     await page.goto('/docs/installation');
     await page.locator('[data-docs-drawer-open]').click();
 
-    const link = page.locator('dialog[data-docs-drawer] a[href="/docs/configuration"]');
+    const link = page.locator(
+      `dialog[data-docs-drawer] a[href="${sitePath('/docs/configuration')}"]`,
+    );
     await link.click();
     await expect(page).toHaveURL(/\/docs\/configuration\/?$/);
     await expect(page.locator('dialog[data-docs-drawer]')).not.toHaveAttribute('open');

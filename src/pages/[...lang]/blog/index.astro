@@ -15,8 +15,11 @@ import {
   tagHref,
 } from '../../../lib/posts';
 import { localizedPath, normalizeLocale, ui } from '../../../i18n';
+import { brasa } from '../../../brasa.config';
+import { withBase } from '../../../lib/with-base';
 
 export function getStaticPaths() {
+  if (!brasa.features.blog) return [];
   return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
 }
 
@@ -56,14 +59,14 @@ const tags = collectTags(posts).slice(0, 6);
               {b.subscribe}
             </span>
             <a
-              href={`${import.meta.env.BASE_URL}rss.xml`}
+              href={withBase('rss.xml')}
               class="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 font-mono text-xs font-medium text-ink-2 transition-colors duration-(--dur-1) hover:border-accent/40 hover:bg-accent-soft hover:text-accent"
             >
               <Icon name="rss" size={13} />
               RSS
             </a>
             <a
-              href={`${import.meta.env.BASE_URL}feed.json`}
+              href={withBase('feed.json')}
               class="inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 font-mono text-xs font-medium text-ink-2 transition-colors duration-(--dur-1) hover:border-accent/40 hover:bg-accent-soft hover:text-accent"
             >
               <Icon name="code" size={13} />

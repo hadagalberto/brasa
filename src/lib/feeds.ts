@@ -4,6 +4,7 @@
  * can never drift apart.
  */
 import { brasa } from '../brasa.config';
+import { withBase } from './with-base';
 import type { Locale } from '../i18n';
 import { formatRssDate, getAuthor, getAuthors, getPosts, postHref } from './posts';
 
@@ -35,7 +36,7 @@ function escapeXml(text: string): string {
 }
 
 function prefix(locale: Locale): string {
-  return locale === 'en' ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}pt-br/`;
+  return locale === 'en' ? withBase('/') : withBase('/pt-br/');
 }
 
 export async function rssXml(locale: Locale, site: URL | undefined): Promise<string> {
@@ -94,7 +95,7 @@ export async function jsonFeed(locale: Locale, site: URL | undefined): Promise<o
   return {
     version: 'https://jsonfeed.org/version/1.1',
     title: copy.title,
-    home_page_url: new URL(locale === 'en' ? '/' : '/pt-br/', base).toString(),
+    home_page_url: new URL(prefix(locale), base).toString(),
     feed_url: new URL(`${prefix(locale)}feed.json`, base).toString(),
     language: locale === 'en' ? 'en' : 'pt-BR',
     description: copy.description,

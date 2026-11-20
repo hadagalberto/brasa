@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, sitePath, test } from './base';
 
 import { routes } from './helpers';
 
@@ -119,7 +119,8 @@ test('the Open Graph image renders the brand palette', async ({ page }) => {
   await page.goto('/');
   const pixels = await page.evaluate(async () => {
     const image = new Image();
-    image.src = new URL('og.png', window.location.origin).toString();
+    // baseURI includes the deploy base path (/brasa/); origin alone does not.
+    image.src = new URL('og.png', document.baseURI).toString();
     await image.decode();
     const canvas = document.createElement('canvas');
     canvas.width = image.naturalWidth;
@@ -165,5 +166,5 @@ test('the 404 page is branded and served with status 404', async ({ page }) => {
   expect(response?.status()).toBe(404);
   await expect(page.locator('[data-locale="en"] h1')).toHaveText('Page not found');
   await expect(page.getByText('burnt out')).toBeVisible();
-  await expect(page.locator('main a[href="/"]')).toBeVisible();
+  await expect(page.locator(`main a[href="${sitePath('/')}"]`)).toBeVisible();
 });
