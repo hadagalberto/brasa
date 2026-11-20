@@ -1,0 +1,94 @@
+---
+title: Feeds are still worth shipping
+description: This blog ships both RSS and JSON Feed, on purpose, in 2026. A defense of the open subscribe web, a tour of how Brasa generates both feeds at build time, and honest answers to the questions every team asks first.
+author: hadjunior
+tags:
+  - Engineering culture
+pubDate: 2026-05-12
+---
+
+The first thing this blog's build produces is not the HTML — it is `rss.xml` and `feed.json`, standing next to the homepage like a driveway and a mailbox. In 2026, shipping feeds is an unfashionable act of hospitality: you are telling readers they can subscribe to your work *without an algorithm deciding whether you exist today*.
+
+We think that is worth ten minutes of build code. This post is the defense, plus the concrete how.
+
+## Why two formats and not one
+
+RSS is the survivor: fifteen years of "dead" and still the default subscribe format of every reader app on every platform. JSON Feed is the newcomer that fixed RSS's real problems — escaping, dates, enclosures — by being boring, well-specified JSON.
+
+We ship both because they cost nearly nothing and serve different readers:
+
+<Tabs
+  label="A sample entry in each format"
+  tabs={[
+    { id: 'rss', label: 'rss.xml', icon: 'rss' },
+    { id: 'json', label: 'feed.json', icon: 'code' },
+  ]}
+>
+  <Fragment slot="rss">
+    ```xml
+    <item>
+      <title>Deploy previews are the pull request's missing half</title>
+      <link>https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half</link>
+      <guid isPermaLink="true">https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half</guid>
+      <pubDate>Mon, 02 Nov 2026 00:00:00 +0000</pubDate>
+      <description>A diff tells you what changed...</description>
+    </item>
+    ```
+  </Fragment>
+  <Fragment slot="json">
+    ```json
+    {
+      "id": "https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half",
+      "url": "https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half",
+      "title": "Deploy previews are the pull request's missing half",
+      "summary": "A diff tells you what changed...",
+      "date_published": "2026-11-02T00:00:00Z",
+      "tags": ["Deploy previews", "Engineering culture"],
+      "authors": [{ "name": "Hadagalberto Junior" }]
+    }
+    ```
+  </Fragment>
+</Tabs>
+
+## How the build makes them
+
+Both feeds are prerendered endpoints over the same content collection the blog pages read — one source of truth, three projections (HTML pages, XML, JSON). Nothing is generated "at publish time" by a separate tool, so a feed item can never drift from the article it points at.
+
+The RSS endpoint builds its XML by hand rather than through a library, which sounds gratuitous until you have debugged a dependency's CDATA handling at midnight. Total cost: ~40 lines and an escape function.
+
+<Callout variant="note" title="The three validator bugs everyone hits first">
+CDATA sections that assume angle brackets away; <code>pubDate</code>s formatted by anything other than RFC 822 (readers silently drop the item); and a missing <code>guid</code>, which teaches every reader app that your posts are new again. Our build test asserts all three, in both formats.
+</Callout>
+
+## The questions every team asks first
+
+<Accordion
+  items={[
+    {
+      q: 'Nobody at our company uses a feed reader. Why bother?',
+      a: 'Your colleagues are not the audience for a subscribe format — the people who maintain blogs, newsletters and aggregators are. Feeds are how your writing gets discovered by exactly the readers who read deeply: newsletter authors looking for material, researchers building reading lists, the colleague at another company who follows your work via NetNewsWire on a train. The traffic from feeds is small and disproportionately valuable.',
+    },
+    {
+      q: 'Does a feed cannibalize the traffic we want on the site?',
+      a: 'A feed competes with "reader opens your site occasionally and misses most posts," not with your existing traffic. Full-text feeds lose a few clicks and win the subscription; summary feeds win the click and lose the habit. We ship summaries with a faithful description of the post — the honest middle.',
+    },
+    {
+      q: "We have a newsletter. Isn't that the modern feed?",
+      a: 'Ship both; they are different promises. The newsletter is gated on trust and an inbox; the feed is ungated and permanent — anyone can subscribe without giving you anything, including a working email. A publication that only offers the newsletter is saying "reading this requires a relationship with us," which is a choice, and one your most technical readers hear clearly.',
+    },
+    {
+      q: "How do we know it's working?",
+      a: 'You mostly do not, and that is fine — feeds are one of the last uninstrumented surfaces on the web, and privacy is part of the point. We track two honest proxies: subscriber counts reported voluntarily by a couple of reader apps, and inbound referral traffic from feed-driven tools. If either number is nonzero, the ten minutes are paying rent.',
+    },
+  ]}
+/>
+
+## The subscribe page as a feature
+
+The last piece is social: feeds die quietly when the URL is a secret. This blog links its feeds from the footer, from the blog header, and from every article's share row — and the link itself is a small act of self-respect, a statement that the writing is worth following on the reader's terms.
+
+<Callout variant="tip" title="Adopt a reader this week">
+If you have never lived inside a feed reader, the argument is abstract. Try fourteen days of one: a slow morning, a coffee, forty subscriptions you chose, no engagement ranking, nothing infinite. Most people who do this end up shipping feeds at work — the format sells itself the moment you are the reader.
+</Callout>
+
+The web's original promise was that *you* choose what you follow. Feeds are that promise, still working, still boring, still free. Ship them.

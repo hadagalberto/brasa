@@ -1,0 +1,69 @@
+---
+title: Zero JavaScript is a feature, not a constraint
+description: 'This blog ships less JavaScript than a single tracking pixel. The method behind it: progressive enhancement as a build discipline, islands that degrade honestly, and the two places we still spend bytes.'
+author: tomas-ferreira
+tags:
+  - Performance
+pubDate: 2026-07-22
+import { Badge, Callout, Steps } from '../../components/mdx';
+
+---
+
+The average web page today ships more JavaScript than the original *Doom*. That comparison is a decade old and has aged like milk: pages now ship more JavaScript than several Dooms, and the extra megabytes are mostly not doing anything the reader asked for.
+
+This blog is on the other end of the distribution — its total JavaScript budget is enforced in CI at less than 20 KB *gzipped*, and a typical article uses a fraction of that. The constraint is real (the CI test fails the build), but the interesting part is the method that makes it feel unconstrained.
+
+## The discipline, in one sentence
+
+**Render everything, enhance deliberately.** Every feature first exists as plain, complete HTML — server-rendered, styled, accessible. JavaScript then attaches only where HTML is genuinely insufficient, and only to the smallest possible scope.
+
+Applied as a build discipline, that sentence decomposes into four habits:
+
+<Steps
+  class="not-prose"
+  steps={[
+    { icon: 'code', title: 'Render it first', body: 'The theme toggle ships a `<button>` that works as a button before a single byte of JS decides what it toggles. If the script never runs, the page is still a page.' },
+    { icon: 'shield', title: 'Design the no-JS state', body: 'Tabs fall back to stacked panels with visible labels; the mobile menu becomes a plain anchor list. The degraded state is designed, not discovered.' },
+    { icon: 'bolt', title: 'Scope every island', body: 'Interactivity lives in small `<script>` islands with delegated events and a hard per-island budget — 3 KB gzipped each, measured in the build.' },
+    { icon: 'chart', title: 'Enforce it in CI', body: 'A Playwright test sums every inline and external script on every route type and fails over 20 KB. Budgets without tests are vibes.' },
+  ]}
+/>
+
+## Where the bytes actually go
+
+Shipped honestly, the whole interactive surface of this blog fits in a short receipt:
+
+| Island | Purpose | Rough size (gzipped) |
+| --- | --- | --- |
+| behaviors | theme, menu, scroll, spotlight, copy | ~1.5 KB |
+| blog | TOC highlight, share-link copy | ~0.5 KB |
+| tabs | keyboard pattern for tab groups | ~0.6 KB |
+| expressive-code | copy button on code blocks | ~1 KB |
+
+<Badge variant="ember">Total under 5 KB</Badge> — the rest of the page is HTML, CSS, and two preloaded variable fonts. Nothing here is heroic; it is the same amount of JavaScript the features would cost if you wrote them by hand, minus the framework that was going to ship them for you.
+
+<Callout variant="tip" title="The delegation trick that pays for everything">
+One module, one <code>document</code>-level click listener, many behaviors. Every toggle button declares its intent in a data attribute — <code>data-theme-toggle</code>, <code>data-menu-toggle</code>, <code>data-copy</code> — and the delegated handler dispatches. New components cost zero new bindings, and View Transitions get survived for free because nothing ever needs re-attaching after a swap.
+</Callout>
+
+## The two places we still spend
+
+"Zero JavaScript" as a literal target is performance theater — some experiences genuinely need behavior. The honest version of this method is knowing exactly where the bytes buy something a reader feels:
+
+**Theme switching.** Storing and applying a preference without a flash needs ~30 inline bytes before first paint and a small toggle handler after. This is the rare case where a flash of wrong content is *worse* than a little JS, because the wrong content is the whole page.
+
+**Anything the platform refuses to do.** The TOC's active-section highlight (IntersectionObserver), tab keyboard semantics, clipboard confirmation. Each of these has a designed no-JS state that is complete and honest — the JS just adds the part HTML cannot express.
+
+Everything else — the reading, the navigation, the pagination, the feeds, the search-ability, the printing, the deep-linking to any heading — is just HTML that happens to be beautiful.
+
+## What the constraint buys back
+
+The benefits that get quoted — parse time, memory, battery — are real but abstract. The felt ones:
+
+**The page never breaks.** With no runtime to fail, failure modes collapse to "server down." A syntax error in one island degrades one feature on one page, and the build test catches even that.
+
+**Accessibility stops being a project.** Native elements ship their own keyboard behavior, focus handling, and semantics. We spend our auditing effort on the handful of things we *did* build, instead of auditing a framework's reimplementation of the browser.
+
+**Every enhancement is a decision someone can find.** When the interactivity is eleven files instead of a bundle graph, "why does this feel laggy?" has an answer that fits in a code review. Performance stops being a personality and becomes a place in the repository.
+
+The constraint, held honestly, is not about counting bytes — it is about making every byte ask permission.

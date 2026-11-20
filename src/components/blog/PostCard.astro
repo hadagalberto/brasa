@@ -1,0 +1,131 @@
+---
+/**
+ * Post card — the atom of every blog surface (index grid, tag pages, author
+ * pages, related posts). The title block carries a `transition:name`, so
+ * with the ClientRouter the card morphs into the post header on navigation.
+ *
+ * `featured` renders the wide hero card shown once on the blog index.
+ */
+import Icon from '../Icon.astro';
+import PostMeta from './PostMeta.astro';
+import TagPill from './TagPill.astro';
+import { postHref, tagHref } from '../../lib/posts';
+import type { Author, Post } from '../../lib/posts';
+
+interface Props {
+  post: Post;
+  author: Author;
+  variant?: 'default' | 'featured' | 'compact';
+  /** Numbered marker (used by prev/next-ish lists); purely visual. */
+  index?: number;
+  class?: string;
+}
+
+const { post, author, variant = 'default', index, class: className } = Astro.props;
+const featured = variant === 'featured';
+const compact = variant === 'compact';
+const href = postHref(post);
+---
+
+<article
+  data-spotlight
+  class:list={[
+    'post-card group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-sm transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:border-line-strong hover:shadow-md sm:p-7',
+    featured && 'md:p-10',
+    compact && 'p-5 sm:p-5',
+    className,
+  ]}
+>
+  {
+    featured && (
+      <span
+        aria-hidden="true"
+        class="post-card-flame pointer-events-none absolute -right-10 -bottom-14 text-ember-500/12"
+      >
+        <Icon name="flame" size={280} />
+      </span>
+    )
+  }
+
+  <div class="flex items-center gap-3">
+    {
+      featured && (
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-ember-gradient px-3 py-1 font-mono text-xs font-semibold tracking-[0.1em] text-on-accent uppercase shadow-glow">
+          <Icon name="flame" size={12} />
+          Featured
+        </span>
+      )
+    }
+    <ul class:list={['flex flex-wrap items-center gap-1.5', featured && 'min-w-0']}>
+      {
+        post.data.tags.map((tag) => (
+          <li>
+            <TagPill label={tag} href={tagHref(tag)} class={featured ? 'backdrop-blur-sm' : ''} />
+          </li>
+        ))
+      }
+    </ul>
+    {index !== undefined && !featured && (
+      <span aria-hidden="true" class="ml-auto font-mono text-xs text-ink-3 tabular-nums">
+        {String(index).padStart(2, '0')}
+      </span>
+    )}
+  </div>
+
+    <div class="relative z-1 flex flex-col gap-4" transition:name={`post-${post.id}`}>
+    {
+      featured ? (
+        <h2 class="font-display text-display-md text-ink text-balance">
+          <a href={href} class="post-card-link">
+            {post.data.title}
+          </a>
+        </h2>
+      ) : (
+        <h3
+          class:list={[
+            'font-display text-ink text-balance',
+            compact ? 'text-display-sm' : 'text-[clamp(1.375rem,1.1rem+1.2vw,1.75rem)] leading-snug tracking-[-0.01em]',
+          ]}
+        >
+          <a href={href} class="post-card-link">
+            {post.data.title}
+          </a>
+        </h3>
+      )
+    }
+
+    <p class:list={['text-pretty text-ink-2', compact ? 'text-sm leading-relaxed' : 'max-w-[58ch] text-[0.9375rem] leading-relaxed']}>
+      {post.data.description}
+    </p>
+
+    <div class="mt-auto flex flex-wrap items-end justify-between gap-4">
+      <PostMeta {post} {author} class={compact ? 'text-xs' : undefined} />
+      <span class="read-more" aria-hidden="true">
+        <span class="font-mono text-xs tracking-[0.08em] text-accent uppercase">Read</span>
+        <Icon name="arrow-right" size={15} class="text-accent transition-transform duration-(--dur-2) ease-(--ease-out-soft) group-hover:translate-x-1" />
+      </span>
+    </div>
+  </div>
+</article>
+
+<style>
+  .post-card-link {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color var(--dur-1) var(--ease-out-soft);
+  }
+
+  .post-card:hover .post-card-link {
+    color: var(--accent);
+  }
+
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .post-card-flame :global(svg) {
+    display: block;
+  }
+</style>

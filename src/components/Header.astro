@@ -10,7 +10,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href: string): boolean => {
   if (!href.startsWith('/')) return false;
   const path = href.replace(/\/$/, '') || '/';
-  return currentPath === path;
+  // Root matches exactly; sections match their subtree (Blog stays active
+  // on /blog/tags/…, /blog/page/2 and every article).
+  return currentPath === path || (path !== '/' && currentPath.startsWith(`${path}/`));
 };
 ---
 

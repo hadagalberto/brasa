@@ -1,0 +1,9 @@
+{
+  "name": "Sofia Marques",
+  "role": "Design systems lead",
+  "bio": "Spends her days turning subjective color debates into tokenized, measurable decisions. Maintains three design systems across two continents, still hand-checks every swatch in both themes, and will defend the em dash in commit messages to anyone.",
+  "location": "Lisbon, Portugal",
+  "links": [
+    { "label": "GitHub", "href": "https://github.com/sofiamarques", "icon": "github" }
+  ]
+}

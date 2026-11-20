@@ -1,6 +1,19 @@
 ---
 import { brasa } from '../brasa.config';
 
+export interface SeoArticle {
+  publishedTime: Date;
+  modifiedTime?: Date;
+  authorName: string;
+  authorUrl?: string;
+  tags: string[];
+}
+
+export interface SeoCrumb {
+  label: string;
+  href: string;
+}
+
 interface Props {
   title: string;
   description?: string;
@@ -8,6 +21,10 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   noindex?: boolean;
+  /** Present with type="article" for BlogPosting JSON-LD + article:* metas. */
+  article?: SeoArticle;
+  /** Emits a BreadcrumbList JSON-LD alongside the site graph. */
+  breadcrumbs?: SeoCrumb[];
 }
 
 const {
@@ -16,6 +33,8 @@ const {
   image = `${import.meta.env.BASE_URL}og.png`,
   type = 'website',
   noindex = false,
+  article,
+  breadcrumbs,
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://example.com');
@@ -26,18 +45,54 @@ const fullTitle =
     ? `${brasa.site.name} — ${brasa.site.tagline}`
     : `${title} · ${brasa.site.name}`;
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: brasa.site.name,
-  description: brasa.site.description,
-  url: site.toString(),
-  author: {
-    '@type': 'Person',
-    name: brasa.site.author,
-    url: brasa.site.github,
-  },
-};
+const graph: object[] = [];
+
+if (article && type === 'article') {
+  graph.push({
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: title,
+    description,
+    image: ogImage.toString(),
+    url: canonical.toString(),
+    datePublished: article.publishedTime.toISOString(),
+    dateModified: (article.modifiedTime ?? article.publishedTime).toISOString(),
+    keywords: article.tags.join(', '),
+    author: {
+      '@type': 'Person',
+      name: article.authorName,
+      ...(article.authorUrl ? { url: new URL(article.authorUrl, site).toString() } : {}),
+    },
+    publisher: { '@type': 'Organization', name: brasa.site.name },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical.toString() },
+  });
+} else {
+  graph.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: brasa.site.name,
+    description: brasa.site.description,
+    url: site.toString(),
+    author: {
+      '@type': 'Person',
+      name: brasa.site.author,
+      url: brasa.site.github,
+    },
+  });
+}
+
+if (breadcrumbs && breadcrumbs.length > 0) {
+  graph.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.label,
+      item: new URL(crumb.href, site).toString(),
+    })),
+  });
+}
 ---
 
 <title>{fullTitle}</title>
@@ -56,10 +111,22 @@ const jsonLd = {
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={`${brasa.site.name} — ${brasa.site.tagline}`} />
 <meta property="og:locale" content="en_US" />
+{
+  article && type === 'article' && (
+    <>
+      <meta property="article:published_time" content={article.publishedTime.toISOString()} />
+      {article.modifiedTime && (
+        <meta property="article:modified_time" content={article.modifiedTime.toISOString()} />
+      )}
+      <meta property="article:author" content={article.authorName} />
+      {article.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    </>
+  )
+}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 
-<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+{graph.map((entry) => <script type="application/ld+json" set:html={JSON.stringify(entry)} />)}

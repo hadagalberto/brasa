@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Container from '../../../components/Container.astro';
+import TagPill from '../../../components/blog/TagPill.astro';
+import { collectTags, getPosts, tagHref } from '../../../lib/posts';
+
+const posts = await getPosts();
+const tags = collectTags(posts);
+---
+
+<BaseLayout
+  title="Blog — all topics"
+  description="Every topic on the Brasa blog: deploy previews, performance, accessibility, design systems and engineering culture."
+>
+  <div class="section-y" data-glow>
+    <Container size="md">
+      <header class="flex flex-col gap-5">
+        <p class="eyebrow">
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+          The forge · topics
+        </p>
+        <h1 class="font-display text-display-lg text-ink text-balance">
+          Browse by topic
+        </h1>
+        <p class="max-w-[62ch] text-pretty text-body-lg text-ink-2">
+          {tags.length}
+          {tags.length === 1 ? 'topic' : 'topics'} across {posts.length}
+          {posts.length === 1 ? 'essay' : 'essays'}. Every tag page is a
+          complete reading list.
+        </p>
+      </header>
+
+      <ul class="mt-12 flex flex-wrap gap-3" aria-label="All topics">
+        {
+          tags.map((tag) => (
+            <li>
+              <TagPill
+                label={tag.label}
+                href={tagHref(tag.label)}
+                count={tag.count}
+                class="h-10 px-4 text-sm"
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </Container>
+  </div>
+</BaseLayout>

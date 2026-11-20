@@ -1,0 +1,118 @@
+---
+/**
+ * Pagination — numbered links with ellipsis windows, honest prev/next
+ * arrows and a disabled-current page. Links carry descriptive accessible
+ * names; the current page is `aria-current="page"`.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  page: number;
+  totalPages: number;
+  /** Builds the href for a given page number (1 → usually the section root). */
+  hrefFor: (page: number) => string;
+  /** Accessible label for the whole nav. */
+  label?: string;
+}
+
+const { page, totalPages, hrefFor, label = 'Pagination' } = Astro.props;
+
+/** 1 … 4 [5] 6 … 9 — a window around the current page, clamped at the edges. */
+function pages(): Array<number | 'ellipsis'> {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const wanted = new Set<number>([1, totalPages, page - 1, page, page + 1]);
+  const sorted = [...wanted].filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b);
+  const out: Array<number | 'ellipsis'> = [];
+  let previous = 0;
+  for (const n of sorted) {
+    if (n - previous > 1) out.push('ellipsis');
+    out.push(n);
+    previous = n;
+  }
+  return out;
+}
+
+const linkBase =
+  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-full border px-3 font-mono text-xs font-medium tabular-nums transition-colors duration-(--dur-1)';
+const linkIdle = `${linkBase} border-line bg-transparent text-ink-2 hover:border-line-strong hover:bg-surface hover:text-ink`;
+const linkCurrent = `${linkBase} border-transparent cursor-default`;
+---
+
+{
+  totalPages > 1 && (
+    <nav aria-label={label} class="not-prose">
+      <ul class="flex flex-wrap items-center justify-center gap-1.5">
+        <li>
+          {page > 1 ? (
+            <a
+              href={hrefFor(page - 1)}
+              rel="prev"
+              class:list={[linkIdle, 'px-3.5']}
+              aria-label={`Previous page (page ${page - 1} of ${totalPages})`}
+            >
+              <Icon name="chevron-left" size={15} />
+              <span class="hidden sm:inline">Prev</span>
+            </a>
+          ) : (
+            <span
+              aria-hidden="true"
+              class:list={[linkBase, 'border-transparent px-3.5 text-ink-3/50']}
+            >
+              <Icon name="chevron-left" size={15} />
+              <span class="hidden sm:inline">Prev</span>
+            </span>
+          )}
+        </li>
+
+        {pages().map((entry) => (
+          <li>
+            {entry === 'ellipsis' ? (
+              <span aria-hidden="true" class="inline-flex h-9 items-center px-1 font-mono text-xs text-ink-3">
+                …
+              </span>
+            ) : entry === page ? (
+              <a
+                href={hrefFor(entry)}
+                aria-current="page"
+                aria-label={`Page ${entry} of ${totalPages} (current)`}
+                class:list={[linkCurrent, 'bg-ember-gradient text-on-accent shadow-glow']}
+              >
+                {entry}
+              </a>
+            ) : (
+              <a
+                href={hrefFor(entry)}
+                aria-label={`Page ${entry} of ${totalPages}`}
+                class={linkIdle}
+              >
+                {entry}
+              </a>
+            )}
+          </li>
+        ))}
+
+        <li>
+          {page < totalPages ? (
+            <a
+              href={hrefFor(page + 1)}
+              rel="next"
+              class:list={[linkIdle, 'px-3.5']}
+              aria-label={`Next page (page ${page + 1} of ${totalPages})`}
+            >
+              <span class="hidden sm:inline">Next</span>
+              <Icon name="chevron-right" size={15} />
+            </a>
+          ) : (
+            <span
+              aria-hidden="true"
+              class:list={[linkBase, 'border-transparent px-3.5 text-ink-3/50']}
+            >
+              <span class="hidden sm:inline">Next</span>
+              <Icon name="chevron-right" size={15} />
+            </span>
+          )}
+        </li>
+      </ul>
+    </nav>
+  )
+}

@@ -1,0 +1,25 @@
+---
+/**
+ * Tag pill — links to /blog/tags/<slug>.
+ */
+interface Props {
+  label: string;
+  href: string;
+  /** Inactive context (e.g. the tags index) can opt out of hover affordance. */
+  count?: number;
+  class?: string;
+}
+
+const { label, href, count, class: className } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 py-1 font-mono text-xs font-medium tracking-[0.04em] text-ink-2 transition-colors duration-(--dur-1) hover:border-accent/40 hover:bg-accent-soft hover:text-accent',
+    className,
+  ]}
+>
+  {label}
+  {count !== undefined && <span class="text-ink-3 tabular-nums">{count}</span>}
+</a>

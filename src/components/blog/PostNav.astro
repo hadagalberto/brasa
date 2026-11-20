@@ -1,0 +1,63 @@
+---
+/**
+ * Prev/next navigation — chronological neighbours with tag context.
+ */
+import Icon from '../Icon.astro';
+import TagPill from './TagPill.astro';
+import { postHref, tagHref } from '../../lib/posts';
+import type { Post } from '../../lib/posts';
+
+interface Props {
+  prev: Post | null;
+  next: Post | null;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{
+  (prev || next) && (
+    <nav aria-label="Post navigation" class="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {prev && (
+        <a
+          href={postHref(prev)}
+          rel="prev"
+          class="group flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6 shadow-sm transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md"
+        >
+          <span class="inline-flex items-center gap-1.5 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
+            <Icon name="chevron-left" size={14} />
+            Older
+          </span>
+          <span class="font-display text-lg leading-snug text-ink text-balance transition-colors duration-(--dur-1) group-hover:text-accent">
+            {prev.data.title}
+          </span>
+          <span class="flex flex-wrap gap-1.5">
+            {prev.data.tags.slice(0, 2).map((tag) => (
+              <TagPill label={tag} href={tagHref(tag)} />
+            ))}
+          </span>
+        </a>
+      )}
+      {next && (
+        <a
+          href={postHref(next)}
+          rel="next"
+          class="group flex flex-col items-end gap-3 rounded-2xl border border-line bg-surface p-6 text-right shadow-sm transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md sm:col-start-2"
+        >
+          <span class="inline-flex items-center gap-1.5 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
+            Newer
+            <Icon name="chevron-right" size={14} />
+          </span>
+          <span class="font-display text-lg leading-snug text-ink text-balance transition-colors duration-(--dur-1) group-hover:text-accent">
+            {next.data.title}
+          </span>
+          <span class="flex flex-wrap justify-end gap-1.5">
+            {next.data.tags.slice(0, 2).map((tag) => (
+              <TagPill label={tag} href={tagHref(tag)} />
+            ))}
+          </span>
+        </a>
+      )}
+    </nav>
+  )
+}

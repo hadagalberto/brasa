@@ -1,0 +1,97 @@
+---
+title: Deploy previews are the pull request's missing half
+description: A diff tells you what changed. A preview tells you whether it works. Notes from a year of shipping every branch to a URL and reviewing in the browser instead of the diff.
+author: hadjunior
+tags:
+  - Deploy previews
+  - Engineering culture
+pubDate: 2026-11-02
+featured: true
+import { Callout, Steps, Tabs } from '../../components/mdx';
+
+---
+
+A pull request is a strange artifact. We spend hours writing code, then hand reviewers a wall of red and green text and ask them to *imagine* the running software. Every review is a translation exercise: from diff to behavior, in the reviewer's head, at speed. It works — until it doesn't, and the "looks good to me" that slipped past a mis-rendered checkout flow ships to production.
+
+The fix is not better diff tools. It is handing reviewers the artifact itself.
+
+Every branch, built and served at a URL, with the database seeded and the feature flags set. The pull request becomes a *link with a conversation attached*, and the review happens where the software actually lives: in a browser, on a phone, with real data.
+
+## The review loop, measured
+
+We moved Brasa Cloud's own development to preview-first a year ago. The loop we landed on is unremarkable, which is the point — it fits in the gaps of a normal day:
+
+<Steps
+  class="not-prose"
+  steps={[
+    { icon: 'git-branch', title: 'Push a branch', body: 'The CI watch fires on push, not on PR creation — so work-in-progress branches get previews too, before anyone is asked to look.' },
+    { icon: 'bolt', title: 'Build in isolation', body: 'Each branch builds against a content-addressed cache, so a cold build is the exception and a six-second warm build is the norm.' },
+    { icon: 'link', title: 'Drop the URL in the thread', body: 'The PR body updates itself with the preview link, the QR code for phones, and the log of what the build did.' },
+    { icon: 'message', title: 'Review in the browser', body: 'Comments land on the commit with a screenshot attached automatically, so the diff and the behavior stay neighbors.' },
+  ]}
+/>
+
+Measure the old loop honestly and the embarrassment is the finding: our median review was opened 40 minutes after the author asked for it, and the first *functional* feedback — someone actually clicking the thing — arrived hours later, often after merge. The preview loop collapses both numbers. Reviewers stop reviewing the diff as text and start reviewing the change as a product.
+
+<Callout variant="tip" title="Share before you are ready">
+The strongest culture change costs nothing: post the preview URL while the branch is still rough, with a note like "the header is a mess, but does the flow make sense?" Early previews train the team to read a work-in-progress generously — and they surface the disagreements that diffs hide best.
+</Callout>
+
+## What a preview actually changes
+
+Three shifts, none of them about infrastructure:
+
+1. **Reviews get concrete.** "This feels slow" becomes a reproducible URL with a Lighthouse report attached. Taste is still welcome; evidence is better.
+2. **Designers re-enter the loop.** Screenshots in Figma ask "is this what you meant?" Previews ask "is this what you built?" — a much shorter conversation.
+3. **Merging stops being scary.** When every branch has been running in production shape for days, the merge button is bookkeeping, not a leap of faith.
+
+> The first week, reviewers kept opening the diff out of habit and clicking the preview link out of curiosity. By the second week the order flipped. Nothing else about our process changed.
+
+That quote is from our staff engineer, and the order flip is the whole thesis: the preview becomes the primary artifact, and the diff becomes its footnotes.
+
+## Ephemeral, private, boring
+
+Two properties decide whether previews survive contact with a real team:
+
+**Ephemeral by default.** A preview is a cache entry with a TTL, not a server to babysit. Thirty days, then gone. If a branch lives longer than its preview, that is a signal about the branch, not the preview.
+
+**Private by default.** Previews inherit the repository's access. Outside collaborators get a scoped password that expires with the build. A public URL for internal work is a leak with extra steps.
+
+The operational surface is deliberately small — one command covers the common paths:
+
+<Tabs
+  label="Preview operations"
+  tabs={[
+    { id: 'deploy', label: 'Deploy', icon: 'bolt' },
+    { id: 'share', label: 'Share', icon: 'users' },
+  ]}
+>
+  <Fragment slot="deploy">
+    ```bash
+    # build and serve the current branch
+    brasa deploy --branch "$BRANCH_NAME"
+
+    # -> https://preview-8f2k.brasa.cloud  (built in 6.2s)
+    ```
+  </Fragment>
+  <Fragment slot="share">
+    ```bash
+    # a scoped password for an outside reviewer, expires with the preview
+    brasa share --expires 48h --password
+
+    # -> https://preview-8f2k.brasa.cloud/#/guest/9ab1
+    ```
+
+    The QR code for the same link is printed by every deploy — reviewing layout on the phone it will ship to beats squinting at a 27-inch diff.
+  </Fragment>
+</Tabs>
+
+<Callout variant="note">
+Retention and access are per-project settings, not per-developer decisions. The default of 30 days keeps the bill predictable; short-lived spikes (release week) cost nothing extra because previews share the same build cache as production.
+</Callout>
+
+## The economics, honestly
+
+Previews are not free — you are paying to render work that may be thrown away. The bill is honest work if you keep two ratios in mind: a preview build should reuse 80–95% of a production build's cached layers, and preview traffic should be a rounding error next to production traffic. When either ratio slips, the fix is caching, not budget cuts. A team that deletes previews to save money is a team about to review in diffs again.
+
+None of this is a new idea — preview deployments have been the practice of well-run platform teams for a decade. What changed is the cost floor: when a warm build costs six seconds and a cold one costs minutes, *every branch* is previewable, not just the scary ones. That is the shift worth making on purpose.

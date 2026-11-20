@@ -1,0 +1,85 @@
+---
+title: A view transition is a promise
+description: Shared-element morphs between the blog index and the article header look like magic and behave like a contract. How Brasa wires them, what the browser actually animates, and the three ways to break the illusion.
+author: hadjunior
+tags:
+  - Design systems
+  - Performance
+pubDate: 2026-08-05
+updatedDate: 2026-10-01
+import { Callout } from '../../components/mdx';
+
+---
+
+Click a post card on this blog and the card's headline doesn't vanish and reappear — it *travels*, landing as the article's header while the rest of the page settles around it. Under the hood this is a shared-element view transition: the browser screenshots the old element and the new one, then animates between them. It costs about forty lines of code and zero JavaScript, which is exactly why it deserves respect: the feature is cheap, but the *expectations it creates* are not.
+
+A transition is a promise that the thing you clicked is the thing that appeared. Break the promise and you get the uncanny version — motion that draws attention to the seam instead of hiding it.
+
+## How the wiring actually works
+
+Astro's `<ClientRouter />` (the view-transitions router) does the plumbing: navigate, snapshot the old page, swap the DOM, snapshot the new page, animate. Shared elements opt in by name — the same `transition:name` on the card's title block and on the post header means "same thing":
+
+```astro
+<!-- PostCard: the element that leaves -->
+<div transition:name={`post-${post.id}`}>
+  <h3>{post.data.title}</h3>
+</div>
+
+<!-- Post page: the element that arrives -->
+<header transition:name={`post-${post.id}`}>
+  <h1>{post.data.title}</h1>
+</header>
+```
+
+Two rules do most of the quality work:
+
+1. **Names must be unique per page.** A list of cards each gets `post-<slug>`; two elements claiming one name on the same page makes the browser pick a winner arbitrarily, and the animation lies.
+2. **The pair should be structurally similar.** The morph interpolates position and size, not meaning. Wrapping the *same* content — title, maybe a meta row — in both places makes the geometry interpolate through states that still look like the thing.
+
+```css
+/* The browser defines these; the design system just dresses them. */
+::view-transition-old(root) {
+  animation-duration: var(--dur-2);
+  animation-timing-function: var(--ease-out-soft);
+}
+
+::view-transition-group(post-*) {
+  animation-timing-function: var(--ease-out-soft);
+}
+```
+
+That second selector — `post-*` — is the shared-element group: the browser pairs snapshots by name prefix and interpolates their boxes. Our durations run 150–400 ms on the custom ease the rest of the site uses, so the navigation *sounds* like the rest of the interface.
+
+<Callout variant="warning" title="The one layout-shifting bug worth fearing">
+Shared elements animate between snapshot positions, which are measured at swap time. If the arriving header shifts after hydration — a font swap, an image loading without reserved space — the new snapshot is taken from the wrong place and the element lands, visibly, wrong. Reserve everything: aspect-ratio boxes, <code>min-height</code> on the header, <code>font-display: swap</code> with preload. The transition faithfully reproduces any layout instability you feed it.
+</Callout>
+
+## The three ways to break the promise
+
+We found each of these the hard way, which is to say: users found them.
+
+**Animate unrelated things.** A card morphs into a header that shares no content with it — same geometry, zero continuity. The motion becomes decoration, and decoration with that much visual weight reads as a bug. Fix: only share names between elements that *are* the same thing.
+
+**Let the destination reflow mid-flight.** Covered above, but it deserves its own line item because it is the most common. The transition is only as stable as the destination's first paint.
+
+**Ignore the motion-sensitive.** Some people get genuinely ill from unexpected large motion, and `prefers-reduced-motion` is the browser telling you who. The rule is one media query: below it, shared elements simply cross-fade — the *promise* (this became that) survives, the movement does not.
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+```
+
+## What we measured
+
+The temptation with any view transition is to fear the cost. The bill for a blog index of ~10 cards is a handful of name attributes — bytes, not kilobytes. The animation itself is compositor work off the main thread, so the page is interactive during the flight, and the total budget for a happy navigation lands well inside our 400 ms ceiling.
+
+What actually needed tuning was *duration empathy*: 400 ms feels luxurious once and obstructive on the fifth click. Our final numbers — 250 ms root cross-fade, 400 ms shared-element flight — came from watching people *read*, not from taste. A transition earns its milliseconds by being done sooner than you expected.
+
+> The best feedback we ever got on the morph was a bug report that said "the header teleported" — the user was describing the cross-fade fallback on their reduced-motion setup, having never seen the flight. The promise kept, the motion withheld, the experience still coherent.
+
+That is the whole standard: transitions should be the *continuity layer* of the interface, present when welcomed, absent when not, and honest always.

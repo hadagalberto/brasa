@@ -1,0 +1,175 @@
+---
+/**
+ * Generic content tabs (WAI-ARIA) for MDX — the prose sibling of CodeTabs.
+ *
+ * Usage:
+ *   <Tabs tabs={[{ id: 'a', label: 'Alpha' }, { id: 'b', label: 'Beta' }]}>
+ *     <Fragment slot="a">…markdown…</Fragment>
+ *     <Fragment slot="b">…markdown…</Fragment>
+ *   </Tabs>
+ *
+ * - Full ARIA pattern: roving tabindex, Arrow/Home/End keys, automatic
+ *   activation, `aria-controls`/`aria-labelledby` wiring.
+ * - No-JS fallback: the tablist is hidden and every panel renders stacked
+ *   with its own label, so nothing is unreachable.
+ * - Panel content keeps .prose typography — only the tablist opts out.
+ */
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+export interface TabItem {
+  /** Stable id — wires the Fragment slot, ARIA attributes and the switcher. */
+  id: string;
+  label: string;
+  icon?: IconName;
+}
+
+interface Props {
+  tabs: TabItem[];
+  /** Accessible name for the tablist. */
+  label?: string;
+  class?: string;
+}
+
+const { tabs, label = 'Content tabs', class: className } = Astro.props;
+
+const panels = await Promise.all(
+  tabs.map(async (tab) => ({ id: tab.id, html: await Astro.slots.render(tab.id) })),
+);
+
+// Unique id prefix per instance (the component can appear several times).
+let tabsSequence = 0;
+tabsSequence += 1;
+const uid = `tabs-${tabsSequence.toString(36)}`;
+---
+
+<div data-tabs class:list={[className]}>
+  <div role="tablist" aria-label={label} class="not-prose flex flex-wrap gap-1.5">
+    {tabs.map((tab, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`${uid}-${tab.id}-tab`}
+        aria-selected={index === 0 ? 'true' : 'false'}
+        aria-controls={`${uid}-${tab.id}-panel`}
+        tabindex={index === 0 ? 0 : -1}
+        data-tab={tab.id}
+        class="tab-button"
+        data-active={index === 0 ? '' : undefined}
+      >
+        {tab.icon && <Icon name={tab.icon} size={14} />}
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+  {
+    panels.map(({ id, html }, index) => (
+      <div
+        role="tabpanel"
+        id={`${uid}-${id}-panel`}
+        aria-labelledby={`${uid}-${id}-tab`}
+        data-panel={id}
+        hidden={index !== 0}
+        tabindex="0"
+        class="mt-5"
+        set:html={html ?? ''}
+      />
+    ))
+  }
+</div>
+
+<noscript>
+  <style is:inline>
+    [data-tabs] [role='tablist'] {
+      display: none;
+    }
+
+    [data-tabs] [role='tabpanel'],
+    [data-tabs] [role='tabpanel'][hidden] {
+      display: block !important;
+    }
+
+    [data-tabs] [role='tabpanel'][hidden] {
+      margin-block-start: 1.25rem;
+    }
+  </style>
+</noscript>
+
+<style>
+  .tab-button {
+    display: inline-flex;
+    height: 2.25rem;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background-color: transparent;
+    padding-inline: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: color var(--dur-1) var(--ease-out-soft),
+      border-color var(--dur-1) var(--ease-out-soft), background-color var(--dur-1) var(--ease-out-soft);
+  }
+
+  .tab-button:hover {
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+
+  /* Set by the script (mirrors aria-selected) — the lint rule can't see it. */
+  /* eslint-disable-next-line astro/no-unused-css-selector */
+  .tab-button[data-active] {
+    border-color: var(--line-strong);
+    background-color: var(--surface-3);
+    color: var(--ink);
+  }
+</style>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((root) => {
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+      if (tabs.length === 0 || panels.length === 0) return;
+
+      const select = (tab: HTMLButtonElement, focus = true): void => {
+        for (const other of tabs) {
+          const active = other === tab;
+          other.setAttribute('aria-selected', String(active));
+          other.tabIndex = active ? 0 : -1;
+          if (active) other.dataset.active = '';
+          else delete other.dataset.active;
+        }
+        for (const panel of panels) {
+          panel.hidden = panel.dataset.panel !== tab.dataset.tab;
+        }
+        if (focus) tab.focus();
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          select(tab, false);
+        });
+      });
+
+      root.addEventListener('keydown', (event) => {
+        const current = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+        let next = -1;
+        if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        if (next >= 0) {
+          event.preventDefault();
+          select(tabs[next] as HTMLButtonElement);
+        }
+      });
+    });
+  });
+</script>

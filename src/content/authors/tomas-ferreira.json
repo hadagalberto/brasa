@@ -1,0 +1,10 @@
+{
+  "name": "Tomás Ferreira",
+  "role": "Performance & platform engineer",
+  "bio": "Measures first, refactors second, tweets never. Cut three product builds from minutes to seconds with content addressing and a healthy distrust of caching folklore. Keeps a spreadsheet of every Lighthouse run since 2021 and is not sorry about it.",
+  "location": "Porto, Portugal",
+  "links": [
+    { "label": "GitHub", "href": "https://github.com/tomasferreira", "icon": "github" },
+    { "label": "X (Twitter)", "href": "https://x.com/tomasfcodes", "icon": "x" }
+  ]
+}

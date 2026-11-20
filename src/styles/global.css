@@ -370,215 +370,219 @@
 
 /* --------------------------------------------------------------------------
    Prose — typography for long-form MDX content.
+   Layered under utilities on purpose: MDX drops structural components
+   (Steps, FileTree, Tabs…) into .prose, and their own classes must win.
+   The `:not(.not-prose…)` guards keep prose from reaching *into* those
+   components' lists and headings; components that carry `not-prose` set
+   their own complete typography.
    -------------------------------------------------------------------------- */
-.prose {
-  font-size: var(--text-body-lg);
-  line-height: 1.75;
-  color: var(--ink);
-}
+@layer components {
+  .prose {
+    font-size: var(--text-body-lg);
+    line-height: 1.75;
+    color: var(--ink);
+  }
 
-.prose > * + * {
-  margin-block-start: 1.25em;
-}
+  .prose > * + * {
+    margin-block-start: 1.25em;
+  }
 
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4 {
-  font-family: var(--font-display);
-  font-weight: 530;
-  color: var(--ink);
-  text-wrap: balance;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-}
+  .prose :is(h1, h2, h3, h4):not(.not-prose, .not-prose *) {
+    font-family: var(--font-display);
+    font-weight: 530;
+    color: var(--ink);
+    text-wrap: balance;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
 
-.prose h1 {
-  font-size: var(--text-display-lg);
-  margin-block: 2.5em 0.75em;
-}
+  .prose h1:not(.not-prose, .not-prose *) {
+    font-size: var(--text-display-lg);
+    margin-block: 2.5em 0.75em;
+  }
 
-.prose h2 {
-  font-size: var(--text-display-md);
-  margin-block: 2.25em 0.625em;
-  padding-block-end: 0.5em;
-  border-block-end: 1px solid var(--line);
-}
+  .prose h2:not(.not-prose, .not-prose *) {
+    font-size: var(--text-display-md);
+    margin-block: 2.25em 0.625em;
+    padding-block-end: 0.5em;
+    border-block-end: 1px solid var(--line);
+  }
 
-.prose h3 {
-  font-size: var(--text-display-sm);
-  margin-block: 2em 0.5em;
-  letter-spacing: -0.01em;
-}
+  .prose h3:not(.not-prose, .not-prose *) {
+    font-size: var(--text-display-sm);
+    margin-block: 2em 0.5em;
+    letter-spacing: -0.01em;
+  }
 
-.prose h4 {
-  font-size: 1.125rem;
-  margin-block: 1.75em 0.5em;
-}
+  .prose h4:not(.not-prose, .not-prose *) {
+    font-size: 1.125rem;
+    margin-block: 1.75em 0.5em;
+  }
 
-.prose p {
-  text-wrap: pretty;
-}
+  .prose p {
+    text-wrap: pretty;
+  }
 
-.prose h2 + *,
-.prose h3 + *,
-.prose h4 + * {
-  margin-block-start: 0;
-}
+  .prose h2 + *,
+  .prose h3 + *,
+  .prose h4 + * {
+    margin-block-start: 0;
+  }
 
-.prose a {
-  color: var(--accent);
-  font-weight: 500;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.2em;
-  transition: text-decoration-color var(--dur-1) var(--ease-out-soft);
-}
+  .prose a {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color var(--dur-1) var(--ease-out-soft);
+  }
 
-.prose a:hover {
-  text-decoration-color: var(--accent);
-}
+  .prose a:hover {
+    text-decoration-color: var(--accent);
+  }
 
-.prose strong {
-  color: var(--ink);
-  font-weight: 640;
-}
+  .prose strong {
+    color: var(--ink);
+    font-weight: 640;
+  }
 
-.prose ol,
-.prose ul {
-  padding-inline-start: 1.375em;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
+  .prose ol:not(.not-prose, .not-prose *),
+  .prose ul:not(.not-prose, .not-prose *) {
+    padding-inline-start: 1.375em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
 
-.prose ul {
-  list-style: none;
-}
+  .prose ul:not(.not-prose, .not-prose *) {
+    list-style: none;
+  }
 
-.prose ul > li::marker {
-  content: '';
-}
+  .prose ul:not(.not-prose, .not-prose *) > li::marker {
+    content: '';
+  }
 
-.prose ul > li {
-  position: relative;
-}
+  .prose ul:not(.not-prose, .not-prose *) > li {
+    position: relative;
+  }
 
-.prose ul > li::before {
-  content: '';
-  position: absolute;
-  inset-block-start: 0.72em;
-  inset-inline-start: -1.375em;
-  width: 0.9em;
-  height: 2px;
-  border-radius: 999px;
-  background-image: var(--gradient-ember);
-}
+  .prose ul:not(.not-prose, .not-prose *) > li::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0.72em;
+    inset-inline-start: -1.375em;
+    width: 0.9em;
+    height: 2px;
+    border-radius: 999px;
+    background-image: var(--gradient-ember);
+  }
 
-.prose ol {
-  list-style: decimal;
-}
+  .prose ol:not(.not-prose, .not-prose *) {
+    list-style: decimal;
+  }
 
-.prose li::marker {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-}
+  .prose :is(ol, ul):not(.not-prose, .not-prose *) li::marker {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
 
-.prose blockquote {
-  border-inline-start: 2px solid var(--ember-500);
-  padding-inline-start: 1.25rem;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.125em;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
+  .prose blockquote {
+    border-inline-start: 2px solid var(--ember-500);
+    padding-inline-start: 1.25rem;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.125em;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
 
-.prose blockquote em {
-  color: var(--ink);
-}
+  .prose blockquote em {
+    color: var(--ink);
+  }
 
-.prose :not(pre) > code {
-  font-family: var(--font-mono);
-  font-size: 0.875em;
-  font-weight: 500;
-  color: var(--accent);
-  background-color: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xs);
-  padding: 0.125em 0.375em;
-  word-break: break-word;
-}
+  .prose :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    font-weight: 500;
+    color: var(--accent);
+    background-color: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    padding: 0.125em 0.375em;
+    word-break: break-word;
+  }
 
-.prose pre code {
-  all: unset;
-}
+  .prose pre code {
+    all: unset;
+  }
 
-.prose .expressive-code {
-  margin-block: 1.5em;
-}
+  .prose .expressive-code {
+    margin-block: 1.5em;
+  }
 
-.prose kbd {
-  font-family: var(--font-mono);
-  font-size: 0.75em;
-  font-weight: 500;
-  color: var(--ink);
-  background-color: var(--surface-2);
-  border: 1px solid var(--line-strong);
-  border-block-end-width: 2px;
-  border-radius: var(--radius-xs);
-  padding: 0.2em 0.45em;
-}
+  .prose kbd {
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    font-weight: 500;
+    color: var(--ink);
+    background-color: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-block-end-width: 2px;
+    border-radius: var(--radius-xs);
+    padding: 0.2em 0.45em;
+  }
 
-.prose hr {
-  border: 0;
-  height: 1px;
-  margin-block: 2.5em;
-  background: linear-gradient(to right, transparent, var(--line-strong), transparent);
-}
+  .prose hr {
+    border: 0;
+    height: 1px;
+    margin-block: 2.5em;
+    background: linear-gradient(to right, transparent, var(--line-strong), transparent);
+  }
 
-.prose table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9375rem;
-  text-align: start;
-}
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    text-align: start;
+  }
 
-.prose thead th {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  border-block-end: 1px solid var(--line-strong);
-  padding: 0.6em 1em;
-}
+  .prose thead th {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    border-block-end: 1px solid var(--line-strong);
+    padding: 0.6em 1em;
+  }
 
-.prose tbody td {
-  border-block-end: 1px solid var(--line);
-  padding: 0.7em 1em;
-}
+  .prose tbody td {
+    border-block-end: 1px solid var(--line);
+    padding: 0.7em 1em;
+  }
 
-.prose tbody tr:last-child td {
-  border-block-end: 0;
-}
+  .prose tbody tr:last-child td {
+    border-block-end: 0;
+  }
 
-.prose img {
-  border-radius: var(--radius-lg);
-  box-shadow: var(--elev-md);
-}
+  .prose img {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elev-md);
+  }
 
-.prose figure {
-  margin-block: 1.75em;
-}
+  .prose figure {
+    margin-block: 1.75em;
+  }
 
-.prose figcaption {
-  font-size: 0.875rem;
-  color: var(--ink-3);
-  text-align: center;
-  margin-block-start: 0.75em;
-  text-wrap: pretty;
+  .prose figcaption {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    text-align: center;
+    margin-block-start: 0.75em;
+    text-wrap: pretty;
+  }
 }

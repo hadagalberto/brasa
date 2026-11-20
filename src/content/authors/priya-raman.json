@@ -1,0 +1,9 @@
+{
+  "name": "Priya Raman",
+  "role": "Accessibility engineer",
+  "bio": "Keyboard-first since 2009, when a broken trackpad taught her more about UX than any course since. Runs audits with real assistive-tech users, files the bug reports nobody else wants, and believes focus states are a brand asset.",
+  "location": "Bengaluru, India",
+  "links": [
+    { "label": "GitHub", "href": "https://github.com/priyaraman", "icon": "github" }
+  ]
+}

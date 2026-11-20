@@ -1,0 +1,54 @@
+---
+title: Keyboard-first is a compass, not a checklist
+description: Auditing Brasa's own blog for keyboard users taught us more than any conformance report. What we fixed, what we deliberately left, and why "passing axe" was the least interesting part.
+author: priya-raman
+tags:
+  - Accessibility
+pubDate: 2026-09-09
+import { Callout } from '../../components/mdx';
+
+---
+
+Every accessibility audit ends the same way: a list, a score, a sigh of relief when the last item closes. But conformance is a floor, not a direction. The difference showed up the first time I reviewed this blog *without touching the mouse* — five minutes of typing found more friction than a week of tooling.
+
+This post is that five minutes, reconstructed, with the fixes we shipped.
+
+## The method is embarrassingly simple
+
+Unplug the mouse. Then do the four things a reader actually does:
+
+1. Read an article top to bottom, following one in-content link.
+2. Jump into a post from the blog index and back out.
+3. Open the table of contents and skip to a late section.
+4. Reach the footer without getting lost on the way.
+
+Everything below fell out of those four flows. No checklist required — just the willingness to be bored and slightly annoyed on purpose.
+
+## What the keyboard found
+
+**Focus had no visible state on prose links.** The global focus ring styles every interactive element *except* links styled with their own color — browsers suppress the default outline the moment you define `outline-color`, and ours did. Fix: a dedicated `:focus-visible` rule for links with the ember ring and a hairline offset. One selector, restored meaning.
+
+**The reading flow drowned in tab stops.** Every tag pill, share button and author link sat between a reader and the next paragraph. Keyboard users pay per keypress, so a post with three tags costs them three <kbd>Tab</kbd> presses of tax before the content continues. Fix: not fewer links — *grouped* ones. Tag pills now sit in a single `nav` landmark; the table of contents is one list, not a per-link tour.
+
+<Callout variant="danger" title="The trap to watch for">
+Do not "fix" tab-stop density with <code>tabindex="-1"</code> on content links. Removing focusability from links inside an article is a conformance failure masquerading as polish — keyboard users lose the *ability to reference a section at all*, while your tab count gets a nicer number. Group landmarks instead; never amputate.
+</Callout>
+
+**The sticky TOC could not be operated.** Our first table of contents looked great and had a roving tabindex that ate arrow keys while scrolled two viewports above the panel it controlled. The IntersectionObserver tracked sections beautifully; the keyboard story was an afterthought. Fix: the TOC is now a plain, boring, wonderful list of anchor links — <kbd>Tab</kbd> walks it, <kbd>Enter</kbd> works, and the current section carries `aria-current="true"` so screen readers announce where you are on arrival.
+
+**Skip-to-content arrived one tab stop too late.** The skip link was technically first in DOM order but visually hidden in a way that left it unfocusable-then-focusable at the wrong moment during theme swaps. Fix: the theme bootstrap script now toggles the data attribute *before* first paint, and the skip link's `translate` transition never leaves the page with a link that exists but cannot be reached.
+
+## What we deliberately did not fix
+
+Conformance culture loves a clean list, so it helps to name the things we left alone:
+
+- **The marquee on the home page keeps moving when focused via keyboard**, because pausing on focus *is* the accommodation — motion continues only for the pointer-havers. Removing the animation entirely would change the design for everyone; WCAG asks for the stop control, not the eraser.
+- **Color-coded severity in callouts keeps its icon and title.** We could have added redundant text labels everywhere, but every callout already *says* "Note" or "Warning" in words — the color is the redundancy, not the information.
+
+<Callout variant="note">
+axe-core runs on every route of this site in CI, in both themes, and it should: it catches regressions humans get tired of catching. The lesson of the keyboard pass is only that the ceiling is higher than the tool. A CI gate tells you what did not break; five unplugged minutes tell you what *feels* broken — and "feels broken" is the metric your users actually experience.
+</Callout>
+
+## The compass
+
+A checklist answers "are we compliant?" A compass answers "which way is better?" The second question is the one that ships dignity. When in doubt, unplug the mouse, become your own user for five minutes, and trust the friction — it is more honest than any report, including the ones I write.

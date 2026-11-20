@@ -1,0 +1,59 @@
+---
+/**
+ * A post's byline row — author (linked), date, reading time. Reused by the
+ * featured card, post cards and the post hero so the metadata never drifts.
+ */
+import Avatar from '../Avatar.astro';
+import Icon from '../Icon.astro';
+import { authorHref, formatDate, readingTimeLabel } from '../../lib/posts';
+import type { Author, Post } from '../../lib/posts';
+
+interface Props {
+  post: Post;
+  author: Author;
+  /** Link the author name to their page (default: yes). */
+  linkAuthor?: boolean;
+  class?: string;
+}
+
+const { post, author, linkAuthor = true, class: className } = Astro.props;
+---
+
+<div class:list={['flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-3', className]}>
+  <span class="inline-flex items-center gap-2.5">
+    <Avatar name={author.data.name} size={28} />
+    {
+      linkAuthor ? (
+        <a
+          href={authorHref(author.id)}
+          class="font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
+        >
+          {author.data.name}
+        </a>
+      ) : (
+        <span class="font-medium text-ink-2">{author.data.name}</span>
+      )
+    }
+  </span>
+  <span class="inline-flex items-center gap-1.5">
+    <Icon name="calendar" size={13} />
+    <time datetime={post.data.pubDate.toISOString()}>
+      {formatDate(post.data.pubDate)}
+    </time>
+  </span>
+  <span class="inline-flex items-center gap-1.5">
+    <Icon name="clock" size={13} />
+    {readingTimeLabel(post.body ?? '')}
+  </span>
+  {
+    post.data.updatedDate && (
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="rotate-ccw" size={13} />
+        Updated{' '}
+        <time datetime={post.data.updatedDate.toISOString()}>
+          {formatDate(post.data.updatedDate)}
+        </time>
+      </span>
+    )
+  }
+</div>

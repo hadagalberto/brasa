@@ -1,0 +1,140 @@
+---
+/**
+ * Callout — note / tip / warning / danger. Usable anywhere; designed for MDX
+ * where it sits inside .prose (the `not-prose` root opts its children out
+ * of prose typography so the callout sets its own rhythm).
+ */
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+type Variant = 'note' | 'tip' | 'warning' | 'danger';
+
+interface Props {
+  variant?: Variant;
+  /** Bold lead-in, rendered before the body. */
+  title?: string;
+  class?: string;
+}
+
+const { variant = 'note', title, class: className } = Astro.props;
+
+const meta: Record<Variant, { icon: IconName; label: string; tone: string; iconColor: string }> =
+  {
+    note: {
+      icon: 'info',
+      label: 'Note',
+      tone: 'callout-note',
+      iconColor: 'text-accent',
+    },
+    tip: {
+      icon: 'sparkles',
+      label: 'Tip',
+      tone: 'callout-tip',
+      iconColor: 'text-ember-300',
+    },
+    warning: {
+      icon: 'alert',
+      label: 'Warning',
+      tone: 'callout-warning',
+      iconColor: 'text-ember-400',
+    },
+    danger: {
+      icon: 'flame',
+      label: 'Danger',
+      tone: 'callout-danger',
+      iconColor: 'text-ember-500',
+    },
+  };
+
+const { icon, label, tone, iconColor } = meta[variant];
+---
+
+<aside class:list={['callout not-prose', tone, className]}>
+  <p class="callout-eyebrow">
+    <Icon name={icon} size={14} class={iconColor} />
+    <span>{title ?? label}</span>
+  </p>
+  <div class="callout-body">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--elev-sm);
+  }
+
+  /* Variant tint: a hairline of ember keyed to severity. */
+  .callout {
+    border-inline-start-width: 3px;
+  }
+
+  .callout-note {
+    border-inline-start-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+
+  .callout-tip {
+    border-inline-start-color: var(--ember-300);
+  }
+
+  .callout-warning {
+    border-inline-start-color: var(--ember-400);
+  }
+
+  .callout-danger {
+    border-inline-start-color: var(--ember-500);
+  }
+
+  .callout-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .callout-body {
+    margin-block-start: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+
+  .callout-body > :global(* + *) {
+    margin-block-start: 0.75em;
+  }
+
+  .callout-body :global(strong) {
+    color: var(--ink);
+    font-weight: 640;
+  }
+
+  .callout-body :global(a) {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .callout-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    font-weight: 500;
+    color: var(--accent);
+    background-color: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    padding: 0.125em 0.375em;
+    word-break: break-word;
+  }
+</style>

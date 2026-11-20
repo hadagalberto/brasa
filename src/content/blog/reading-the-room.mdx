@@ -1,0 +1,60 @@
+---
+title: Reading the room — the craft of a readable blog
+description: Reading time, sticky TOCs, related posts and the other invisible machinery of a good essay page, treated as design problems instead of plugin defaults. Why we measure reading in minutes and design for the skimmer and the scholar at once.
+author: sofia-marques
+tags:
+  - Design systems
+  - Engineering culture
+pubDate: 2026-04-08
+---
+
+Nobody reads on the web; everybody skims until something catches, then reads properly. The honest blog design serves both phases of that behavior: a *scannable* surface — index, tags, minutes — and a *comfortable* reading room once someone commits. Most blog themes bolt on plugins for both. We treated them as design problems, which mostly means asking one question per feature: *what promise does this make to the reader?*
+
+## Reading time: an honest estimate, stated gently
+
+The "8 min read" chip makes a specific promise: *committing to this costs about a coffee*. Get it wrong and the trust leaks — a "4 min read" that eats twenty minutes is a small, stupid betrayal that readers remember.
+
+So the math stays honest and the presentation stays humble:
+
+- **Words in, minutes out.** A plain word count over the readable text (code blocks and component markup excluded — nobody reads a code fence at 200 wpm), at 200 words per minute, rounded up, floored at one minute. No per-section weighted voodoo; we tested variants against actual reading time on our own team and the simple version won.
+- **Stated as "~", rendered as "8 min read".** A range cosplaying as a measurement is the fastest way to make the number meaningless.
+
+<Callout variant="tip" title="The number is for the skimmer's calendar">
+Reading time is not about speed — it is about *decision support*. "Do I read this now, save it for lunch, or never?" is the reader's actual question at the index, and a number answers it more kindly than a wall of paragraphs does.
+</Callout>
+
+## The TOC: a map that knows where you are
+
+A table of contents on a long essay is a map; the craft is keeping the "you are here" pin honest. Ours is sticky on wide viewports, a plain collapsible list on narrow ones, and highlights the current section via an IntersectionObserver that watches headings — the same markup, degraded gracefully.
+
+Three small decisions do most of the work:
+
+1. **Two levels, no more.** h2 and h3; deeper nesting is a *writing* smell the TOC should not amortize.
+2. **Highlight, don't scroll-hijack.** The active entry gets color and an ember marker; the panel never auto-scrolls itself. The map stays still while the territory moves.
+3. **Anchors that survive anything.** Heading IDs are stable slugs, so a shared deep link still lands on the argument, not the top of the page — a promise to the person who sent the link as much as to the one who receives it.
+
+## Related posts: the promise of "more like this"
+
+"Related posts" is the cheapest feature to fake and the easiest to make meaningless. Sorting by recency and calling it related breaks the promise in the reader's presence — they clicked because of *this* topic.
+
+Ours scores by shared tags, ties broken by date, capped at two. Two, because the end of an essay is a doorway, not a shopping aisle: one strong follow-on invites, three starts to look like a retention strategy. And the same machinery quietly powers the tags index and the author pages — one notion of *affinity*, expressed wherever a reader might want it.
+
+## Pagination: the archive you can hold
+
+Infinite scroll is a promise nobody should make to a scholar: that there is no *where* in your archive. Numbered pages are coordinates — citable, bookmarkable, cacheable — and the page count printed next to them tells the truth about how much writing lives here. Our index paginates at six posts with a featured essay above page one, so the front door is a curated issue and the pages behind it are the honest ledger.
+
+## The reading room itself
+
+Once a reader commits, the page mostly needs to *get out of the way*, which is the hardest kind of design to take credit for:
+
+| Decision | Rationale |
+| --- | --- |
+| Max measure ~62ch | two to three alphabets per line; the eye returns to the left edge without hunting |
+| Fluid type, one step larger than UI text | body `clamp()` up to 19px — long-form deserves the bump |
+| `text-wrap: balance` headings, `pretty` paragraphs | ragged-right without orphaned words, free from the platform |
+| Warm off-black text on warm paper (dark or light) | the "off" is contrast *and* temperature — see the contrast post |
+| No mid-article interstitials | the essay's one promise is uninterrupted flow |
+
+> A good essay page is furniture you stop noticing, in the specific way you stop noticing a chair that fits.
+
+The through-line of all of it: every one of these features is a *promise with a number or a link attached* — minutes, sections, coordinates, follow-ons. The web is full of blogs that treat readers as traffic; the craft is treating them as readers, with all the gentle machinery that implies.

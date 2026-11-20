@@ -1,0 +1,102 @@
+---
+/**
+ * Table of contents — sticky on wide viewports, a native <details> on the
+ * narrow ones. The active link is marked by scripts/blog.ts (an
+ * IntersectionObserver keeps `data-active` in sync with the section in
+ * view); without JS every link still works, just unhighlighted.
+ */
+export interface TocHeading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: TocHeading[];
+  /** Visible label above the list. */
+  label?: string;
+}
+
+const { headings, label = 'On this page' } = Astro.props;
+---
+
+<div class="toc" hidden={headings.length === 0}>
+  <nav data-toc aria-label="Table of contents">
+    <p class="eyebrow toc-label">
+      <span class="eyebrow-dash" aria-hidden="true"></span>
+      {label}
+    </p>
+    <ol class="toc-list">
+      {
+        headings
+          .filter((heading) => heading.depth === 2 || heading.depth === 3)
+          .map((heading) => (
+            <li class:list={['toc-item', heading.depth === 3 && 'toc-item-nested']}>
+              <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
+                {heading.text}
+              </a>
+            </li>
+          ))
+      }
+    </ol>
+  </nav>
+</div>
+
+<style>
+  .toc-label {
+    margin-block-end: 1rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .toc-item {
+    position: relative;
+  }
+
+  .toc-item::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.3rem;
+    inset-inline-start: -1rem;
+    width: 2px;
+    border-radius: 999px;
+    background-image: var(--gradient-ember);
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out-soft);
+  }
+
+  .toc-item[data-active]::before {
+    opacity: 1;
+  }
+
+  .toc-item a {
+    display: inline-block;
+    padding-block: 0.3rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ink-3);
+    text-decoration: none;
+    transition: color var(--dur-1) var(--ease-out-soft);
+    text-wrap: pretty;
+  }
+
+  .toc-item a:hover {
+    color: var(--ink);
+  }
+
+  .toc-item[data-active] a {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .toc-item-nested {
+    padding-inline-start: 1rem;
+  }
+</style>

@@ -104,10 +104,26 @@ export const brasa: BrasaConfig = {
   },
   nav: [
     { label: 'Home', href: '/' },
+    { label: 'Blog', href: '/blog' },
     { label: 'Styleguide', href: '/styleguide' },
   ],
   footer: {
     columns: [
+      {
+        title: 'Blog',
+        links: [
+          { label: 'All essays', href: '/blog' },
+          { label: 'Topics', href: '/blog/tags' },
+          {
+            label: 'RSS feed',
+            href: '/rss.xml',
+          },
+          {
+            label: 'JSON feed',
+            href: '/feed.json',
+          },
+        ],
+      },
       {
         title: 'Theme',
         links: [
@@ -159,6 +175,7 @@ export const brasa: BrasaConfig = {
       { label: 'GitHub', href: 'https://github.com/hadagalberto/brasa', icon: 'github' },
       { label: 'X (Twitter)', href: 'https://x.com/hadagalberto', icon: 'x' },
       { label: 'Discord', href: 'https://discord.gg/brasa', icon: 'discord' },
+      { label: 'RSS feed', href: '/rss.xml', icon: 'rss' },
     ],
     newsletter: {
       heading: 'Notes from the forge',

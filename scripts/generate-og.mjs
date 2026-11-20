@@ -73,12 +73,14 @@ const svg = `
 </svg>
 `;
 
-const [fraunces, frauncesItalic, geist, geistMono] = await Promise.all([
-  loadFont('@fontsource-variable/fraunces', 'fraunces-latin-opsz-normal.woff2'),
-  loadFont('@fontsource-variable/fraunces', 'fraunces-latin-opsz-italic.woff2'),
-  loadFont('@fontsource-variable/geist', 'geist-latin-wght-normal.woff2'),
-  loadFont('@fontsource-variable/geist-mono', 'geist-mono-latin-wght-normal.woff2'),
-]);
+// Load fonts sequentially: wawoff2 is a single emscripten heap and concurrent
+// decompress() calls overwrite each other's output buffers.
+const [fraunces, frauncesItalic, geist, geistMono] = [
+  await loadFont('@fontsource-variable/fraunces', 'fraunces-latin-opsz-normal.woff2'),
+  await loadFont('@fontsource-variable/fraunces', 'fraunces-latin-opsz-italic.woff2'),
+  await loadFont('@fontsource-variable/geist', 'geist-latin-wght-normal.woff2'),
+  await loadFont('@fontsource-variable/geist-mono', 'geist-mono-latin-wght-normal.woff2'),
+];
 
 // resvg loads fonts by file path: stage the TTF buffers in the temp dir.
 const staged = [];

@@ -1,0 +1,80 @@
+---
+/**
+ * Share links — X and LinkedIn intents (external, no JS) plus a copy-link
+ * button confirmed inline (scripts/blog.ts handles the clipboard).
+ */
+import Icon from '../Icon.astro';
+
+interface Props {
+  title: string;
+  url: string;
+  class?: string;
+}
+
+const { title, url, class: className } = Astro.props;
+
+const shareText = encodeURIComponent(title);
+const shareUrl = encodeURIComponent(url);
+---
+
+<div class:list={['flex flex-wrap items-center gap-2', className]}>
+  <span class="mr-1 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
+    Share
+  </span>
+  <a
+    href={`https://x.com/intent/post?text=${shareText}&url=${shareUrl}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on X (Twitter)"
+    class="share-link"
+  >
+    <Icon name="x" size={15} />
+  </a>
+  <a
+    href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on LinkedIn"
+    class="share-link"
+  >
+    <Icon name="linkedin" size={15} />
+  </a>
+  <button type="button" data-share-copy aria-label="Copy link to this post" class="share-link">
+    <Icon name="link" size={15} />
+    <span data-share-feedback class="sr-only" aria-live="polite"></span>
+  </button>
+</div>
+
+<style>
+  .share-link {
+    display: inline-flex;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    padding-inline: 0.85rem;
+    color: var(--ink-2);
+    transition:
+      color var(--dur-1) var(--ease-out-soft),
+      border-color var(--dur-1) var(--ease-out-soft),
+      background-color var(--dur-1) var(--ease-out-soft);
+  }
+
+  .share-link:hover {
+    border-color: var(--line-strong);
+    background-color: var(--surface-2);
+    color: var(--ink);
+  }
+
+  /* Feedback state set by scripts/blog.ts after a successful copy. */
+  /* eslint-disable-next-line astro/no-unused-css-selector */
+  .share-link[data-state='copied'] {
+    border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+</style>

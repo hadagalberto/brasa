@@ -1,0 +1,60 @@
+---
+title: Contrast is a design system's quietest luxury
+description: High contrast does not shout. Notes on building a palette that passes AAA in body text without looking like a terminal, from warm-paper light modes to why your dark theme probably needs less color than you think.
+author: priya-raman
+tags:
+  - Accessibility
+  - Design systems
+pubDate: 2026-06-17
+import { Callout } from '../../components/mdx';
+
+---
+
+Low vision is the disability nobody plans to have. By forty, most of us are typing with our reading glasses pushed up our foreheads; by sixty, one in five of us has a visual impairment. A design system that only "looks good" to young acuity is designing for a version of its users that expires.
+
+Contrast is the most boring word in accessibility and the most luxurious thing a palette can do. Done right, it is invisible: the page simply reads, in sunlight, on a bus, at 2 a.m. with dark mode on. Done wrong, it is the gray-on-gray haze that makes a UI feel cheap in ways nobody can name.
+
+## The floor, stated plainly
+
+WCAG 2.2 gives two floors: AA at 4.5:1 for body text, AAA at 7:1. Brasa holds **AAA for body text** and AA everywhere else, which sounds austere until you check the arithmetic on a warm palette — it mostly bans one bad habit:
+
+| Combination | Ratio | Verdict |
+| --- | --- | --- |
+| Ink (L 0.94) on canvas (L 0.16), dark theme | ~13:1 | AAA, room to spare |
+| Ink-3 (L 0.63) meta text on surface (L 0.19) | ~4.6:1 | AA — captions only |
+| Ember accent (L 0.53) on warm paper (L 0.98) | ~5.1:1 | AA for large UI, links |
+| "Mid gray" (#8a8a8a) on white | 3.5:1 | the classic failure |
+
+Notice the pattern: every passing row varies **lightness**, not hue. That is the quiet luxury — a palette whose combinations pass *by construction*, because lightness is the axis contrast lives on.
+
+<Callout variant="tip" title="The one rule that replaces most contrast audits">
+Fix lightness steps, let chroma and hue do the branding. Body-adjacent colors live at extreme L values (very light ink, very dark surface); mid-lightness is reserved for large type and interactive accents. Most "contrast surprises" are mid-lightness colors promoted to small text.
+</Callout>
+
+## Dark themes need less color, not more
+
+The reflex when designing dark mode is to warm everything up: brighten accents, add glow, compensate for the black. Watch someone with low vision use the result and the reflex inverts — dark themes fail on *noise*, not darkness. Saturated accents at mid-lightness bloom and smear against near-black for anyone with a cataract's starbursts or astigmatism's doubling.
+
+Brasa's dark theme is mostly eleven lightness steps of warm neutrals with one ember accent held near the top of the scale. The restraint reads as elegance at full acuity and as *legibility* at reduced acuity — the same object viewed from two distances.
+
+> My favorite dark mode ever was one I only understood later: I never noticed it, which meant I never zoomed it, which meant I read for an hour without once thinking about my eyes.
+
+## Light mode is not an afterthought (yours probably is)
+
+The tell is everywhere in product screenshots: dark mode lovingly art-directed, light mode the same tokens with the brightness slider dragged. Brasa's warm-paper light mode retunes the *whole* ladder, not just the background:
+
+- Canvas moves to L 0.98 with a warm hue (80) — paper, not a light switch.
+- Ink inverts to L 0.23 — warm, slightly soft, never `#000`.
+- The accent gets **darker and less chromatic**: the ember that glows at L 0.84 on near-black would hiss on paper, so it drops to L 0.52 where it holds AA for links with a weight change.
+
+That last bullet is the one teams skip, and it is why their light-mode links look like caution tape. An accent is not a color; it is a *relationship* between a color and the surface under it.
+
+## Testing it without becoming a spreadsheet person
+
+Three habits keep the floor enforced without turning design meetings into arithmetic:
+
+1. **Compute, don't eyeball.** The build derives every semantic token from OKLCH, so "is meta text AA?" is one function call. (Sofia's post covers the math side — see [OKLCH, or how I stopped guessing colors](/blog/oklch-or-how-i-stopped-guessing-colors).)
+2. **Test both themes on every route.** A palette that passes dark and fails light is half a palette. Our axe run alternates themes per route in CI, and it has caught exactly this class of bug twice.
+3. **Zoom to 200% during design reviews.** Contrast problems and layout problems share a discovery mechanism: pressure. Text that survives 200% zoom with dignity survives everything.
+
+None of this requires a single compromise anyone will notice. The luxury of high contrast is precisely that — nobody notices. They just read.
