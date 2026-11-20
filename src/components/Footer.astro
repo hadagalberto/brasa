@@ -34,7 +34,7 @@ function linkHref(href: string): string {
             .filter((social) => featureEnabled(social.href))
             .map((social) => (
               <a
-                href={social.href}
+                href={withBase(social.href)}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
