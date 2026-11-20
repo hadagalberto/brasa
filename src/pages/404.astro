@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Container from '../components/Container.astro';
+---
+
+<BaseLayout title="Page not found" noindex>
+  <section class="section-y grid min-h-[72svh] place-items-center">
+    <Container size="sm" class="text-center">
+      <p class="eyebrow justify-center">
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+        Error 404
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+      </p>
+      <h1 class="mt-6 font-sans font-semibold text-display-xl text-balance text-ink">
+        This ember <em class="font-display text-gradient-ember italic">burnt out</em>.
+      </h1>
+      <p class="mx-auto mt-6 max-w-[46ch] text-pretty text-body-lg text-ink-2">
+        The page you're after doesn't exist — it may have moved, or the URL lost a spark. Head back
+        home, or open the styleguide to see what Brasa is made of.
+      </p>
+      <div class="mt-9 flex flex-wrap justify-center gap-4">
+        <Button href="/">Back home</Button>
+        <Button href="/styleguide" variant="secondary">
+          Styleguide
+        </Button>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>

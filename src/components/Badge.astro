@@ -1,0 +1,27 @@
+---
+type Variant = 'ember' | 'solid' | 'outline' | 'neutral';
+
+interface Props {
+  variant?: Variant;
+  class?: string;
+}
+
+const { variant = 'ember', class: className } = Astro.props;
+
+const variants: Record<Variant, string> = {
+  ember: 'border border-accent/25 bg-accent-soft text-accent',
+  solid: 'bg-ember-gradient text-on-accent',
+  outline: 'border border-line-strong text-ink-2',
+  neutral: 'border border-line bg-surface-2 text-ink-2',
+};
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs font-medium tracking-[0.08em] uppercase',
+    variants[variant],
+    className,
+  ]}
+>
+  <slot />
+</span>

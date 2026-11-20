@@ -1,0 +1,21 @@
+---
+type Tone = 'default' | 'deep' | 'surface';
+
+interface Props {
+  id?: string;
+  tone?: Tone;
+  class?: string;
+}
+
+const { id, tone = 'default', class: className } = Astro.props;
+
+const tones: Record<Tone, string> = {
+  default: '',
+  deep: 'border-y border-line bg-canvas-deep',
+  surface: 'border-y border-line bg-surface/50',
+};
+---
+
+<section id={id} class:list={['section-y relative', tones[tone], className]}>
+  <slot />
+</section>

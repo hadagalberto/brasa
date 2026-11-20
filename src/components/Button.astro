@@ -1,0 +1,76 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'link';
+type Size = 'sm' | 'md' | 'lg';
+
+interface Props {
+  /** When set, renders an <a> instead of a <button>. */
+  href?: string;
+  variant?: Variant;
+  size?: Size;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  /** Trailing icon name. */
+  icon?: IconName;
+  /** Leading icon name. */
+  iconStart?: IconName;
+  class?: string;
+  /** Passthrough for anchors (target, rel, download…). */
+  [key: string]: unknown;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  disabled,
+  icon,
+  iconStart,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+
+const base =
+  'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold tracking-tight transition-all duration-(--dur-1) ease-(--ease-out-soft)';
+
+const sizes: Record<Size, string> = {
+  sm: 'h-9 px-4 text-sm',
+  md: 'h-11 px-5 text-[0.9375rem]',
+  lg: 'h-[3.25rem] px-7 text-base',
+};
+
+const variants: Record<Variant, string> = {
+  primary:
+    'bg-ember-gradient text-on-accent shadow-glow hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0',
+  secondary:
+    'border border-line bg-surface-2 text-ink hover:border-line-strong hover:bg-surface-3 hover:-translate-y-0.5 active:translate-y-0',
+  ghost: 'text-ink-2 hover:bg-surface hover:text-ink',
+  link: 'h-auto px-0 text-accent underline-offset-4 hover:underline',
+};
+
+const classes = [
+  base,
+  sizes[size],
+  variants[variant],
+  disabled && 'pointer-events-none opacity-50',
+  className,
+];
+---
+
+<Tag
+  {...rest}
+  href={href}
+  type={href ? undefined : type}
+  disabled={href ? undefined : disabled}
+  aria-disabled={href ? (disabled ? 'true' : undefined) : undefined}
+  class:list={classes}
+>
+  {iconStart && <Icon name={iconStart} size={size === 'sm' ? 15 : 17} />}
+  <slot />
+  {icon && <Icon name={icon} size={size === 'sm' ? 15 : 17} />}
+</Tag>

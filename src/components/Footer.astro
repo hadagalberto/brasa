@@ -1,0 +1,64 @@
+---
+import { brasa } from '../brasa.config';
+import Container from './Container.astro';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-line bg-canvas-deep">
+  <Container size="lg" class="pt-16 pb-8">
+    <div class="grid grid-cols-1 gap-12 md:grid-cols-[1.25fr_repeat(3,1fr)] md:gap-8">
+      <div class="max-w-xs">
+        <Logo />
+        <p class="mt-5 text-sm leading-relaxed text-ink-2 text-pretty">{brasa.site.description}</p>
+        <div class="mt-6 flex items-center gap-1">
+          {brasa.footer.socials.map((social) => (
+            <a
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={social.label}
+              class="inline-flex size-9 items-center justify-center rounded-full border border-transparent text-ink-2 transition-colors duration-(--dur-1) hover:border-line hover:bg-surface hover:text-ink"
+            >
+              <Icon name={social.icon} size={17} />
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {brasa.footer.columns.map((column) => (
+        <nav aria-label={column.title}>
+          <h2 class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {column.title}
+          </h2>
+          <ul class="mt-4 space-y-3">
+            {column.links.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  class="inline-flex items-center gap-1.5 text-sm text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
+                >
+                  {link.label}
+                  {link.external && <Icon name="arrow-up-right" size={12} class="opacity-50" />}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div class="mt-16 flex flex-col items-start justify-between gap-4 border-t border-line pt-8 sm:flex-row sm:items-center">
+      <p class="text-xs text-ink-3">
+        © {year} {brasa.site.author} · Released under the MIT license.
+      </p>
+      <p class="inline-flex items-center gap-1.5 text-xs text-ink-3">
+        <Icon name="flame" size={13} class="text-ember-500" />
+        {brasa.footer.note}
+      </p>
+    </div>
+  </Container>
+</footer>

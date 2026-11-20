@@ -1,0 +1,22 @@
+---
+interface Props {
+  as?: 'div' | 'article' | 'li';
+  /** Adds hover lift + border/shadow emphasis (for link targets). */
+  interactive?: boolean;
+  class?: string;
+}
+
+const { as = 'div', interactive = false, class: className } = Astro.props;
+const Tag = as;
+---
+
+<Tag
+  class:list={[
+    'rounded-2xl border border-line bg-surface shadow-sm',
+    interactive &&
+      'transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md',
+    className,
+  ]}
+>
+  <slot />
+</Tag>

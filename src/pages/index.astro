@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Container from '../components/Container.astro';
+import { brasa } from '../brasa.config';
+
+const emberSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+---
+
+<BaseLayout title="Brasa" description={brasa.site.description}>
+  <section data-glow class="relative grid min-h-svh place-items-center overflow-hidden">
+    <Container size="md" class="py-28 text-center">
+      <p class="eyebrow justify-center">
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+        Open-source · Astro · MIT
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+      </p>
+      <h1 class="mx-auto mt-7 max-w-5xl font-sans font-semibold text-hero text-balance text-ink">
+        Build sites that still <em class="font-display text-gradient-ember italic">glow</em>.
+      </h1>
+      <p class="mx-auto mt-7 max-w-[54ch] text-pretty text-body-lg text-ink-2">
+        Brasa is a premium, dark-first theme for Astro: an OKLCH design system, editorial type and
+        an ember accent, tuned for SaaS sites, docs and blogs. This milestone ships the foundation —
+        every token and component is live in the styleguide.
+      </p>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <Button href="/styleguide" size="lg" icon="arrow-right">
+          Explore the styleguide
+        </Button>
+        <Button href={brasa.site.github} variant="secondary" size="lg" icon="arrow-up-right">
+          View on GitHub
+        </Button>
+      </div>
+
+      <div class="mt-20">
+        <div
+          class="grid grid-cols-11 overflow-hidden rounded-full border border-line shadow-sm"
+          aria-hidden="true"
+        >
+          {emberSteps.map((step) => (
+            <div class="h-2" style={`background-color: var(--color-ember-${step})`}></div>
+          ))}
+        </div>
+        <p class="mt-4 font-mono text-xs tracking-[0.14em] text-ink-3 uppercase">
+          the ember scale · oklch · hue 35
+        </p>
+      </div>
+    </Container>
+  </section>
+</BaseLayout>

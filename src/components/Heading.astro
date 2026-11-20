@@ -1,0 +1,65 @@
+---
+type HeadingSize =
+  'hero' | 'display-2xl' | 'display-xl' | 'display-lg' | 'display-md' | 'display-sm';
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4';
+
+interface Props {
+  eyebrow?: string;
+  /** Plain-text title. Use the `title` slot for mixed-serif headlines. */
+  title?: string;
+  lede?: string;
+  as?: HeadingLevel;
+  size?: HeadingSize;
+  align?: 'start' | 'center';
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  lede,
+  as = 'h2',
+  size = 'display-lg',
+  align = 'start',
+  class: className,
+} = Astro.props;
+
+const Tag = as;
+const sizes: Record<HeadingSize, string> = {
+  hero: 'text-hero',
+  'display-2xl': 'text-display-2xl',
+  'display-xl': 'text-display-xl',
+  'display-lg': 'text-display-lg',
+  'display-md': 'text-display-md',
+  'display-sm': 'text-display-sm',
+};
+---
+
+<div
+  class:list={[
+    'flex flex-col gap-4',
+    align === 'center' ? 'items-center text-center' : 'items-start',
+    className,
+  ]}
+>
+  {eyebrow && (
+    <p class="eyebrow">
+      <span class="eyebrow-dash" aria-hidden="true"></span>
+      {eyebrow}
+      {align === 'center' && <span class="eyebrow-dash" aria-hidden="true"></span>}
+    </p>
+  )}
+  <Tag class:list={['font-display text-balance text-ink', sizes[size]]}>
+    <slot name="title">{title}</slot>
+  </Tag>
+  {lede && (
+    <p
+      class:list={[
+        'max-w-[62ch] text-pretty text-body-lg text-ink-2',
+        align === 'center' && 'mx-auto',
+      ]}
+    >
+      {lede}
+    </p>
+  )}
+</div>

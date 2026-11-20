@@ -1,0 +1,96 @@
+---
+import { ClientRouter } from 'astro:transitions';
+
+import '@fontsource-variable/fraunces/opsz.css';
+import '@fontsource-variable/fraunces/opsz-italic.css';
+import '@fontsource-variable/geist/index.css';
+import '@fontsource-variable/geist-mono/index.css';
+import '../styles/global.css';
+
+import frauncesNormal from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
+import frauncesItalic from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-italic.woff2?url';
+
+import { brasa } from '../brasa.config';
+import SEO from '../components/SEO.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+}
+
+const { title, description, type, noindex } = Astro.props;
+const locale = brasa.locales.available.find((entry) => entry.code === brasa.locales.default) ?? {
+  lang: 'en',
+};
+---
+
+<!doctype html>
+<html lang={locale.lang} style={`--accent-hue: ${brasa.colors.accentHue};`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      // No-flash theme bootstrap: must run before first paint.
+      (() => {
+        try {
+          const stored = localStorage.getItem('brasa:theme');
+          const theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+    <SEO {title} {description} {type} {noindex} />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <link rel="preload" as="font" type="font/woff2" href={frauncesNormal} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={frauncesItalic} crossorigin />
+    <ClientRouter />
+  </head>
+  <body class="flex min-h-dvh flex-col bg-canvas font-sans text-ink">
+    <a href="#main" class="skip-link">
+      Skip to content
+    </a>
+    <Header />
+    <main id="main" tabindex="-1" class="relative flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/behaviors';
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 200;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background-color: var(--surface-2);
+    color: var(--ink);
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: var(--elev-md);
+    translate: 0 -200%;
+    transition: translate var(--dur-2) var(--ease-out-soft);
+  }
+
+  .skip-link:focus {
+    translate: 0 0;
+  }
+</style>

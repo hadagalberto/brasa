@@ -1,0 +1,78 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div data-spotlight class="spotlight group relative overflow-hidden" class:list={[className]}>
+  <slot />
+</div>
+
+<style>
+  .spotlight {
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    box-shadow: var(--elev-sm);
+    transition: border-color var(--dur-2) var(--ease-out-soft);
+  }
+
+  .spotlight:hover {
+    border-color: var(--line-strong);
+  }
+
+  /* Spotlight wash following the cursor (--sp-x/--sp-y set by scripts). */
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out-soft);
+    background: radial-gradient(
+      360px circle at var(--sp-x, 50%) var(--sp-y, 50%),
+      color-mix(in oklab, var(--accent) 11%, transparent),
+      transparent 65%
+    );
+  }
+
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+
+  /* Ember border ring, masked to a 1px edge. */
+  .spotlight::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out-soft);
+    background: radial-gradient(
+      220px circle at var(--sp-x, 50%) var(--sp-y, 50%),
+      color-mix(in oklab, var(--accent) 65%, transparent),
+      transparent 70%
+    );
+    mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+    mask-clip: padding-box, border-box;
+    mask-composite: exclude;
+    -webkit-mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+    -webkit-mask-clip: padding-box, border-box;
+    -webkit-mask-composite: xor;
+  }
+
+  .spotlight:hover::after {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spotlight::before,
+    .spotlight::after {
+      transition-duration: 0s;
+    }
+  }
+</style>

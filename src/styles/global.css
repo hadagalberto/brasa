@@ -1,0 +1,584 @@
+/* ========================================================================== */
+/* Brasa design system                                                        */
+/*                                                                            */
+/* Dark-first, warm. Tokens are defined once here: every page, component and  */
+/* code block derives from them. The ember scale is driven by --accent-hue    */
+/* (set from src/brasa.config.ts on <html>), so changing the hue re-themes    */
+/* the entire site.                                                           */
+/* ========================================================================== */
+
+@import 'tailwindcss';
+
+/* --------------------------------------------------------------------------
+   Static theme tokens (Tailwind @theme)
+   Primitive scales: fonts, ember palette, type scale, radii, easing.
+   -------------------------------------------------------------------------- */
+@theme {
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-sans:
+    'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', monospace;
+
+  /* Ember scale — hue-relative, warm red-orange fading into amber. */
+  --color-ember-50: oklch(0.965 0.028 calc(var(--accent-hue) + 28));
+  --color-ember-100: oklch(0.93 0.055 calc(var(--accent-hue) + 24));
+  --color-ember-200: oklch(0.88 0.085 calc(var(--accent-hue) + 18));
+  --color-ember-300: oklch(0.82 0.125 calc(var(--accent-hue) + 12));
+  --color-ember-400: oklch(0.755 0.155 calc(var(--accent-hue) + 6));
+  --color-ember-500: oklch(0.685 0.19 var(--accent-hue));
+  --color-ember-600: oklch(0.615 0.2 calc(var(--accent-hue) - 6));
+  --color-ember-700: oklch(0.54 0.19 calc(var(--accent-hue) - 12));
+  --color-ember-800: oklch(0.46 0.165 calc(var(--accent-hue) - 14));
+  --color-ember-900: oklch(0.38 0.135 calc(var(--accent-hue) - 14));
+  --color-ember-950: oklch(0.29 0.095 calc(var(--accent-hue) - 12));
+
+  /* Fluid type scale. Large display sizes are tight-tracked; body is airy. */
+  --text-hero: clamp(3.25rem, 9.2vw, 9rem);
+  --text-hero--line-height: 0.99;
+  --text-hero--letter-spacing: -0.035em;
+  --text-hero--font-weight: 560;
+
+  --text-display-2xl: clamp(2.75rem, 6.5vw, 5.75rem);
+  --text-display-2xl--line-height: 1.02;
+  --text-display-2xl--letter-spacing: -0.032em;
+  --text-display-2xl--font-weight: 530;
+
+  --text-display-xl: clamp(2.375rem, 5vw, 4.25rem);
+  --text-display-xl--line-height: 1.03;
+  --text-display-xl--letter-spacing: -0.03em;
+  --text-display-xl--font-weight: 530;
+
+  --text-display-lg: clamp(2rem, 3.9vw, 3.25rem);
+  --text-display-lg--line-height: 1.06;
+  --text-display-lg--letter-spacing: -0.025em;
+  --text-display-lg--font-weight: 530;
+
+  --text-display-md: clamp(1.625rem, 2.7vw, 2.375rem);
+  --text-display-md--line-height: 1.12;
+  --text-display-md--letter-spacing: -0.02em;
+  --text-display-md--font-weight: 530;
+
+  --text-display-sm: clamp(1.375rem, 2vw, 1.75rem);
+  --text-display-sm--line-height: 1.18;
+  --text-display-sm--letter-spacing: -0.015em;
+  --text-display-sm--font-weight: 530;
+
+  --text-body-lg: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
+  --text-body-lg--line-height: 1.72;
+
+  /* Radii — generous and warm. */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  /* Motion. */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Semantic tokens — dark first (root), light via [data-theme="light"].
+   These are plain custom properties so they can be re-scoped to any subtree
+   (the styleguide renders both themes side by side this way).
+   -------------------------------------------------------------------------- */
+:root {
+  --accent-hue: 35;
+
+  /* Surfaces: layered by lightness, never by hard borders. */
+  --canvas: oklch(0.16 0.012 40);
+  --canvas-deep: oklch(0.13 0.012 40);
+  --surface: oklch(0.19 0.014 42);
+  --surface-2: oklch(0.225 0.016 44);
+  --surface-3: oklch(0.26 0.018 46);
+
+  /* Ink: warm white, never #fff. */
+  --ink: oklch(0.94 0.008 85);
+  --ink-2: oklch(0.76 0.014 78);
+  --ink-3: oklch(0.63 0.016 72);
+
+  --line: color-mix(in oklab, var(--ink) 13%, transparent);
+  --line-strong: color-mix(in oklab, var(--ink) 26%, transparent);
+
+  /* Accent (semantic): bright ember for text, icons, focus rings. */
+  --accent: oklch(0.845 0.135 calc(var(--accent-hue) + 6));
+  --accent-2: oklch(0.86 0.13 calc(var(--accent-hue) + 26));
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+  --on-accent: oklch(0.2 0.045 calc(var(--accent-hue) - 5));
+
+  /* The signature ember gradient (deep red-orange → amber). */
+  --gradient-ember: linear-gradient(
+    100deg,
+    oklch(0.65 0.21 var(--accent-hue)),
+    oklch(0.82 0.16 calc(var(--accent-hue) + 40))
+  );
+
+  /* Elevation: soft, layered, warm-tinted. */
+  --elev-sm: 0 1px 2px oklch(0.05 0.02 40 / 0.35);
+  --elev-md: 0 2px 4px oklch(0.05 0.02 40 / 0.3), 0 8px 24px -8px oklch(0.05 0.02 40 / 0.45);
+  --elev-lg: 0 4px 8px oklch(0.05 0.02 40 / 0.28), 0 20px 48px -12px oklch(0.05 0.02 40 / 0.5);
+  --glow: 0 8px 32px -6px oklch(0.65 0.21 var(--accent-hue) / 0.5);
+
+  --grain-opacity: 0.05;
+
+  /* Native UI chrome + <meta name="theme-color"> (kept in sync by scripts). */
+  color-scheme: dark;
+  --theme-color: #120c09;
+  --header-h: 4rem;
+  --dur-1: 150ms;
+  --dur-2: 250ms;
+  --dur-3: 400ms;
+  --space-section: clamp(4.5rem, 8vw, 7.5rem);
+}
+
+[data-theme='light'] {
+  --canvas: oklch(0.98 0.01 80);
+  --canvas-deep: oklch(0.945 0.014 76);
+  --surface: oklch(0.992 0.006 82);
+  --surface-2: oklch(0.965 0.01 80);
+  --surface-3: oklch(0.935 0.014 78);
+
+  --ink: oklch(0.23 0.022 50);
+  --ink-2: oklch(0.42 0.024 55);
+  --ink-3: oklch(0.52 0.024 60);
+
+  --line: color-mix(in oklab, var(--ink) 14%, transparent);
+  --line-strong: color-mix(in oklab, var(--ink) 30%, transparent);
+
+  --accent: oklch(0.52 0.18 calc(var(--accent-hue) - 4));
+  --accent-2: oklch(0.62 0.17 calc(var(--accent-hue) + 6));
+  --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  /* --on-accent intentionally identical in both themes: dark warm ink on ember. */
+
+  --elev-sm: 0 1px 2px oklch(0.3 0.04 45 / 0.07);
+  --elev-md: 0 2px 6px -1px oklch(0.3 0.04 45 / 0.07), 0 12px 32px -12px oklch(0.3 0.04 45 / 0.14);
+  --elev-lg: 0 4px 10px -2px oklch(0.3 0.04 45 / 0.08), 0 24px 56px -16px oklch(0.3 0.04 45 / 0.16);
+  --glow: 0 8px 32px -6px oklch(0.65 0.21 var(--accent-hue) / 0.35);
+
+  --grain-opacity: 0.035;
+
+  color-scheme: light;
+  --theme-color: #fcf8f1;
+}
+
+/* Expose semantic tokens as Tailwind utilities (inline: they reference the
+   runtime variables above, so switching [data-theme] switches every page). */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-deep: var(--canvas-deep);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+  --shadow-glow: var(--glow);
+}
+
+/* --------------------------------------------------------------------------
+   Base layer
+   -------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  html[data-menu-open] {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+  }
+
+  /* Film grain overlay — very low opacity, pointer-transparent. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--ember-500) 38%, transparent);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--ink) 24%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--ink) 18%, transparent);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--accent) 60%, transparent);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+
+  /* Theme toggle icon: always show the icon of the theme you'd switch to. */
+  html[data-theme='light'] .theme-icon-sun {
+    display: none;
+  }
+
+  html:not([data-theme='light']) .theme-icon-moon {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Component classes
+   -------------------------------------------------------------------------- */
+@layer components {
+  /* Slow ember glow behind hero sections; reacts to the pointer via
+     --gx/--gy (updated by a tiny script, off with reduced motion). */
+  [data-glow] {
+    position: relative;
+  }
+
+  [data-glow]::before {
+    content: '';
+    position: absolute;
+    inset: -10% -6% -18%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        46% 56% at calc(var(--gx, 0.5) * 100%) calc(var(--gy, 0.32) * 100%),
+        oklch(0.65 0.21 var(--accent-hue) / 0.22),
+        transparent 70%
+      ),
+      radial-gradient(
+        30% 40% at calc(1 - var(--gx, 0.5)) calc(var(--gy, 0.32) * 100% + 12%),
+        oklch(0.82 0.16 calc(var(--accent-hue) + 40) / 0.1),
+        transparent 72%
+      );
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Custom utilities
+   -------------------------------------------------------------------------- */
+@utility section-y {
+  padding-block: var(--space-section);
+}
+
+@utility bg-ember-gradient {
+  background-image: var(--gradient-ember);
+}
+
+@utility text-gradient-ember {
+  background-image: var(--gradient-ember);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Small caps eyebrow label with an ember dash — the Brasa section signature. */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@utility eyebrow-dash {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1px;
+  background-image: var(--gradient-ember);
+}
+
+/* Scroll-driven reveal (progressive enhancement). Browsers without
+   animation-timeline, JS-off users and reduced-motion users just see the
+   content — the animation is applied only when everything supports it. */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: reveal-up var(--dur-3) var(--ease-out-soft) both;
+      animation-timeline: view();
+      animation-range: entry 2% entry 42%;
+    }
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.25rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Prose — typography for long-form MDX content.
+   -------------------------------------------------------------------------- */
+.prose {
+  font-size: var(--text-body-lg);
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.prose > * + * {
+  margin-block-start: 1.25em;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-display);
+  font-weight: 530;
+  color: var(--ink);
+  text-wrap: balance;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.prose h1 {
+  font-size: var(--text-display-lg);
+  margin-block: 2.5em 0.75em;
+}
+
+.prose h2 {
+  font-size: var(--text-display-md);
+  margin-block: 2.25em 0.625em;
+  padding-block-end: 0.5em;
+  border-block-end: 1px solid var(--line);
+}
+
+.prose h3 {
+  font-size: var(--text-display-sm);
+  margin-block: 2em 0.5em;
+  letter-spacing: -0.01em;
+}
+
+.prose h4 {
+  font-size: 1.125rem;
+  margin-block: 1.75em 0.5em;
+}
+
+.prose p {
+  text-wrap: pretty;
+}
+
+.prose h2 + *,
+.prose h3 + *,
+.prose h4 + * {
+  margin-block-start: 0;
+}
+
+.prose a {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--dur-1) var(--ease-out-soft);
+}
+
+.prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 640;
+}
+
+.prose ol,
+.prose ul {
+  padding-inline-start: 1.375em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.prose ul {
+  list-style: none;
+}
+
+.prose ul > li::marker {
+  content: '';
+}
+
+.prose ul > li {
+  position: relative;
+}
+
+.prose ul > li::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0.72em;
+  inset-inline-start: -1.375em;
+  width: 0.9em;
+  height: 2px;
+  border-radius: 999px;
+  background-image: var(--gradient-ember);
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li::marker {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.prose blockquote {
+  border-inline-start: 2px solid var(--ember-500);
+  padding-inline-start: 1.25rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.125em;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.prose blockquote em {
+  color: var(--ink);
+}
+
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  font-weight: 500;
+  color: var(--accent);
+  background-color: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  padding: 0.125em 0.375em;
+  word-break: break-word;
+}
+
+.prose pre code {
+  all: unset;
+}
+
+.prose .expressive-code {
+  margin-block: 1.5em;
+}
+
+.prose kbd {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  font-weight: 500;
+  color: var(--ink);
+  background-color: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-block-end-width: 2px;
+  border-radius: var(--radius-xs);
+  padding: 0.2em 0.45em;
+}
+
+.prose hr {
+  border: 0;
+  height: 1px;
+  margin-block: 2.5em;
+  background: linear-gradient(to right, transparent, var(--line-strong), transparent);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  text-align: start;
+}
+
+.prose thead th {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  border-block-end: 1px solid var(--line-strong);
+  padding: 0.6em 1em;
+}
+
+.prose tbody td {
+  border-block-end: 1px solid var(--line);
+  padding: 0.7em 1em;
+}
+
+.prose tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.prose img {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-md);
+}
+
+.prose figure {
+  margin-block: 1.75em;
+}
+
+.prose figcaption {
+  font-size: 0.875rem;
+  color: var(--ink-3);
+  text-align: center;
+  margin-block-start: 0.75em;
+  text-wrap: pretty;
+}
