@@ -28,7 +28,8 @@ export const GET: APIRoute = async ({ params }) => {
     dateLabel: formatDate(post.data.pubDate),
   });
 
-  return new Response(png, {
+  // Buffer<ArrayBufferLike> is not a DOM BodyInit; copy into a plain view.
+  return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=31536000, immutable',

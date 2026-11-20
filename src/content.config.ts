@@ -1,5 +1,7 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+// `z` is deprecated in astro:content as of Astro 7; astro/zod is the stable path.
+import { z } from 'astro/zod';
 
 /**
  * Blog posts — MDX, one file per essay. The schema is the contract the
@@ -44,7 +46,7 @@ const authors = defineCollection({
         .array(
           z.object({
             label: z.string(),
-            href: z.string().url(),
+            href: z.url(),
             icon: z.enum(['github', 'x', 'discord', 'mail', 'rss']),
           }),
         )

@@ -71,8 +71,7 @@ const shareUrl = encodeURIComponent(url);
   }
 
   /* Feedback state set by scripts/blog.ts after a successful copy. */
-  /* eslint-disable-next-line astro/no-unused-css-selector */
-  .share-link[data-state='copied'] {
+  .share-link:global([data-state='copied']) {
     border-color: color-mix(in oklab, var(--accent) 45%, transparent);
     background-color: var(--accent-soft);
     color: var(--accent);

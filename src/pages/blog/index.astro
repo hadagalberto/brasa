@@ -18,7 +18,7 @@ import {
 const posts = await getPosts();
 const featured = pickFeatured(posts);
 const gridPosts = posts.filter((post) => post.id !== featured?.id);
-const { posts: pagePosts, page, totalPages, nextHref } = paginate(gridPosts, 1);
+const { posts: pagePosts, page, totalPages } = paginate(gridPosts, 1);
 
 const featuredAuthor = featured ? await getAuthor(featured.data.author) : null;
 const pageData = await Promise.all(

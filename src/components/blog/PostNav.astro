@@ -4,7 +4,7 @@
  */
 import Icon from '../Icon.astro';
 import TagPill from './TagPill.astro';
-import { postHref, tagHref } from '../../lib/posts';
+import { postHref } from '../../lib/posts';
 import type { Post } from '../../lib/posts';
 
 interface Props {
@@ -33,7 +33,7 @@ const { prev, next } = Astro.props;
           </span>
           <span class="flex flex-wrap gap-1.5">
             {prev.data.tags.slice(0, 2).map((tag) => (
-              <TagPill label={tag} href={tagHref(tag)} />
+              <TagPill label={tag} />
             ))}
           </span>
         </a>
@@ -53,7 +53,7 @@ const { prev, next } = Astro.props;
           </span>
           <span class="flex flex-wrap justify-end gap-1.5">
             {next.data.tags.slice(0, 2).map((tag) => (
-              <TagPill label={tag} href={tagHref(tag)} />
+              <TagPill label={tag} />
             ))}
           </span>
         </a>

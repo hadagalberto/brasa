@@ -1,6 +1,18 @@
 import type { Page } from '@playwright/test';
 
-export const routes = ['/', '/styleguide'] as const;
+/** One route of each page type: home, styleguide, blog index, post, tag,
+ *  tags index, author and paginated archive. Shared by the SEO, a11y,
+ *  budget, link-crawl and screenshot specs. */
+export const routes = [
+  '/',
+  '/styleguide',
+  '/blog',
+  '/blog/deploy-previews-are-the-prs-missing-half',
+  '/blog/tags',
+  '/blog/tags/performance',
+  '/blog/authors/hadjunior',
+  '/blog/page/2',
+] as const;
 export const themes = ['dark', 'light'] as const;
 export type Theme = (typeof themes)[number];
 

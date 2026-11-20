@@ -284,6 +284,9 @@
      --gx/--gy (updated by a tiny script, off with reduced motion). */
   [data-glow] {
     position: relative;
+    /* The glow bleeds past the section box; clip the horizontal bleed so it
+       never widens the document (the radial fade is unchanged). */
+    overflow-x: clip;
   }
 
   [data-glow]::before {

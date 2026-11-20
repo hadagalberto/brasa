@@ -5,6 +5,7 @@ test-results/
 playwright-report/
 .lighthouseci/
 coverage/
+tmp/
 .DS_Store
 *.log
 .env

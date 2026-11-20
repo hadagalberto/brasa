@@ -15,16 +15,17 @@ test.describe('reference screenshots', () => {
       for (const theme of themes) {
         test(`${route} — ${width}px — ${theme}`, async ({ page }) => {
           await page.setViewportSize({ width, height });
+          // Scroll-reveal animations are scroll-position dependent: a full-page
+          // screenshot would otherwise freeze offscreen sections mid-fade.
+          // Reduced motion renders the final state everywhere — the same state
+          // a user gets with `prefers-reduced-motion`.
+          await page.emulateMedia({ reducedMotion: 'reduce' });
           await page.goto(route);
           await page.evaluate((next) => {
             document.documentElement.dataset.theme = next;
           }, theme);
           await page.evaluate(() => document.fonts.ready);
-          // Let scroll-reveal animations finish so content is fully visible.
-          await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-          await page.waitForTimeout(300);
-          await page.evaluate(() => window.scrollTo(0, 0));
-          await page.waitForTimeout(300);
+          await page.waitForTimeout(150);
 
           const name = route === '/' ? 'home' : route.replace('/', '').replace(/\//g, '-');
           await page.screenshot({
@@ -38,6 +39,7 @@ test.describe('reference screenshots', () => {
 
   test('404 — 1440px — dark', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/definitely-a-broken-url');
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: 'docs/screenshots/404-1440-dark.png' });

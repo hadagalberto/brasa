@@ -7,9 +7,9 @@ tags:
   - Performance
 pubDate: 2026-08-05
 updatedDate: 2026-10-01
-import { Callout } from '../../components/mdx';
-
 ---
+
+import { Callout } from '../../components/mdx';
 
 Click a post card on this blog and the card's headline doesn't vanish and reappear — it *travels*, landing as the article's header while the rest of the page settles around it. Under the hood this is a shared-element view transition: the browser screenshots the old element and the new one, then animates between them. It costs about forty lines of code and zero JavaScript, which is exactly why it deserves respect: the feature is cheap, but the *expectations it creates* are not.
 

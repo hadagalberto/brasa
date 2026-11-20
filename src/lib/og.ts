@@ -105,8 +105,8 @@ const div = (style: Node['props']['style'], children: Node['props']['children'])
 // vertical space-between is not, with mixed-height children).
 const PAD = 76;
 const HEADER_Y = PAD;
-const BODY_TOP = 196;
-const FOOTER_Y = 630 - PAD - 26; // footer text height ~26px, pinned above the padding edge
+const BODY_TOP = 190;
+const FOOTER_Y = 630 - PAD - 18; // footer text height ~26px, pinned above the padding edge
 
 /** Keeps titles to 2–3 balanced lines whatever the editor writes. */
 function titleSize(title: string): number {
@@ -165,7 +165,7 @@ export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
       width: 1200 - PAD * 2,
       display: 'flex',
       flexDirection: 'column',
-      gap: 34,
+      gap: 26,
     },
     [
       div(
@@ -192,13 +192,14 @@ export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
         {
           fontFamily: 'Fraunces',
           fontStyle: 'italic',
-          fontSize: 29,
+          fontSize: 27,
           lineHeight: '1.4em',
           letterSpacing: 0.3,
           color: ink2,
-          maxWidth: 920,
+          maxWidth: 960,
         },
-        clamp(input.description, 140),
+        // Two lines max: a third would collide with the byline footer.
+        clamp(input.description, 112),
       ),
     ],
   );

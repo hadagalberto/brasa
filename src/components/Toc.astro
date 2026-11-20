@@ -72,7 +72,8 @@ const { headings, label = 'On this page' } = Astro.props;
     transition: opacity var(--dur-2) var(--ease-out-soft);
   }
 
-  .toc-item[data-active]::before {
+  /* data-active is added by the TOC island at runtime, not in this template. */
+  .toc-item:global([data-active])::before {
     opacity: 1;
   }
 
@@ -91,7 +92,7 @@ const { headings, label = 'On this page' } = Astro.props;
     color: var(--ink);
   }
 
-  .toc-item[data-active] a {
+  .toc-item:global([data-active]) a {
     color: var(--accent);
     font-weight: 500;
   }

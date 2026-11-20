@@ -88,16 +88,19 @@ test('SEO head is complete on every route', async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       'content',
-      /\/og\.png$/,
+      /\/(og\.png|og\/blog\/[^/]+\.png)$/,
     );
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
       'content',
       'summary_large_image',
     );
 
-    const jsonLd = await page.locator('script[type="application/ld+json"]').textContent();
-    expect(jsonLd, `JSON-LD on ${route}`).toBeTruthy();
-    expect(() => JSON.parse(jsonLd ?? '')).not.toThrow();
+    const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
+    expect(jsonLd.length, `JSON-LD on ${route}`).toBeGreaterThan(0);
+    for (const block of jsonLd) {
+      expect(() => JSON.parse(block)).not.toThrow();
+      expect(JSON.parse(block)['@context']).toBe('https://schema.org');
+    }
   }
 });
 

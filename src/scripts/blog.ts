@@ -5,28 +5,39 @@
  * survives View Transitions.
  */
 
-/** Active-section tracking for the sticky TOC. */
-function initToc(): void {
-  const nav = document.querySelector<HTMLElement>('[data-toc]');
-  if (!nav) return;
+let tocObserver: IntersectionObserver | null = null;
 
-  const links = new Map<string, HTMLAnchorElement>();
-  nav.querySelectorAll<HTMLAnchorElement>('[data-toc-link]').forEach((link) => {
-    links.set(link.dataset.tocLink ?? '', link);
+/** Active-section tracking for both TOCs (the mobile <details> and the
+ *  desktop sidebar) — they share one observer and one active state. */
+function initToc(): void {
+  tocObserver?.disconnect();
+  tocObserver = null;
+
+  const navs = [...document.querySelectorAll<HTMLElement>('[data-toc]')];
+  if (navs.length === 0) return;
+
+  const linkMaps = navs.map((nav) => {
+    const links = new Map<string, HTMLAnchorElement>();
+    nav.querySelectorAll<HTMLAnchorElement>('[data-toc-link]').forEach((link) => {
+      links.set(link.dataset.tocLink ?? '', link);
+    });
+    return links;
   });
 
-  const headings = [...links.keys()]
+  const headings = [...linkMaps[0]?.keys() ?? []]
     .map((id) => document.getElementById(id))
     .filter((heading): heading is HTMLElement => heading !== null);
   if (headings.length === 0) return;
 
   const setActive = (id: string): void => {
-    for (const [headingId, link] of links) {
-      const active = headingId === id;
-      link.setAttribute('aria-current', active ? 'true' : 'false');
-      const item = link.closest('li');
-      if (active) item?.setAttribute('data-active', '');
-      else item?.removeAttribute('data-active');
+    for (const links of linkMaps) {
+      for (const [headingId, link] of links) {
+        const active = headingId === id;
+        link.setAttribute('aria-current', active ? 'true' : 'false');
+        const item = link.closest('li');
+        if (active) item?.setAttribute('data-active', '');
+        else item?.removeAttribute('data-active');
+      }
     }
   };
 
@@ -38,7 +49,7 @@ function initToc(): void {
   // it is "where the reader is". Scrolling up re-triggers the heading above.
   const headerOffset = 96;
   const bandBottom = Math.max(0.3, 0.9 - headerOffset / window.innerHeight);
-  const observer = new IntersectionObserver(
+  tocObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) current = entry.target.id;
@@ -51,7 +62,7 @@ function initToc(): void {
     },
   );
 
-  headings.forEach((heading) => observer.observe(heading));
+  headings.forEach((heading) => tocObserver?.observe(heading));
 }
 
 /* ------------------------------ Share links -------------------------------- */
@@ -85,6 +96,9 @@ document.addEventListener('click', (event) => {
 
 /* -------------------------------- Lifecycle -------------------------------- */
 
+// On a direct load the module script can run after ClientRouter's initial
+// astro:page-load event, so initialise once now and again after every swap.
+initToc();
 document.addEventListener('astro:page-load', () => {
   initToc();
 });
