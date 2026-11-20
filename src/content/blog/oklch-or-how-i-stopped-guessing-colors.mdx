@@ -9,21 +9,21 @@ pubDate: 2026-08-18
 
 import { Callout, FileTree } from '../../components/mdx';
 
-The most expensive colors in any codebase are the ones nobody chose. They arrive as hex values copied from a slide deck three rebrands ago, accrete one `!important` at a time, and defend themselves with the sheer difficulty of knowing what they *do*. Our design system had accumulated a hundred of them. This is the story of trading them for eleven numbers and a color space that tells the truth.
+The most expensive colors in any codebase are the ones nobody chose. They arrive as hex values copied from a slide deck three rebrands ago, accrete one `!important` at a time, and defend themselves with the sheer difficulty of knowing what they _do_. Our design system had accumulated a hundred of them. This is the story of trading them for eleven numbers and a color space that tells the truth.
 
 ## Why hex codes lie
 
 Hex is a filing format for monitors, not a description of color. The lie is easiest to see in a palette's grays:
 
-| Token | Hex | Perceptual lightness |
-| --- | --- | --- |
-| gray-100 | #f5f5f5 | very light, neutral |
-| amber-100 | #fef3c7 | *similar* lightness, warm |
-| brand-50 | #fff7ed | similar again, warmer still |
+| Token     | Hex     | Perceptual lightness        |
+| --------- | ------- | --------------------------- |
+| gray-100  | #f5f5f5 | very light, neutral         |
+| amber-100 | #fef3c7 | _similar_ lightness, warm   |
+| brand-50  | #fff7ed | similar again, warmer still |
 
-Three "light" colors, three different feelings — and in hex, the reason is invisible. OKLCH puts the answer in the string: `oklch(0.98 0.01 80)` *reads* as "98% light, barely colorful, warm yellow hue." Lightness, chroma, hue — the three axes a designer actually decides — become the three numbers in the file.
+Three "light" colors, three different feelings — and in hex, the reason is invisible. OKLCH puts the answer in the string: `oklch(0.98 0.01 80)` _reads_ as "98% light, barely colorful, warm yellow hue." Lightness, chroma, hue — the three axes a designer actually decides — become the three numbers in the file.
 
-The practical difference is not aesthetic, it is *reasoning*. When a contrast question comes up, "this surface is L 0.98 and the ink is L 0.23" answers it in one step. In hex, the same question means opening a calculator and hoping the result survives the next theme.
+The practical difference is not aesthetic, it is _reasoning_. When a contrast question comes up, "this surface is L 0.98 and the ink is L 0.23" answers it in one step. In hex, the same question means opening a calculator and hoping the result survives the next theme.
 
 ## The eleven numbers
 
@@ -31,32 +31,38 @@ Brasa's entire dark theme is eleven perceptual decisions — the rest derives:
 
 ```css
 :root {
-  --canvas: oklch(0.16 0.012 40);      /* near-black, warm */
-  --surface: oklch(0.19 0.014 42);     /* layered by lightness */
-  --ink: oklch(0.94 0.008 85);          /* warm white, never #fff */
-  --accent-hue: 35;                      /* the one that re-themes everything */
+  --canvas: oklch(0.16 0.012 40); /* near-black, warm */
+  --surface: oklch(0.19 0.014 42); /* layered by lightness */
+  --ink: oklch(0.94 0.008 85); /* warm white, never #fff */
+  --accent-hue: 35; /* the one that re-themes everything */
 }
 ```
 
-Notice what is *not* there: no hex codes at all, and one hue to rule them. Every ember step is computed relative to `--accent-hue` — 35 for the deep red-orange the brand ships with, and a single edit produces a coherent warm-gold or a cool ember-green without touching anything else:
+Notice what is _not_ there: no hex codes at all, and one hue to rule them. Every ember step is computed relative to `--accent-hue` — 35 for the deep red-orange the brand ships with, and a single edit produces a coherent warm-gold or a cool ember-green without touching anything else:
 
 <FileTree
   label="Token files (dark-first, one source of truth)"
   tree={[
-    { name: 'src/', children: [
-      { name: 'styles/', children: [
-        { name: 'global.css', note: 'tokens live here', highlight: true },
-      ] },
-      { name: 'brasa.config.ts', note: 'accentHue: 35', highlight: true },
-      { name: 'lib/', children: [{ name: 'color.ts', note: 'OKLCH math for JS' }] },
-    ] },
+    {
+      name: 'src/',
+      children: [
+        {
+          name: 'styles/',
+          children: [{ name: 'global.css', note: 'tokens live here', highlight: true }],
+        },
+        { name: 'brasa.config.ts', note: 'accentHue: 35', highlight: true },
+        { name: 'lib/', children: [{ name: 'color.ts', note: 'OKLCH math for JS' }] },
+      ],
+    },
   ]}
 />
 
 The JS side mirrors the CSS numbers exactly — one module does the OKLCH→sRGB math so code-block themes and build-time OG images derive from the same eleven decisions instead of hand-picked approximations of them.
 
 <Callout variant="tip" title="Steal this rule">
-One hue, many lightnesses. When every accent in the system shares a hue and varies only in L and C, "does this go together?" stops being a meeting — the answer is yes, and the only remaining question is *emphasis*, which lightness answers out loud.
+  One hue, many lightnesses. When every accent in the system shares a hue and varies only in L and
+  C, "does this go together?" stops being a meeting — the answer is yes, and the only remaining
+  question is *emphasis*, which lightness answers out loud.
 </Callout>
 
 ## What OKLCH changed in practice
@@ -65,9 +71,9 @@ Three meetings changed shape:
 
 **Contrast reviews became arithmetic.** WCAG contrast ratios need relative luminance, and OKLCH's lightness component maps to it directly enough to sanity-check by eye. "Dark theme body text" stopped being a sampling exercise and became "ink at L 0.94 on canvas at L 0.16 — comfortably AAA."
 
-**Theme variants became a diff, not a project.** Light mode is the same eleven numbers retuned: canvas up to L 0.98 with the hue kept warm, ink down to L 0.23, accent *desaturated and darkened* so it holds contrast on paper. Twelve lines of CSS, not a second palette to defend.
+**Theme variants became a diff, not a project.** Light mode is the same eleven numbers retuned: canvas up to L 0.98 with the hue kept warm, ink down to L 0.23, accent _desaturated and darkened_ so it holds contrast on paper. Twelve lines of CSS, not a second palette to defend.
 
-**The accent became a product feature.** Because the scale is hue-relative, "re-theme the site to your brand" is one config value. We test it by setting the hue to values we would never ship — 130 renders a coherent sage green, 260 an eerie violet — and every time, *everything* follows: buttons, code blocks, focus rings, the OG images. Coherence is not talent; it is structure.
+**The accent became a product feature.** Because the scale is hue-relative, "re-theme the site to your brand" is one config value. We test it by setting the hue to values we would never ship — 130 renders a coherent sage green, 260 an eerie violet — and every time, _everything_ follows: buttons, code blocks, focus rings, the OG images. Coherence is not talent; it is structure.
 
 ## The honest caveats
 
@@ -77,4 +83,4 @@ First, **chroma is unbounded** in the notation but capped by your display's gamu
 
 Second, **perceptually uniform is monitor-relative.** OKLCH is uniform in the Oklab model, not on any specific panel. It is dramatically better than hex for reasoning, and still no substitute for a contrast check before you ship body text. We keep both: the space for taste, the calculator for the floor.
 
-The deeper change was never the color space, though. It is that the palette became *legible*. A new engineer can read eleven numbered decisions and understand the entire visual temperature of the product — and when someone asks for "a slightly warmer dark mode," the answer is now a number, not an archaeology project.
+The deeper change was never the color space, though. It is that the palette became _legible_. A new engineer can read eleven numbered decisions and understand the entire visual temperature of the product — and when someone asks for "a slightly warmer dark mode," the answer is now a number, not an archaeology project.

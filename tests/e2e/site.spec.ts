@@ -88,7 +88,7 @@ test('SEO head is complete on every route', async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       'content',
-      /\/(og\.png|og\/blog\/[^/]+\.png)$/,
+      /\/(og\.png|og\/blog\/[^/]+\.png|og\/docs\/[^/]+\.png)$/,
     );
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
       'content',

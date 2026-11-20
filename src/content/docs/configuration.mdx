@@ -1,0 +1,139 @@
+---
+title: Configuration
+description: Change site identity, navigation, footer, locales, features and the ember hue from one typed file.
+group: Getting started
+order: 2
+sidebarLabel: Configuration
+updated: 2026-11-20
+---
+
+import { Callout, FileTree, Tabs } from '../../components/mdx';
+import { docLink } from '../../lib/doc-link';
+
+There is no pile of dotfiles to learn. `src/brasa.config.ts` exports one typed object, `brasa`, imported by layouts, components, the SEO helper and `astro.config.ts` itself. TypeScript tells you when a field name is wrong before the build does.
+
+## The config object
+
+```ts
+// src/brasa.config.ts (shape, abbreviated)
+export const brasa: BrasaConfig = {
+  site: { name, tagline, description, author, github },
+  logo: { text },
+  nav: [{ label, href, external? }],
+  footer: { columns, socials, newsletter, note },
+  locales: { default, available: [{ code, label, lang }] },
+  colors: { accentHue },
+  fonts: { display, sans, mono },
+  features: { blog, docs, changelog, search },
+};
+```
+
+### Site and logo
+
+`site.name` appears in titles, the SEO graph and the footer. `site.github` is more than a vanity link: the "edit this page" URLs on docs pages are derived from it, so changing repositories rewrites every edit link. `site.tagline` completes the title on the homepage; `site.description` is the fallback meta description.
+
+`logo.text` is the wordmark beside the flame mark. Keep it short — the header uses a fixed height and the mobile sheet repeats the same component.
+
+### Navigation
+
+```ts
+nav: [
+  { label: 'Home', href: '/' },
+  { label: 'Docs', href: '/docs' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Styleguide', href: '/styleguide' },
+],
+```
+
+Entries with `external: true` get an external-link arrow and `target="_blank"` with `rel="noopener noreferrer"`. The header marks a link current when the path matches exactly or sits under the link's subtree, which is why "Blog" stays active on tag and author pages.
+
+<Callout variant="tip" title="Order is the design">
+The array order is the visual order in both the desktop nav and the full-screen mobile sheet, including the staggered entrance delay. Move an entry to move it everywhere.
+</Callout>
+
+### Footer and newsletter
+
+`footer.columns` is a list of titled link groups. The reference site uses four; the grid is `1.25fr repeat(3, 1fr)` from medium width up, so a fifth column wraps rather than squeezes. `footer.socials` uses an icon name from the inline `Icon` set: `github`, `x`, `discord`, `rss` or `mail`.
+
+The newsletter form is intentionally static. Set `newsletter.action` to your endpoint (Formspree, Buttondown, your own route) and the form posts there; leave it empty and it submits to the current page. No tracking is added by the theme.
+
+### Locales
+
+```ts
+locales: {
+  default: 'en',
+  available: [
+    { code: 'en', label: 'English', lang: 'en' },
+    { code: 'pt-br', label: 'Português (Brasil)', lang: 'pt-BR' },
+  ],
+},
+```
+
+The default locale determines the `<html lang>` emitted by `BaseLayout`. The `code` values are route prefixes and the `lang` values are the BCP-47 strings used for hreflang. See <a href={docLink('internationalization')}>Internationalization</a> for the routing setup.
+
+### Feature flags
+
+The four `features` booleans are typed switches for your own layouts and conditionals — for example, hiding the blog link when `features.blog` is false. The reference site renders all of its sections and uses the flags as documentation of what is available. If you remove a section from navigation, remove its route too; a nav link without a page is a broken link.
+
+## Changing the accent hue
+
+`colors.accentHue` is the single value behind the entire ember scale. Set it in OKLCH degrees:
+
+```ts
+colors: {
+  // 35 = deep red-orange fading into amber
+  // 145 = a mint-teal ramp; 260 = an indigo ramp
+  accentHue: 35,
+},
+```
+
+`global.css` derives `--color-ember-*` from `var(--accent-hue)` using OKLCH lightness and chroma steps, and `src/lib/color.ts` derives the same scale for syntax highlighting and build-time OG images. The hue is injected on `<html>` by `BaseLayout`, so no CSS text replacement happens at build time.
+
+<Callout variant="warning" title="Check contrast after a hue change">
+Lightness, not hue, carries contrast. The scale keeps lightness fixed while hue rotates, but colors at very different hues are perceived differently. Re-run the axe suite in both themes after a large hue change.
+</Callout>
+
+The styleguide at `/styleguide` has a live hue slider. It writes `--accent-hue` on the document and updates the token readout, so you can audition a hue before committing it to config.
+
+## Base path and site URL
+
+Astro reads two environment variables in `astro.config.ts`:
+
+<Tabs
+  label="Deploy-target settings"
+  tabs={[
+    { id: 'pages', label: 'GitHub Pages' },
+    { id: 'custom', label: 'Custom domain' },
+  ]}
+>
+  <Fragment slot="pages">
+    ```bash
+    SITE_URL=https://hadagalberto.github.io/brasa
+    PAGES_BASE_PATH=/brasa
+    npm run build
+    ```
+    Every internal link, asset URL, feed link and OG image path uses `import.meta.env.BASE_URL`, so the whole site stays correct under the subpath.
+  </Fragment>
+  <Fragment slot="custom">
+    ```bash
+    SITE_URL=https://brasa.example.com
+    PAGES_BASE_PATH=/
+    npm run build
+    ```
+    With a custom domain the base path is `/` and no prefixed URLs appear. `SITE_URL` drives canonical links and absolute feed URLs.
+  </Fragment>
+</Tabs>
+
+<Callout variant="note" title="Where to set them">
+In CI, put these in the workflow's `env:` block or in repository variables. Locally, use a `.env` file. Never commit a deployment URL that is not yours.
+</Callout>
+
+## Validate a config change
+
+```bash
+npm run check   # BrasaConfig shape and all consumers
+npm run build   # routes, feeds, OG images, Pagefind index
+npm test        # links, axe, budget and screenshots
+```
+
+The config is imported at module scope from the Astro config, so a syntax error there fails the build before any page renders — a useful failure mode.

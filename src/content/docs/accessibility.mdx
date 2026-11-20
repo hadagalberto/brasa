@@ -1,0 +1,100 @@
+---
+title: Accessibility
+description: How Brasa handles focus, contrast, motion and semantics — and what the automated suite actually checks.
+group: Guides
+order: 4
+sidebarLabel: Accessibility
+updated: 2026-11-20
+---
+
+import { Callout, Tabs, Steps } from '../../components/mdx';
+
+Accessibility is part of the quality bar, not a final audit. The theme is built so the accessible behavior is the default path — native elements first, JavaScript only where it adds something.
+
+## Structure and landmarks
+
+Every page starts with the same skeleton: a skip link, `<header>`, `<main id="main">` and `<footer>`. The skip link is the first tab stop and moves focus to `main`, which carries `tabindex="-1"` so focus lands reliably in all browsers.
+
+- **Navigation** uses `<nav aria-label="…">`, so the header, mobile sheet, footer columns, breadcrumbs, TOC and docs sidebar each have a distinct accessible name.
+- **Breadcrumbs** mark the last crumb with `aria-current="page"` and are emitted as JSON-LD too.
+- **Sidebar and TOC links** set `aria-current` on the active page or section; the ember rail is a visual echo of that state, never the only signal.
+- **Tables** in MDX use real `<thead>`/`<tbody>` with uppercase mono headers.
+
+## Focus
+
+`:focus-visible` draws a 2px ember ring with a 3px offset across the whole site. Nothing removes the outline without replacing it.
+
+<Tabs
+  label="Focus behavior"
+  tabs={[
+    { id: 'menu', label: 'Mobile menu' },
+    { id: 'search', label: 'Search dialog' },
+    { id: 'docs', label: 'Docs drawer' },
+  ]}
+>
+  <Fragment slot="menu">
+    The full-screen sheet is a `role="dialog"` with `aria-modal="true"`. Opening it moves focus to the first link, Tab and Shift+Tab cycle inside it, Escape closes it and focus returns to the trigger. Body scrolling is locked while it is open.
+  </Fragment>
+  <Fragment slot="search">
+    The search panel is a native `<dialog>` opened with `showModal()`. That supplies the focus trap, inert background and Escape behavior. Arrow keys move between results, Enter opens the highlighted one, and the live status region announces result counts.
+  </Fragment>
+  <Fragment slot="docs">
+    The mobile docs sidebar is a second native `<dialog>`. Closing it — by button, backdrop click, Escape or following a link — restores focus to the "Browse docs" trigger.
+  </Fragment>
+</Tabs>
+
+Tabs and tab panels follow the WAI-ARIA pattern: roving tabindex, arrow/Home/End keys, `aria-controls` and `aria-labelledby` wiring. With JavaScript disabled the tablist is hidden and every panel renders stacked with its own label, so no content becomes unreachable.
+
+## Contrast
+
+The palette is designed on the lightness axis. Body text holds **AAA (7:1)** and everything else meets at least **AA (4.5:1)** in both themes. The light mode is warm paper with ink text, not a dimmed version of the dark theme.
+
+| Pair | Approx. ratio | Use |
+| --- | --- | --- |
+| Ink on canvas (dark) | ~13:1 | Body, headings |
+| Ink on canvas (light) | ~12:1 | Body, headings |
+| Ink-3 on surface | ~4.6:1 | Meta and captions only |
+| Accent on surface | ≥4.5:1 | Links, focus rings |
+
+Focus rings, callout borders and selected states also carry a shape or text change — color is never the sole indicator.
+
+<Callout variant="warning" title="Custom hues need a re-check">
+The ember scale rotates hue at fixed lightness, but perceived contrast shifts slightly with hue. After changing `colors.accentHue`, run the axe suite in both themes before shipping.
+</Callout>
+
+## Motion
+
+`prefers-reduced-motion: reduce` is honored everywhere:
+
+- Scroll-driven `reveal` animations become plain, visible content.
+- The step connector draws instantly instead of on scroll.
+- Count-up metrics render their final value with no rAF loop.
+- The pointer-reactive hero glow stops updating custom properties.
+- Sheet, drawer and search animations are disabled; disclosures still open.
+
+The progressive-enhancement rule is simple: if a browser lacks `animation-timeline`, reduced motion is set, or JavaScript never runs, content is visible and usable. Animation never gates information.
+
+## Forms and interactive content
+
+The contact and newsletter forms use real labels, not placeholders as labels. Validation messages are associated with their inputs and announced politely. The `action` endpoints are configurable in config; the theme adds no analytics or tracking by default.
+
+The monthly/yearly pricing toggle is a pair of radio-style buttons with an accessible name; it swaps text without shifting layout. Accordions and FAQ items are native `<details>`/`<summary>`, so they work with keyboard and assistive tech without scripting.
+
+## What the test suite checks
+
+<Steps
+  steps={[
+    { icon: 'shield', title: 'axe on every route', body: '@axe-core/playwright audits each route in both themes with wcag2a, wcag2aa, wcag21a and wcag21aa tags. Zero violations is the only passing state.' },
+    { icon: 'check', title: 'Keyboard walkthroughs', body: 'Tests cover the skip link as first tab stop, the theme toggle, the mobile sheet focus trap, keyboard tabs, search shortcuts and focus restoration.' },
+    { icon: 'chart', title: 'Visual invariants', body: 'Layout tests assert no horizontal overflow at 375, 768 and 1440 px and check that reduced motion disables animation. Screenshots are captured at 375 and 1440 in both themes.' },
+  ]}
+/>
+
+```bash
+npm run build
+npm test
+```
+
+<Callout variant="tip" title="Extending the suite">
+When you add a route, add it to `routes` in `tests/e2e/helpers.ts`. That single edit puts it through axe in both themes, link crawling, SEO head checks, the JS budget and screenshot capture.
+</Callout>

@@ -30,7 +30,10 @@ const { steps, class: className } = Astro.props;
 const columns = steps.length <= 3 ? Math.max(1, steps.length) : steps.length % 3 === 0 ? 3 : 2;
 ---
 
-<ol class:list={['steps grid grid-cols-1 gap-12 md:gap-8', className]} data-cols={columns}>
+<ol
+  class:list={['steps not-prose grid grid-cols-1 gap-12 md:gap-8', className]}
+  data-cols={columns}
+>
   {steps.map((step, index) => (
     <li class="step">
       <div class="flex size-12 items-center justify-center rounded-full border border-line-strong bg-surface-2 shadow-sm">

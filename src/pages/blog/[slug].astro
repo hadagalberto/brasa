@@ -57,7 +57,9 @@ const crumbs: Crumb[] = [
 ];
 
 const seoCrumbs = [
-  ...crumbs.filter((crumb): crumb is Crumb & { href: string } => crumb.href !== undefined).map(({ label, href }) => ({ label, href })),
+  ...crumbs
+    .filter((crumb): crumb is Crumb & { href: string } => crumb.href !== undefined)
+    .map(({ label, href }) => ({ label, href })),
   { label: post.data.title, href: url },
 ];
 
@@ -82,7 +84,7 @@ const relatedData = await Promise.all(
   }}
   breadcrumbs={seoCrumbs}
 >
-  <article class="section-y" data-post-root>
+  <article class="section-y" data-post-root data-pagefind-body>
     <Container size="sm" class="pt-2">
       <Breadcrumbs items={crumbs} />
     </Container>
@@ -91,20 +93,14 @@ const relatedData = await Promise.all(
     <Container size="sm" class="mt-8">
       <div transition:name={`post-${post.id}`} class="post-hero flex flex-col gap-6">
         <ul class="flex flex-wrap items-center gap-2">
-          {
-            post.data.tags.map((tag) => (
-              <li>
-                <TagPill label={tag} href={tagHref(tag)} />
-              </li>
-            ))
-          }
+          {post.data.tags.map((tag) => (
+            <li>
+              <TagPill label={tag} href={tagHref(tag)} />
+            </li>
+          ))}
         </ul>
-        <h1 class="font-display text-display-xl text-ink text-balance">
-          {post.data.title}
-        </h1>
-        <p class="max-w-[58ch] text-pretty text-body-lg text-ink-2">
-          {post.data.description}
-        </p>
+        <h1 class="font-display text-display-xl text-ink text-balance">{post.data.title}</h1>
+        <p class="max-w-[58ch] text-pretty text-body-lg text-ink-2">{post.data.description}</p>
         <PostMeta {post} {author} />
       </div>
 
@@ -170,22 +166,20 @@ const relatedData = await Promise.all(
       </div>
     </Container>
 
-    {
-      relatedData.length > 0 && (
-        <Container size="md" class="mt-8">
-          <section aria-labelledby="related-heading" class="mt-16">
-            <h2 id="related-heading" class="font-display text-display-sm text-ink">
-              Keep reading
-            </h2>
-            <div class="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
-              {relatedData.map(({ post: entry, author: entryAuthor }) => (
-                <PostCard post={entry} author={entryAuthor} variant="compact" />
-              ))}
-            </div>
-          </section>
-        </Container>
-      )
-    }
+    {relatedData.length > 0 && (
+      <Container size="md" class="mt-8">
+        <section aria-labelledby="related-heading" class="mt-16">
+          <h2 id="related-heading" class="font-display text-display-sm text-ink">
+            Keep reading
+          </h2>
+          <div class="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {relatedData.map(({ post: entry, author: entryAuthor }) => (
+              <PostCard post={entry} author={entryAuthor} variant="compact" />
+            ))}
+          </div>
+        </section>
+      </Container>
+    )}
   </article>
 </BaseLayout>
 

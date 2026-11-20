@@ -22,7 +22,7 @@ Staging rarely fails dramatically. It fails as an accumulation of small lies:
 - "We'll test on staging before release" — but the branch is four days old and tangled with five others, so what gets tested is a merge that will never exist.
 - "Staging is down again" — and everyone waits, because the alternative is deploying unreviewed code to production.
 
-The last one is the tell. When staging outages block feature work, your *preview* environment has quietly become your most important production system, run with none of the care.
+The last one is the tell. When staging outages block feature work, your _preview_ environment has quietly become your most important production system, run with none of the care.
 
 <Testimonial
   quote="The week we turned staging off, I felt naked. Two weeks later I realized the feeling was just the absence of queueing for a shared environment that was never going to answer my questions anyway."
@@ -34,12 +34,14 @@ The last one is the tell. When staging outages block feature work, your *preview
 
 The mistake would be one replacement. Staging was doing two unrelated jobs the whole time, and each job wants its own tool:
 
-**Job one — *review feedback*: branch previews.** Every branch gets an isolated, ephemeral, production-shaped URL. This is where 90% of "testing" actually happens now: the author, the reviewer, the designer, all clicking the same running build, days before any merge.
+**Job one — _review feedback_: branch previews.** Every branch gets an isolated, ephemeral, production-shaped URL. This is where 90% of "testing" actually happens now: the author, the reviewer, the designer, all clicking the same running build, days before any merge.
 
-**Job two — *release rehearsal*: one promoted environment.** A single long-lived environment that only ever receives a release candidate, freshly provisioned from the same pipeline as production. Release notes get rehearsed here; nothing else.
+**Job two — _release rehearsal_: one promoted environment.** A single long-lived environment that only ever receives a release candidate, freshly provisioned from the same pipeline as production. Release notes get rehearsed here; nothing else.
 
 <Callout variant="note" title="The naming matters">
-We kept the word "staging" for the promoted environment and deleted the shared one. The words "preview" and "staging" now mean different things in every conversation, which is half the value — "does this need staging?" became a question with an answer, instead of a shrug.
+  We kept the word "staging" for the promoted environment and deleted the shared one. The words
+  "preview" and "staging" now mean different things in every conversation, which is half the value —
+  "does this need staging?" became a question with an answer, instead of a shrug.
 </Callout>
 
 ## The migration, honestly
@@ -48,7 +50,7 @@ We did it over one month, in the order that minimizes screaming:
 
 1. **Turn on previews everywhere first** — full adoption before anything is taken away. This took two weeks and one internal demo of `brasa deploy --branch`.
 2. **Move release rehearsal off staging** — the release manager's checklist now points at the promoted environment, provisioned fresh per candidate.
-3. **Freeze staging for two weeks** — announce the date, keep it running, count the complaints. The serious ones (two) were about missing *smoke-test data*, not the environment itself.
+3. **Freeze staging for two weeks** — announce the date, keep it running, count the complaints. The serious ones (two) were about missing _smoke-test data_, not the environment itself.
 4. **Delete it** — including the DNS entries, which had been load-balancing to a box that stopped existing months earlier. Staging was lying to us right up to the end.
 
 The freeze step deserves emphasis. A two-week "no new deploys" window surfaced every hidden dependency while they were still reversible — a scheduled job that pointed at staging's database, and one (1) integration test that had been quietly green against a 404 since spring.
@@ -61,10 +63,12 @@ Two real costs, both cheaper than the alternative:
 
 **A few long-running tests needed a host.** The ones that survived scrutiny moved to the promoted environment's schedule. The ones that didn't survive scrutiny got deleted, which is what "scrutiny" is for.
 
-<Badge variant="ember">Incidents retired with staging</Badge> the four recurring classics, for the record: the Friday-afternoon "who deployed over my migration?", the phantom "works on staging" (it didn't, the data was stale), the release-day flag drift, and the queue. Especially the queue.
+<Badge variant="ember">Incidents retired with staging</Badge> the four recurring classics, for the
+record: the Friday-afternoon "who deployed over my migration?", the phantom "works on staging" (it
+didn't, the data was stale), the release-day flag drift, and the queue. Especially the queue.
 
 ## The part people don't expect
 
-Deleting staging made *reviews* faster, which nobody predicted. Once the promoted environment stopped being a dumping ground for review work, release candidates became boring — a release went from a small ceremony to a scheduled re-run of an already-reviewed build. The scary part of release day had never been the deploy; it was the first time anyone had run the *combined* result of a week of merges. Previews review each change live; rehearsal verifies the combination. Split those jobs and both get easier.
+Deleting staging made _reviews_ faster, which nobody predicted. Once the promoted environment stopped being a dumping ground for review work, release candidates became boring — a release went from a small ceremony to a scheduled re-run of an already-reviewed build. The scary part of release day had never been the deploy; it was the first time anyone had run the _combined_ result of a week of merges. Previews review each change live; rehearsal verifies the combination. Split those jobs and both get easier.
 
 We still stand up the occasional long-lived branch environment for multi-week migrations — previews are for review, not for residency, and knowing the difference is the whole discipline. But the shared kitchen fridge is gone, and nobody has asked for it back.

@@ -36,34 +36,28 @@ const href = postHref(post);
     className,
   ]}
 >
-  {
-    featured && (
-      <span
-        aria-hidden="true"
-        class="post-card-flame pointer-events-none absolute -right-10 -bottom-14 text-ember-500/12"
-      >
-        <Icon name="flame" size={200} />
-      </span>
-    )
-  }
+  {featured && (
+    <span
+      aria-hidden="true"
+      class="post-card-flame pointer-events-none absolute -right-10 -bottom-14 text-ember-500/12"
+    >
+      <Icon name="flame" size={200} />
+    </span>
+  )}
 
   <div class="flex items-center gap-3">
-    {
-      featured && (
-        <span class="inline-flex items-center gap-1.5 rounded-full bg-ember-gradient px-3 py-1 font-mono text-xs font-semibold tracking-[0.1em] text-on-accent uppercase shadow-glow">
-          <Icon name="flame" size={12} />
-          Featured
-        </span>
-      )
-    }
+    {featured && (
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-ember-gradient px-3 py-1 font-mono text-xs font-semibold tracking-[0.1em] text-on-accent uppercase shadow-glow">
+        <Icon name="flame" size={12} />
+        Featured
+      </span>
+    )}
     <ul class:list={['flex flex-wrap items-center gap-1.5', featured && 'min-w-0']}>
-      {
-        post.data.tags.map((tag) => (
-          <li>
-            <TagPill label={tag} href={tagHref(tag)} class={featured ? 'backdrop-blur-sm' : ''} />
-          </li>
-        ))
-      }
+      {post.data.tags.map((tag) => (
+        <li>
+          <TagPill label={tag} href={tagHref(tag)} class={featured ? 'backdrop-blur-sm' : ''} />
+        </li>
+      ))}
     </ul>
     {index !== undefined && !featured && (
       <span aria-hidden="true" class="ml-auto font-mono text-xs text-ink-3 tabular-nums">
@@ -72,29 +66,34 @@ const href = postHref(post);
     )}
   </div>
 
-    <div class="relative z-1 flex flex-col gap-4" transition:name={`post-${post.id}`}>
-    {
-      featured ? (
-        <h2 class="font-display text-display-md text-ink text-balance">
-          <a href={href} class="post-card-link">
-            {post.data.title}
-          </a>
-        </h2>
-      ) : (
-        <h3
-          class:list={[
-            'font-display text-ink text-balance',
-            compact ? 'text-display-sm' : 'text-[clamp(1.375rem,1.1rem+1.2vw,1.75rem)] leading-snug tracking-[-0.01em]',
-          ]}
-        >
-          <a href={href} class="post-card-link">
-            {post.data.title}
-          </a>
-        </h3>
-      )
-    }
+  <div class="relative z-1 flex flex-col gap-4" transition:name={`post-${post.id}`}>
+    {featured ? (
+      <h2 class="font-display text-display-md text-ink text-balance">
+        <a href={href} class="post-card-link">
+          {post.data.title}
+        </a>
+      </h2>
+    ) : (
+      <h3
+        class:list={[
+          'font-display text-ink text-balance',
+          compact
+            ? 'text-display-sm'
+            : 'text-[clamp(1.375rem,1.1rem+1.2vw,1.75rem)] leading-snug tracking-[-0.01em]',
+        ]}
+      >
+        <a href={href} class="post-card-link">
+          {post.data.title}
+        </a>
+      </h3>
+    )}
 
-    <p class:list={['text-pretty text-ink-2', compact ? 'text-sm leading-relaxed' : 'max-w-[58ch] text-[0.9375rem] leading-relaxed']}>
+    <p
+      class:list={[
+        'text-pretty text-ink-2',
+        compact ? 'text-sm leading-relaxed' : 'max-w-[58ch] text-[0.9375rem] leading-relaxed',
+      ]}
+    >
       {post.data.description}
     </p>
 
@@ -102,7 +101,11 @@ const href = postHref(post);
       <PostMeta {post} {author} class={compact ? 'text-xs' : undefined} />
       <span class="read-more" aria-hidden="true">
         <span class="font-mono text-xs tracking-[0.08em] text-accent uppercase">Read</span>
-        <Icon name="arrow-right" size={15} class="text-accent transition-transform duration-(--dur-2) ease-(--ease-out-soft) group-hover:translate-x-1" />
+        <Icon
+          name="arrow-right"
+          size={15}
+          class="text-accent transition-transform duration-(--dur-2) ease-(--ease-out-soft) group-hover:translate-x-1"
+        />
       </span>
     </div>
   </div>

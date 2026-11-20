@@ -40,9 +40,7 @@ export const GET: APIRoute = async ({ site }) => {
         `      <pubDate>${formatRssDate(post.data.pubDate)}</pubDate>`,
         `      <description>${escapeXml(post.data.description)}</description>`,
         `      <author>${escapeXml(author.data.name)}</author>`,
-        ...post.data.tags.map(
-          (tag) => `      <category>${escapeXml(tag)}</category>`,
-        ),
+        ...post.data.tags.map((tag) => `      <category>${escapeXml(tag)}</category>`),
         '    </item>',
       ].join('\n'),
     );

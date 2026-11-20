@@ -45,7 +45,7 @@ test.describe('layout invariants (the visual contract)', () => {
     const preloads = await page
       .locator('link[rel="preload"][as="font"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute('href') ?? ''));
-    expect(preloads.length).toBe(2);
+    expect(preloads.length).toBe(3);
     expect(preloads.every((href) => href.includes('.woff2'))).toBe(true);
     for (const href of preloads) {
       const response = await page.request.get(href);

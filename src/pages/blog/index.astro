@@ -44,9 +44,8 @@ const basePath = `${import.meta.env.BASE_URL}blog`;
           Notes from the <em class="text-gradient-ember italic">forge</em>
         </h1>
         <p class="max-w-[62ch] text-pretty text-body-lg text-ink-2">
-          Essays on deploy previews, performance, accessibility and design
-          systems — written while building the Brasa theme, with the receipts
-          attached.
+          Essays on deploy previews, performance, accessibility and design systems — written while
+          building the Brasa theme, with the receipts attached.
         </p>
 
         <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -87,38 +86,32 @@ const basePath = `${import.meta.env.BASE_URL}blog`;
         </div>
       </header>
 
-      {
-        featured && featuredAuthor && (
-          <section aria-label="Featured essay" class="mt-14">
-            <PostCard post={featured} author={featuredAuthor} variant="featured" />
-          </section>
-        )
-      }
+      {featured && featuredAuthor && (
+        <section aria-label="Featured essay" class="mt-14">
+          <PostCard post={featured} author={featuredAuthor} variant="featured" />
+        </section>
+      )}
 
       <section aria-label="Latest essays" class="mt-12">
         <h2 class="sr-only">Latest essays</h2>
         <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {
-            pageData.map(({ post, author }, index) => (
-              <li>
-                <PostCard post={post} author={author} index={index + 1} />
-              </li>
-            ))
-          }
+          {pageData.map(({ post, author }, index) => (
+            <li>
+              <PostCard post={post} author={author} index={index + 1} />
+            </li>
+          ))}
         </ul>
       </section>
 
-      {
-        totalPages > 1 && (
-          <div class="mt-14">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              hrefFor={(target) => pageHref(basePath, target)}
-            />
-          </div>
-        )
-      }
+      {totalPages > 1 && (
+        <div class="mt-14">
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            hrefFor={(target) => pageHref(basePath, target)}
+          />
+        </div>
+      )}
     </Container>
   </div>
 </BaseLayout>

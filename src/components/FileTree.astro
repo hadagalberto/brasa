@@ -28,24 +28,22 @@ const { tree, label = 'Project files', class: className } = Astro.props;
 ---
 
 <ul class:list={['filetree not-prose', className]} aria-label={label}>
-  {
-    tree.map(function render(item: FileTreeItem) {
-      return (
-        <li class="filetree-item" data-highlight={item.highlight ? '' : undefined}>
-          <span class="filetree-row">
-            <Icon
-              name={item.children ? 'folder' : 'file'}
-              size={15}
-              class={item.children ? 'text-accent' : 'text-ink-3'}
-            />
-            <span class="filetree-name">{item.name}</span>
-            {item.note && <span class="filetree-note">{item.note}</span>}
-          </span>
-          {item.children && <ul class="filetree-children">{item.children.map(render)}</ul>}
-        </li>
-      );
-    })
-  }
+  {tree.map(function render(item: FileTreeItem) {
+    return (
+      <li class="filetree-item" data-highlight={item.highlight ? '' : undefined}>
+        <span class="filetree-row">
+          <Icon
+            name={item.children ? 'folder' : 'file'}
+            size={15}
+            class={item.children ? 'text-accent' : 'text-ink-3'}
+          />
+          <span class="filetree-name">{item.name}</span>
+          {item.note && <span class="filetree-note">{item.note}</span>}
+        </span>
+        {item.children && <ul class="filetree-children">{item.children.map(render)}</ul>}
+      </li>
+    );
+  })}
 </ul>
 
 <style>

@@ -16,21 +16,20 @@ const { label, href, count, class: className } = Astro.props;
 
 const classes = [
   'inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 py-1 font-mono text-xs font-medium tracking-[0.04em] text-ink-2',
-  href && 'transition-colors duration-(--dur-1) hover:border-accent/40 hover:bg-accent-soft hover:text-accent',
+  href &&
+    'transition-colors duration-(--dur-1) hover:border-accent/40 hover:bg-accent-soft hover:text-accent',
   className,
 ];
 ---
 
-{
-  href ? (
-    <a href={href} class:list={classes}>
-      {label}
-      {count !== undefined && <span class="text-ink-3 tabular-nums">{count}</span>}
-    </a>
-  ) : (
-    <span class:list={classes}>
-      {label}
-      {count !== undefined && <span class="text-ink-3 tabular-nums">{count}</span>}
-    </span>
-  )
-}
+{href ? (
+  <a href={href} class:list={classes}>
+    {label}
+    {count !== undefined && <span class="text-ink-3 tabular-nums">{count}</span>}
+  </a>
+) : (
+  <span class:list={classes}>
+    {label}
+    {count !== undefined && <span class="text-ink-3 tabular-nums">{count}</span>}
+  </span>
+)}

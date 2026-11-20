@@ -52,15 +52,17 @@ test.describe('blog index and archives', () => {
     await pills.filter({ hasText: 'Performance' }).click();
     await expect(page).toHaveURL(/\/blog\/tags\/performance\/?$/);
     await expect(page.locator('h1')).toHaveText('Performance');
-    await expect(page.locator('[aria-label="Essays tagged Performance"] .post-card')).toHaveCount(3);
+    await expect(page.locator('[aria-label="Essays tagged Performance"] .post-card')).toHaveCount(
+      3,
+    );
   });
 
   test('author page collects only that author’s essays', async ({ page }) => {
     await page.goto('/blog/authors/hadjunior');
     await expect(page.locator('h1')).toHaveText('Hadagalberto Junior');
-    await expect(page.locator('[aria-label="Essays by Hadagalberto Junior"] .post-card')).toHaveCount(
-      4,
-    );
+    await expect(
+      page.locator('[aria-label="Essays by Hadagalberto Junior"] .post-card'),
+    ).toHaveCount(4);
     await expect(page.locator('a[href="/blog/authors/hadjunior"]').first()).toBeVisible();
   });
 });
@@ -73,16 +75,19 @@ test.describe('reading an essay', () => {
 
     await expect(page.locator('h1')).toContainText('Deploy previews are');
     await expect(page.locator('.post-hero')).toContainText('4 min read');
-    await expect(page.locator('.post-hero time')).toHaveAttribute('datetime', '2026-11-02T00:00:00.000Z');
+    await expect(page.locator('.post-hero time')).toHaveAttribute(
+      'datetime',
+      '2026-11-02T00:00:00.000Z',
+    );
 
     const tocLinks = page.locator('aside [data-toc-link]');
     await expect(tocLinks).toHaveCount(4);
     await expect(tocLinks.first()).toHaveAttribute('aria-current', 'true');
     await expect(page.locator('details.toc-details [data-toc-link]')).toHaveCount(4);
 
-    await expect(
-      page.locator('section[aria-labelledby="related-heading"] .post-card'),
-    ).toHaveCount(2);
+    await expect(page.locator('section[aria-labelledby="related-heading"] .post-card')).toHaveCount(
+      2,
+    );
     const nav = page.locator('nav[aria-label="Post navigation"]');
     await expect(nav.locator('a[rel="prev"]')).toContainText('Six seconds to a URL');
     // Regression: tag pills used to be anchors nested inside the whole-card
@@ -139,7 +144,9 @@ test.describe('reading an essay', () => {
 
   test('card title and post header share one view-transition name', async ({ page }) => {
     await page.goto('/blog');
-    const card = page.locator('[aria-label="Featured essay"] [data-astro-transition-scope]').first();
+    const card = page
+      .locator('[aria-label="Featured essay"] [data-astro-transition-scope]')
+      .first();
     const cardName = await card.evaluate((el) => getComputedStyle(el).viewTransitionName);
     expect(cardName).toBe(FEATURED_NAME);
 
@@ -228,7 +235,10 @@ test.describe('feeds and social cards', () => {
     expect(updated.date_modified).toBe('2026-10-01T00:00:00.000Z');
   });
 
-  test('each post has its own 1200×630 OG card referenced in its head', async ({ page, request }) => {
+  test('each post has its own 1200×630 OG card referenced in its head', async ({
+    page,
+    request,
+  }) => {
     await page.goto(FEATURED);
     const imagePath = await page.locator('meta[property="og:image"]').getAttribute('content');
     expect(imagePath).toMatch(/\/og\/blog\/deploy-previews-are-the-prs-missing-half\.png$/);

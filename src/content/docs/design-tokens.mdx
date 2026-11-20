@@ -1,0 +1,145 @@
+---
+title: Design tokens
+description: The OKLCH palette, fluid type scale, radii and motion tokens — and the safe way to override them.
+group: Getting started
+order: 3
+sidebarLabel: Design tokens
+updated: 2026-11-20
+---
+
+import { Callout, Tabs, FileTree } from '../../components/mdx';
+
+Every visual decision in Brasa is a custom property. Components never hardcode a color, a font size or an easing curve, so a deliberate override changes the whole system instead of one button.
+
+## Where tokens live
+
+<FileTree
+  tree={[
+    { name: 'src/styles/global.css', note: 'all tokens', highlight: true, children: [
+      { name: '@theme', note: 'primitives: fonts, ember scale, type' },
+      { name: ':root', note: 'dark semantic tokens' },
+      { name: "[data-theme='light']", note: 'light semantic tokens' },
+      { name: '@theme inline', note: 'Tailwind utilities' },
+      { name: '@utility', note: 'eyebrow, reveal, section-y' },
+    ] },
+    { name: 'src/lib/color.ts', note: 'OKLCH math for OG + code' },
+    { name: 'src/brasa.config.ts', note: 'accentHue input' },
+  ]}
+/>
+
+There are two layers. **Primitives** in `@theme` describe what exists (the ember scale, the type ramp). **Semantic tokens** on `:root` and `[data-theme='light']` describe what things mean (`--canvas`, `--ink`, `--accent`). Components consume semantics; primitives feed them.
+
+## Color
+
+The theme is dark-first. `:root` is the dark palette and `[data-theme='light']` overrides the same names. No pure black or white appears anywhere.
+
+| Token | Dark | Light | Used for |
+| --- | --- | --- | --- |
+| `--canvas` | `oklch(0.16 0.012 40)` | `oklch(0.98 0.01 80)` | Page background |
+| `--surface` | `oklch(0.19 0.014 42)` | `oklch(0.992 0.006 82)` | Cards, callouts, inputs |
+| `--surface-2` | `oklch(0.225 0.016 44)` | `oklch(0.965 0.01 80)` | Hover, chips, raised rows |
+| `--ink` | `oklch(0.94 0.008 85)` | `oklch(0.23 0.022 50)` | Body and headings |
+| `--ink-2` | `oklch(0.76 0.014 78)` | `oklch(0.42 0.024 55)` | Secondary copy |
+| `--ink-3` | `oklch(0.63 0.016 72)` | `oklch(0.52 0.024 60)` | Meta, captions |
+| `--accent` | bright ember | deep ember | Links, focus rings, highlights |
+
+Surfaces are layered by **lightness**, not by borders. The hairline `--line` token is a `color-mix()` of ink and transparency, never a separate gray that drifts out of sync when the theme flips.
+
+### The ember scale
+
+`--color-ember-50` through `--color-ember-950` are generated from `--accent-hue` at fixed chroma and lightness steps. The signature gradient is:
+
+```css
+--gradient-ember: linear-gradient(
+  100deg,
+  oklch(0.65 0.21 var(--accent-hue)),
+  oklch(0.82 0.16 calc(var(--accent-hue) + 40))
+);
+```
+
+It is applied to the primary CTA, the focus-ring accents, list bullets, the hero glow and selected states. It is deliberately rare — when everything glows, nothing is a call to action.
+
+<Callout variant="tip" title="Change one number, re-theme everything">
+Set `colors.accentHue` in `src/brasa.config.ts`. `BaseLayout` injects it as `--accent-hue` on `<html>`, the CSS scale recomputes, `src/lib/color.ts` recomputes the syntax themes, and the OG renderer recomputes the social cards. No search-and-replace required.
+</Callout>
+
+## Typography
+
+Three self-hosted variable fonts, subset to latin and latin-ext with `font-display: swap`:
+
+- **Fraunces Variable** — display face, optical sizing, used for headlines and the italic accent word.
+- **Geist Variable** — UI and body.
+- **Geist Mono Variable** — eyebrows, metadata, code labels and tab buttons.
+
+The type ramp uses `clamp()` so sizes scale between breakpoints instead of jumping:
+
+| Token | Range |
+| --- | --- |
+| `--text-hero` | `3.25rem` → `9rem` |
+| `--text-display-2xl` | `2.75rem` → `5.75rem` |
+| `--text-display-xl` | `2.375rem` → `4.25rem` |
+| `--text-display-md` | `1.625rem` → `2.375rem` |
+| `--text-body-lg` | `1.0625rem` → `1.1875rem` |
+
+Large sizes get tighter tracking; headings use `text-wrap: balance`, paragraphs `text-wrap: pretty`.
+
+<Tabs
+  label="Using the type tokens"
+  tabs={[
+    { id: 'tailwind', label: 'Tailwind' },
+    { id: 'css', label: 'Raw CSS' },
+  ]}
+>
+  <Fragment slot="tailwind">
+    ```astro
+    <h1 class="font-display text-display-xl text-ink text-balance">
+      Deploy previews that people actually open
+    </h1>
+    ```
+  </Fragment>
+  <Fragment slot="css">
+    ```css
+    .page-title {
+      font-family: var(--font-display);
+      font-size: var(--text-display-xl);
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    ```
+  </Fragment>
+</Tabs>
+
+## Radii, elevation and motion
+
+Radii run from `--radius-xs` (`0.375rem`) to `--radius-3xl` (`2rem`). Cards use `lg`/`xl`, dialogs `xl`, small chips `full`.
+
+Shadows are warm-tinted and layered: `--elev-sm`, `--elev-md`, `--elev-lg` and `--glow`. They shift color between themes, so a dark card keeps its depth on warm paper.
+
+Motion is fast and deliberate:
+
+```css
+--dur-1: 150ms;  /* hover, color */
+--dur-2: 250ms;  /* transform, disclosure */
+--dur-3: 400ms;  /* sheets, large transitions */
+--ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+```
+
+`reveal` uses `animation-timeline: view()` behind `@supports`. Browsers without it, and anyone with `prefers-reduced-motion: reduce`, get visible content with no animation. The same guard applies to the scroll-drawn step connector and the count-up metrics.
+
+## Override safely
+
+<Callout variant="warning" title="Override semantics, not primitives, in components">
+Add or change `:root` and `[data-theme='light']` values in `global.css`. Do not replace `--color-ember-*` in a component — those are the shared primitive scale used by expressive code and OG images too.
+</Callout>
+
+To re-theme a single subtree (the styleguide does this to show both themes at once), redeclare the semantic tokens on that element:
+
+```css
+.theme-sample {
+  --canvas: oklch(0.98 0.01 80);
+  --ink: oklch(0.23 0.022 50);
+  color-scheme: light;
+}
+```
+
+After any palette change, run `npm run check`, `npm run build` and `npm test`. The axe suite audits both themes on every route, and the screenshot suite writes fresh captures to `docs/screenshots/` so you can inspect the result.

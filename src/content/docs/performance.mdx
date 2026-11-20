@@ -1,0 +1,102 @@
+---
+title: Performance
+description: The static architecture, self-hosted fonts, JS budget and Lighthouse assertions that keep every page type fast.
+group: Guides
+order: 5
+sidebarLabel: Performance
+updated: 2026-11-20
+---
+
+import { Callout, FileTree, Tabs, Steps } from '../../components/mdx';
+
+Speed is a feature here, measured rather than promised. The target from SPEC is Lighthouse **0.98 or better on all four categories** for the home page, a blog post, a docs page and pricing, with CLS under 0.02 and less than 20 KB of gzipped JavaScript per page.
+
+## Why it is fast by construction
+
+<FileTree
+  tree={[
+    { name: 'Static HTML', note: 'no server, no hydration' },
+    { name: 'Vanilla TS islands', note: '< 3 KB gzipped each' },
+    { name: 'Tailwind CSS v4', note: 'CSS-first, compiled once' },
+    { name: 'Self-hosted fonts', note: 'variable, subset, preloaded' },
+    { name: 'Pagefind', note: 'lazy static index' },
+    { name: 'OG images', note: 'rendered at build time' },
+  ]}
+/>
+
+There is no React island runtime, no client-side router framework and no data fetching on navigation. `ClientRouter` handles View Transitions by swapping HTML and re-running small event-delegated modules on `astro:page-load`.
+
+## JavaScript budget
+
+`tests/e2e/budget.spec.ts` collects every external and inline script on a page, gzips the source and fails above 20 KB. The theme's own behavior module is small because it uses event delegation: one listener per event type, no per-element handlers.
+
+<Tabs
+  label="What ships"
+  tabs={[
+    { id: 'always', label: 'On every page' },
+    { id: 'lazy', label: 'Loaded on demand' },
+  ]}
+>
+  <Fragment slot="always">
+    - Inline no-flash theme bootstrap in `<head>` (a few hundred bytes).
+    - `behaviors.ts` — theme, menu, scroll header, glow, spotlight, count-up, copy buttons.
+    - `search.ts` — shortcuts and dialog wiring. Its index is **not** fetched until the dialog opens.
+  </Fragment>
+  <Fragment slot="lazy">
+    - `pagefind/pagefind.js` and index chunks — fetched on first Ctrl/⌘+K or `/`.
+    - Blog TOC observer and share-link module — only on posts.
+    - Docs drawer and TOC observer — only on docs pages.
+    - Expressive Code's copy button script — only where a code block exists.
+  </Fragment>
+</Tabs>
+
+<Callout variant="tip" title="Keep the budget when adding features">
+Reach for event delegation and a single `astro:page-load` listener instead of component-scoped scripts. If a feature is heavy, load it on interaction — the Pagefind pattern applies to more than search.
+</Callout>
+
+## Fonts
+
+Fraunces, Geist and Geist Mono are bundled from Fontsource as variable woff2 files, subset to latin and latin-ext with `font-display: swap`. The two Fraunces faces used by the hero are preloaded in `BaseLayout`:
+
+```html
+<link rel="preload" as="font" type="font/woff2" href="…fraunces-latin-opsz-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="…fraunces-latin-opsz-italic.woff2" crossorigin />
+```
+
+A layout test asserts those preloads exist and return 200, and another checks that all four faces actually resolve in the browser. Self-hosting removes a DNS lookup and a third-party connection from the critical path.
+
+## Layout stability
+
+CLS stays low because:
+
+- The theme is applied by an inline script before first paint — no flash of the wrong palette.
+- The pricing monthly/yearly toggle swaps text inside a fixed-height row.
+- Images and OG cards have known dimensions; there are no injected hero illustrations.
+- Reveal animations use `opacity` and `transform` only, never layout properties, and are off under reduced motion.
+- The mobile menu is a fixed overlay, not a flow element that appears after load.
+
+## Search without a runtime cost
+
+Pagefind produces a static index at build time. The search dialog renders instantly with suggestions; only when the user types does the island import `/pagefind/pagefind.js`, fetch the relevant chunks and render result cards. A query on a 100-page site transfers a handful of small chunks rather than a client-side index of the whole site.
+
+## Measuring
+
+<Steps
+  steps={[
+    { icon: 'bolt', title: 'Build the real output', body: 'npm run build — Lighthouse reads dist/, not the dev server. A dev-server score is meaningless.' },
+    { icon: 'chart', title: 'Run Lighthouse CI', body: 'npx @lhci/cli autorun for mobile, then the same command with --collect.settings.preset=desktop. Results stay local in .lighthouseci/.' },
+    { icon: 'shield', title: 'Run the Playwright gate', body: 'npm test checks the JS budget, console errors, link resolution, axe, responsive overflow and screenshots.' },
+  ]}
+/>
+
+<Callout variant="warning" title="Audit a production build, not a warm dev server">
+Dev-mode middleware, unminified scripts and missing Pagefind output all distort the score. If a Lighthouse assertion fails, inspect the JSON report in `.lighthouseci/` before changing code — the failing audit names the exact element or request.
+</Callout>
+
+## Keeping it fast
+
+1. Do not add a UI framework for a single interaction; a vanilla island is enough.
+2. Keep new fonts out unless they replace an existing face — each preload competes with the hero.
+3. Generate images at build time or place them in `public/` with explicit dimensions.
+4. Guard new animation with `@supports (animation-timeline: view())` and `prefers-reduced-motion`.
+5. Re-run both Lighthouse presets after any change to head markup, fonts or the critical CSS path.

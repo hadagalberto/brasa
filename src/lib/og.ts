@@ -47,7 +47,12 @@ async function fonts(): Promise<NonNullable<typeof fontCache>> {
     ['Fraunces', '@fontsource-variable/fraunces', 'fraunces-latin-wght-normal.woff2', 'normal'],
     ['Fraunces', '@fontsource-variable/fraunces', 'fraunces-latin-wght-italic.woff2', 'italic'],
     ['Geist', '@fontsource-variable/geist', 'geist-latin-wght-normal.woff2', 'normal'],
-    ['Geist Mono', '@fontsource-variable/geist-mono', 'geist-mono-latin-wght-normal.woff2', 'normal'],
+    [
+      'Geist Mono',
+      '@fontsource-variable/geist-mono',
+      'geist-mono-latin-wght-normal.woff2',
+      'normal',
+    ],
   ];
   const out: LoadedFont[] = [];
   for (const [name, packageName, file, style] of loads) {
@@ -120,21 +125,29 @@ function clamp(text: string, max: number): string {
   return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
 }
 
-export interface BlogOgInput {
+interface CardInput {
+  /** Uppercased mono kicker beside the flame. */
+  eyebrow: string;
   title: string;
   description: string;
-  /** Uppercased mono tag, shown as the right-hand footer label. */
-  tagLabel: string;
-  authorName: string;
-  dateLabel: string;
+  footerLeft: string;
+  /** Uppercased mono label at the right of the footer. */
+  footerRight: string;
 }
 
-/** Renders a 1200×630 PNG card for one blog post. */
-export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
+/** Shared 1200×630 layout for blog posts and documentation pages. */
+async function renderCardOg(input: CardInput): Promise<Buffer> {
   const styleErrors: string[] = [];
 
   const header: Node = div(
-    { position: 'absolute', top: HEADER_Y, left: PAD, display: 'flex', alignItems: 'center', gap: 18 },
+    {
+      position: 'absolute',
+      top: HEADER_Y,
+      left: PAD,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 18,
+    },
     [
       {
         type: 'img',
@@ -152,7 +165,7 @@ export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
           letterSpacing: 6,
           color: ember300,
         },
-        'BRASA — NOTES FROM THE FORGE',
+        input.eyebrow,
       ),
     ],
   );
@@ -216,10 +229,7 @@ export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
       fontSize: 20,
       color: ink3,
     },
-    [
-      div({}, `${input.authorName} · ${input.dateLabel}`),
-      div({ color: ember600 }, input.tagLabel.toUpperCase()),
-    ],
+    [div({}, input.footerLeft), div({ color: ember600 }, input.footerRight.toUpperCase())],
   );
 
   const tree: Node = div(
@@ -247,4 +257,44 @@ export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
     font: { loadSystemFonts: false, defaultFontFamily: 'Geist Mono' },
   });
   return resvg.render().asPng();
+}
+
+export interface BlogOgInput {
+  title: string;
+  description: string;
+  /** Uppercased mono tag, shown as the right-hand footer label. */
+  tagLabel: string;
+  authorName: string;
+  dateLabel: string;
+}
+
+/** Renders a 1200×630 PNG card for one blog post. */
+export async function renderBlogOg(input: BlogOgInput): Promise<Buffer> {
+  return renderCardOg({
+    eyebrow: 'BRASA — NOTES FROM THE FORGE',
+    title: input.title,
+    description: input.description,
+    footerLeft: `${input.authorName} · ${input.dateLabel}`,
+    footerRight: input.tagLabel,
+  });
+}
+
+export interface DocsOgInput {
+  title: string;
+  description: string;
+  /** Sidebar section, shown as the left footer label. */
+  groupLabel: string;
+  /** Short label such as "DOCS · GETTING STARTED". */
+  sectionLabel: string;
+}
+
+/** Renders a 1200×630 PNG card for one documentation page. */
+export async function renderDocsOg(input: DocsOgInput): Promise<Buffer> {
+  return renderCardOg({
+    eyebrow: 'BRASA — DOCUMENTATION',
+    title: input.title,
+    description: input.description,
+    footerLeft: input.groupLabel,
+    footerRight: input.sectionLabel,
+  });
 }

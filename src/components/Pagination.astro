@@ -38,81 +38,72 @@ const linkIdle = `${linkBase} border-line bg-transparent text-ink-2 hover:border
 const linkCurrent = `${linkBase} border-transparent cursor-default`;
 ---
 
-{
-  totalPages > 1 && (
-    <nav aria-label={label} class="not-prose">
-      <ul class="flex flex-wrap items-center justify-center gap-1.5">
+{totalPages > 1 && (
+  <nav aria-label={label} class="not-prose">
+    <ul class="flex flex-wrap items-center justify-center gap-1.5">
+      <li>
+        {page > 1 ? (
+          <a
+            href={hrefFor(page - 1)}
+            rel="prev"
+            class:list={[linkIdle, 'px-3.5']}
+            aria-label={`Prev — page ${page - 1} of ${totalPages}`}
+          >
+            <Icon name="chevron-left" size={15} />
+            <span class="hidden sm:inline">Prev</span>
+          </a>
+        ) : (
+          <span aria-hidden="true" class:list={[linkBase, 'border-transparent px-3.5 text-ink-3']}>
+            <Icon name="chevron-left" size={15} />
+            <span class="hidden sm:inline">Prev</span>
+          </span>
+        )}
+      </li>
+
+      {pages().map((entry) => (
         <li>
-          {page > 1 ? (
-            <a
-              href={hrefFor(page - 1)}
-              rel="prev"
-              class:list={[linkIdle, 'px-3.5']}
-              aria-label={`Prev — page ${page - 1} of ${totalPages}`}
-            >
-              <Icon name="chevron-left" size={15} />
-              <span class="hidden sm:inline">Prev</span>
-            </a>
-          ) : (
+          {entry === 'ellipsis' ? (
             <span
               aria-hidden="true"
-              class:list={[linkBase, 'border-transparent px-3.5 text-ink-3']}
+              class="inline-flex h-9 items-center px-1 font-mono text-xs text-ink-3"
             >
-              <Icon name="chevron-left" size={15} />
-              <span class="hidden sm:inline">Prev</span>
+              …
             </span>
-          )}
-        </li>
-
-        {pages().map((entry) => (
-          <li>
-            {entry === 'ellipsis' ? (
-              <span aria-hidden="true" class="inline-flex h-9 items-center px-1 font-mono text-xs text-ink-3">
-                …
-              </span>
-            ) : entry === page ? (
-              <a
-                href={hrefFor(entry)}
-                aria-current="page"
-                aria-label={`Page ${entry} of ${totalPages} (current)`}
-                class:list={[linkCurrent, 'bg-ember-gradient text-on-accent shadow-glow']}
-              >
-                {entry}
-              </a>
-            ) : (
-              <a
-                href={hrefFor(entry)}
-                aria-label={`Page ${entry} of ${totalPages}`}
-                class={linkIdle}
-              >
-                {entry}
-              </a>
-            )}
-          </li>
-        ))}
-
-        <li>
-          {page < totalPages ? (
+          ) : entry === page ? (
             <a
-              href={hrefFor(page + 1)}
-              rel="next"
-              class:list={[linkIdle, 'px-3.5']}
-              aria-label={`Next — page ${page + 1} of ${totalPages}`}
+              href={hrefFor(entry)}
+              aria-current="page"
+              aria-label={`Page ${entry} of ${totalPages} (current)`}
+              class:list={[linkCurrent, 'bg-ember-gradient text-on-accent shadow-glow']}
             >
-              <span class="hidden sm:inline">Next</span>
-              <Icon name="chevron-right" size={15} />
+              {entry}
             </a>
           ) : (
-            <span
-              aria-hidden="true"
-              class:list={[linkBase, 'border-transparent px-3.5 text-ink-3']}
-            >
-              <span class="hidden sm:inline">Next</span>
-              <Icon name="chevron-right" size={15} />
-            </span>
+            <a href={hrefFor(entry)} aria-label={`Page ${entry} of ${totalPages}`} class={linkIdle}>
+              {entry}
+            </a>
           )}
         </li>
-      </ul>
-    </nav>
-  )
-}
+      ))}
+
+      <li>
+        {page < totalPages ? (
+          <a
+            href={hrefFor(page + 1)}
+            rel="next"
+            class:list={[linkIdle, 'px-3.5']}
+            aria-label={`Next — page ${page + 1} of ${totalPages}`}
+          >
+            <span class="hidden sm:inline">Next</span>
+            <Icon name="chevron-right" size={15} />
+          </a>
+        ) : (
+          <span aria-hidden="true" class:list={[linkBase, 'border-transparent px-3.5 text-ink-3']}>
+            <span class="hidden sm:inline">Next</span>
+            <Icon name="chevron-right" size={15} />
+          </span>
+        )}
+      </li>
+    </ul>
+  </nav>
+)}

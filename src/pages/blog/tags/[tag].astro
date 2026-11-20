@@ -19,9 +19,7 @@ export async function getStaticPaths() {
 
 const { tag: tagParam } = Astro.params;
 const posts = await getPosts();
-const tagged = posts.filter((post) =>
-  post.data.tags.some((tag) => tagSlug(tag) === tagParam),
-);
+const tagged = posts.filter((post) => post.data.tags.some((tag) => tagSlug(tag) === tagParam));
 const label = tagged[0]?.data.tags.find((tag) => tagSlug(tag) === tagParam) ?? '';
 
 const pageData = await Promise.all(
@@ -58,13 +56,11 @@ const pageData = await Promise.all(
 
       <section aria-label={`Essays tagged ${label}`} class="mt-12">
         <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {
-            pageData.map(({ post, author }, index) => (
-              <li>
-                <PostCard post={post} author={author} index={index + 1} />
-              </li>
-            ))
-          }
+          {pageData.map(({ post, author }, index) => (
+            <li>
+              <PostCard post={post} author={author} index={index + 1} />
+            </li>
+          ))}
         </ul>
       </section>
     </Container>

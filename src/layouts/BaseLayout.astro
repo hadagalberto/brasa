@@ -9,12 +9,14 @@ import '../styles/global.css';
 
 import frauncesNormal from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
 import frauncesItalic from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-italic.woff2?url';
+import geistNormal from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 
 import { brasa } from '../brasa.config';
 import SEO from '../components/SEO.astro';
 import type { SeoArticle, SeoCrumb } from '../components/SEO.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import SearchDialog from '../components/SearchDialog.astro';
 
 interface Props {
   title: string;
@@ -58,15 +60,7 @@ const locale = brasa.locales.available.find((entry) => entry.code === brasa.loca
         }
       })();
     </script>
-    <SEO
-      {title}
-      {description}
-      {type}
-      {noindex}
-      {image}
-      {article}
-      {breadcrumbs}
-    />
+    <SEO {title} {description} {type} {noindex} {image} {article} {breadcrumbs} />
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <link
       rel="alternate"
@@ -82,6 +76,7 @@ const locale = brasa.locales.available.find((entry) => entry.code === brasa.loca
     />
     <link rel="preload" as="font" type="font/woff2" href={frauncesNormal} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={frauncesItalic} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={geistNormal} crossorigin />
     <ClientRouter />
   </head>
   <body class="flex min-h-dvh flex-col bg-canvas font-sans text-ink">
@@ -93,8 +88,10 @@ const locale = brasa.locales.available.find((entry) => entry.code === brasa.loca
       <slot />
     </main>
     <Footer />
+    <SearchDialog />
     <script>
       import '../scripts/behaviors';
+      import '../scripts/search';
     </script>
   </body>
 </html>

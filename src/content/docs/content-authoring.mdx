@@ -1,0 +1,190 @@
+---
+title: Content authoring
+description: Add blog posts, docs pages and authors through typed content collections, with MDX components and no broken links.
+group: Guides
+order: 1
+sidebarLabel: Content authoring
+updated: 2026-11-20
+---
+
+import { Callout, FileTree, Steps, Tabs } from '../../components/mdx';
+
+Content lives in `src/content/` and is validated by Zod schemas in `src/content.config.ts`. A typo in a field name fails the build with the file path — which is exactly what you want from a manual this size.
+
+## Collections at a glance
+
+<FileTree
+  tree={[
+    {
+      name: 'src/content/',
+      children: [
+        { name: 'blog/', note: 'one .mdx per essay', highlight: true },
+        { name: 'docs/', note: 'one .mdx per manual page' },
+        { name: 'authors/', note: 'one .json per author' },
+      ],
+    },
+    { name: 'src/content.config.ts', note: 'the three schemas' },
+    { name: 'src/components/mdx.ts', note: 'the import barrel' },
+  ]}
+/>
+
+### Blog frontmatter
+
+```mdx
+---
+title: Six seconds to a URL
+description: Why a warm build is the real feature.
+author: hadjunior
+tags:
+  - Performance
+  - Developer experience
+pubDate: 2026-05-12
+updatedDate: 2026-06-01
+featured: true
+draft: false
+---
+
+import { Callout, CodeTabs } from '../../components/mdx';
+
+The first paragraph starts here — after the closing delimiter.
+```
+
+`author` must match an `id` in `src/content/authors/`. `tags` become `/blog/tags/<slug>` pages automatically; the slugifier lowercases, strips accents and turns runs of non-alphanumerics into single hyphens. `featured` renders the post as the hero card on the first blog page. `draft: true` removes it from every route and feed.
+
+### Docs frontmatter
+
+```mdx
+---
+title: Installation
+description: Scaffold the theme and run it locally.
+group: Getting started
+order: 1
+sidebarLabel: Install
+updated: 2026-11-20
+---
+
+import { Steps } from '../../components/mdx';
+```
+
+`group` is one of `Getting started`, `Guides`, `Reference`, `Resources`. `order` sorts inside the group; the full manual is then flattened in that same order for prev/next links. `sidebarLabel` is optional and only shortens the sidebar entry.
+
+<Callout variant="danger" title="Imports go below the closing ---">
+  YAML frontmatter ends at the second `---`. An `import` line immediately after it — or one line
+  above it — is a parse error. `npm run build` runs `scripts/verify-mdx.mjs` first and reports the
+  exact file and line, so CI fails fast with a useful message instead of a stack trace from the
+  compiler.
+</Callout>
+
+### Author records
+
+```json
+{
+  "name": "Hadagalberto Junior",
+  "role": "Theme author",
+  "bio": "Builds design systems and writes about the boring parts that matter.",
+  "location": "Brazil",
+  "links": [{ "label": "GitHub", "href": "https://github.com/hadagalberto", "icon": "github" }]
+}
+```
+
+Avatars are deterministic initials generated from `name` — no image files to manage, no broken avatar URLs.
+
+## Writing MDX
+
+MDX is Markdown plus components. Ordinary Markdown works as expected; component tags let you drop in richer layout. All theme components are re-exported from one barrel:
+
+```mdx
+import {
+  Accordion,
+  Badge,
+  Callout,
+  Cards,
+  CodeTabs,
+  FileTree,
+  Steps,
+  Tabs,
+  Testimonial,
+} from '../../components/mdx';
+```
+
+The path is relative because content files sit outside `src/`'s alias configuration. Use named imports and keep them directly after the frontmatter.
+
+<Tabs
+  label="MDX patterns"
+  tabs={[
+    { id: 'callout', label: 'Callout' },
+    { id: 'steps', label: 'Steps' },
+  ]}
+>
+  <Fragment slot="callout">
+    ```mdx
+    <Callout variant="tip" title="Small, specific, useful">
+      Prefer one concrete instruction to three vague encouragements.
+    </Callout>
+    ```
+  </Fragment>
+  <Fragment slot="steps">
+    ```mdx
+    <Steps
+      steps={[
+        { icon: 'terminal', title: 'Install', body: 'Run npm install.' },
+        { icon: 'bolt', title: 'Build', body: 'Run npm run build.' },
+      ]}
+    />
+    ```
+  </Fragment>
+</Tabs>
+
+Code fences are highlighted by Expressive Code with the theme's own light and dark palettes, plus a copy button. Add a language and an optional title:
+
+````mdx
+```ts title="src/brasa.config.ts"
+export const brasa = { colors: { accentHue: 35 } };
+```
+````
+
+<Callout variant="note" title="No external image hotlinks">
+  The SPEC forbids them, and for good reason: a remote image can disappear or leak a reader's IP.
+  Build diagrams with CSS/SVG or place a licensed asset in `public/` and reference it with a local
+  path.
+</Callout>
+
+## Adding a page
+
+<Steps
+  steps={[
+    {
+      icon: 'file',
+      title: 'Create the file',
+      body: 'Use a lowercase, hyphenated id — the filename becomes the route: src/content/blog/my-post.mdx → /blog/my-post.',
+    },
+    {
+      icon: 'sliders',
+      title: 'Fill required fields',
+      body: 'Copy frontmatter from an existing entry of the same collection. Strict schemas reject unknown keys.',
+    },
+    {
+      icon: 'code',
+      title: 'Write the body',
+      body: 'Import only the components you use. Keep headings in order: one h1 is already rendered by the layout, so start with h2.',
+    },
+    {
+      icon: 'check',
+      title: 'Verify locally',
+      body: 'Run npm run check and npm run build, then open the new route in the preview to check the TOC, OG card and search result.',
+    },
+  ]}
+/>
+
+## Generated surfaces
+
+Adding a post or doc page also updates things you do not edit by hand:
+
+- **Blog index, pagination, tag pages and author pages** — derived from `getPosts()`.
+- **RSS and JSON feeds** — absolute URLs built from `SITE_URL` and `BASE_URL`.
+- **OG images** — `/og/blog/<id>.png` and `/og/docs/<id>.png`, rendered at build time with the theme fonts.
+- **Pagefind index** — generated into `dist/pagefind/` after Astro finishes the build; every `data-pagefind-body` region is indexed.
+- **Prev/next links** — the docs manual's flattened order.
+- **This site's screenshots** — `npm test` writes fresh captures for the routes listed in `tests/e2e/helpers.ts`.
+
+If you add a new page _type_ rather than a new entry, add its route to `routes` in that helper file so link crawling, axe, layout, budget and screenshot tests all cover it.

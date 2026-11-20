@@ -57,27 +57,23 @@ const { name, role, bio, location, links } = authorEntry.data;
         <p class="max-w-[62ch] text-pretty text-body-lg text-ink-2">{bio}</p>
 
         <div class="flex flex-wrap items-center gap-4">
-          {
-            location && (
-              <span class="inline-flex items-center gap-1.5 text-sm text-ink-3">
-                <Icon name="globe" size={14} />
-                {location}
-              </span>
-            )
-          }
-          {
-            links.map((link) => (
-              <a
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${name} on ${link.label}`}
-                class="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-(--dur-1) hover:border-line-strong hover:bg-surface hover:text-ink"
-              >
-                <Icon name={link.icon} size={16} />
-              </a>
-            ))
-          }
+          {location && (
+            <span class="inline-flex items-center gap-1.5 text-sm text-ink-3">
+              <Icon name="globe" size={14} />
+              {location}
+            </span>
+          )}
+          {links.map((link) => (
+            <a
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${name} on ${link.label}`}
+              class="inline-flex size-9 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-(--dur-1) hover:border-line-strong hover:bg-surface hover:text-ink"
+            >
+              <Icon name={link.icon} size={16} />
+            </a>
+          ))}
         </div>
       </header>
 
@@ -86,13 +82,11 @@ const { name, role, bio, location, links } = authorEntry.data;
           {authorPosts.length === 1 ? 'Their essay' : `All ${authorPosts.length} essays`}
         </h2>
         <ul class="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {
-            pageData.map(({ post, author }, index) => (
-              <li>
-                <PostCard post={post} author={author} index={index + 1} />
-              </li>
-            ))
-          }
+          {pageData.map(({ post, author }, index) => (
+            <li>
+              <PostCard post={post} author={author} index={index + 1} />
+            </li>
+          ))}
         </ul>
       </section>
     </Container>

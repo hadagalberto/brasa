@@ -26,9 +26,7 @@ const { author, postCount, class: className } = Astro.props;
 >
   <Avatar name={author.data.name} size={64} class="mt-1 sm:mt-0" />
   <div class="min-w-0">
-    <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
-      Written by
-    </p>
+    <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">Written by</p>
     <h2 class="mt-2 font-display text-display-sm text-ink">
       <a
         href={authorHref(author.id)}

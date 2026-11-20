@@ -19,30 +19,25 @@ const tags = collectTags(posts);
           <span class="eyebrow-dash" aria-hidden="true"></span>
           The forge · topics
         </p>
-        <h1 class="font-display text-display-lg text-ink text-balance">
-          Browse by topic
-        </h1>
+        <h1 class="font-display text-display-lg text-ink text-balance">Browse by topic</h1>
         <p class="max-w-[62ch] text-pretty text-body-lg text-ink-2">
           {tags.length}
           {tags.length === 1 ? 'topic' : 'topics'} across {posts.length}
-          {posts.length === 1 ? 'essay' : 'essays'}. Every tag page is a
-          complete reading list.
+          {posts.length === 1 ? 'essay' : 'essays'}. Every tag page is a complete reading list.
         </p>
       </header>
 
       <ul class="mt-12 flex flex-wrap gap-3" aria-label="All topics">
-        {
-          tags.map((tag) => (
-            <li>
-              <TagPill
-                label={tag.label}
-                href={tagHref(tag.label)}
-                count={tag.count}
-                class="h-10 px-4 text-sm"
-              />
-            </li>
-          ))
-        }
+        {tags.map((tag) => (
+          <li>
+            <TagPill
+              label={tag.label}
+              href={tagHref(tag.label)}
+              count={tag.count}
+              class="h-10 px-4 text-sm"
+            />
+          </li>
+        ))}
       </ul>
     </Container>
   </div>

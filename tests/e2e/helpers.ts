@@ -6,6 +6,9 @@ import type { Page } from '@playwright/test';
 export const routes = [
   '/',
   '/styleguide',
+  '/docs',
+  '/docs/installation',
+  '/docs/components',
   '/blog',
   '/blog/deploy-previews-are-the-prs-missing-half',
   '/blog/tags',

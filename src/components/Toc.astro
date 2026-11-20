@@ -27,17 +27,15 @@ const { headings, label = 'On this page' } = Astro.props;
       {label}
     </p>
     <ol class="toc-list">
-      {
-        headings
-          .filter((heading) => heading.depth === 2 || heading.depth === 3)
-          .map((heading) => (
-            <li class:list={['toc-item', heading.depth === 3 && 'toc-item-nested']}>
-              <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
-                {heading.text}
-              </a>
-            </li>
-          ))
-      }
+      {headings
+        .filter((heading) => heading.depth === 2 || heading.depth === 3)
+        .map((heading) => (
+          <li class:list={['toc-item', heading.depth === 3 && 'toc-item-nested']}>
+            <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
+              {heading.text}
+            </a>
+          </li>
+        ))}
     </ol>
   </nav>
 </div>

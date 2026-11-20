@@ -1,0 +1,204 @@
+---
+title: MDX components
+description: Live examples and copyable syntax for Callout, Tabs, Steps, FileTree, Cards and Accordion.
+group: Reference
+order: 2
+sidebarLabel: MDX components
+updated: 2026-11-20
+---
+
+import { Accordion, Callout, Cards, FileTree, Steps, Tabs } from '../../components/mdx';
+import { docLink } from '../../lib/doc-link';
+
+All six components below are rendered on this page, not screenshotted. What you see is what your readers get. Import them in one line at the top of any MDX body:
+
+```mdx
+import { Accordion, Callout, Cards, FileTree, Steps, Tabs } from '../../components/mdx';
+```
+
+## Callout
+
+Four variants map to four severities. `title` is optional — omit it and the component uses the variant's label.
+
+<div class="not-prose flex flex-col gap-3">
+  <Callout variant="note" title="Note">Neutral context. Use it for information a reader needs but cannot act on.</Callout>
+  <Callout variant="tip" title="Tip">A shortcut or recommendation. The ember-300 edge distinguishes it at a glance.</Callout>
+  <Callout variant="warning" title="Warning">A mistake that costs time. The edge warms toward orange.</Callout>
+  <Callout variant="danger" title="Danger">Data loss or a broken build. The strongest edge in the set.</Callout>
+</div>
+
+````mdx
+<Callout variant="warning" title="Always build before testing">
+Playwright serves `dist/`, so `npm test` without a fresh build tests stale output.
+</Callout>
+````
+
+## Tabs
+
+A full WAI-ARIA tab pattern: arrow keys, Home/End, roving tabindex, `aria-controls`/`aria-labelledby`. Without JavaScript the tablist disappears and both panels render stacked, so content is never trapped behind a pill.
+
+<Tabs
+  label="Package managers"
+  tabs={[
+    { id: 'npm', label: 'npm', icon: 'terminal' },
+    { id: 'pnpm', label: 'pnpm', icon: 'bolt' },
+  ]}
+>
+  <Fragment slot="npm">
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    npm install
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    pnpm install --config.shamefully-hoist=true
+    ```
+  </Fragment>
+</Tabs>
+
+The `id` in the `tabs` array must match a `<Fragment slot="…">`. Panel content keeps prose typography; only the tab buttons opt out.
+
+````mdx
+<Tabs
+  label="Package managers"
+  tabs={[
+    { id: 'npm', label: 'npm', icon: 'terminal' },
+    { id: 'pnpm', label: 'pnpm', icon: 'bolt' },
+  ]}
+>
+  <Fragment slot="npm">
+    ```bash
+    npm install
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```bash
+    pnpm install
+    ```
+  </Fragment>
+</Tabs>
+````
+
+## Steps
+
+Numbered steps with a connector that draws itself on scroll. The grid adapts to the list length — three steps make a row of three, four make a tidy 2×2, so no step is ever lonely. Reduced motion renders the full connector immediately.
+
+<Steps
+  steps={[
+    { icon: 'terminal', title: 'Install', body: 'Scaffold the template and install dependencies with npm.' },
+    { icon: 'sliders', title: 'Configure', body: 'Set the site identity, navigation and accent hue in one file.' },
+    { icon: 'bolt', title: 'Ship', body: 'Build the static output and deploy dist/ anywhere.' },
+  ]}
+/>
+
+````mdx
+<Steps
+  steps={[
+    { icon: 'terminal', title: 'Install', body: 'Scaffold the template.' },
+    { icon: 'sliders', title: 'Configure', body: 'Set the accent hue.' },
+    { icon: 'bolt', title: 'Ship', body: 'Deploy dist/.' },
+  ]}
+/>
+````
+
+<Callout variant="warning" title="Icons are typed">
+`icon` is checked against the inline `Icon` set at build time. A typo such as `rocket-ship` fails `astro check`. Use names exported by `Icon.astro`: `bolt`, `terminal`, `book`, `check`, `code`, `file`, `folder`, `git-branch`, `link`, `message`, `search`, `sliders`, `globe`, `users`, `shield`, `chart`, `sparkles` and the brand marks.
+</Callout>
+
+## FileTree
+
+A semantic nested list for project layouts. Depth is padding plus a hairline guide, never pixel-perfect connectors, so the tree stays readable when the font size grows. `note` adds a mono annotation; `highlight` marks the entry the surrounding copy is discussing.
+
+<FileTree
+  label="Example project"
+  tree={[
+    { name: 'src/', children: [
+      { name: 'brasa.config.ts', note: 'edit first', highlight: true },
+      { name: 'content.config.ts' },
+      { name: 'components/', children: [
+        { name: 'Callout.astro' },
+        { name: 'mdx.ts', note: 'barrel' },
+      ] },
+    ] },
+    { name: 'astro.config.ts', note: 'base path' },
+  ]}
+/>
+
+````mdx
+<FileTree
+  tree={[
+    { name: 'src/', children: [
+      { name: 'brasa.config.ts', note: 'edit first', highlight: true },
+      { name: 'content.config.ts' },
+    ] },
+    { name: 'astro.config.ts', note: 'base path' },
+  ]}
+/>
+````
+
+## Cards
+
+A responsive grid of linked cards. `columns` is `2` by default and `3` when you need a compact overview. Each item takes a `title`, `description`, `href`, an optional `icon` and an optional mono `meta` label.
+
+<Cards
+  columns={3}
+  items={[
+    { title: 'Installation', description: 'Scaffold and run the theme locally.', href: docLink('installation'), icon: 'terminal', meta: 'Start here' },
+    { title: 'Tokens', description: 'Recolor the whole site from one hue.', href: docLink('design-tokens'), icon: 'sparkles', meta: 'Design' },
+    { title: 'Deployment', description: 'Ship the static output to any host.', href: docLink('deployment'), icon: 'globe', meta: 'Ship' },
+  ]}
+/>
+
+````mdx
+<Cards
+  columns={3}
+  items={[
+    { title: 'Installation', description: 'Scaffold and run the theme locally.', href: docLink('installation'), icon: 'terminal', meta: 'Start here' },
+    { title: 'Tokens', description: 'Recolor the whole site from one hue.', href: docLink('design-tokens'), icon: 'sparkles', meta: 'Design' },
+  ]}
+/>
+````
+
+<Callout variant="note" title="Links respect the base path">
+`docLink('installation')` from `src/lib/doc-link.ts` prefixes `import.meta.env.BASE_URL`, so the same MDX renders `/docs/installation` on a custom domain and `/brasa/docs/installation` on GitHub Pages. Hardcoded absolute paths would break under a subpath.
+</Callout>
+
+## Accordion
+
+Native `<details>` elements, so they open without JavaScript and work with keyboard and assistive tech. Height animates with `::details-content` and `interpolate-size` where supported; elsewhere the panel opens instantly.
+
+<Accordion
+  items={[
+    { q: 'Does the accordion need JavaScript?', a: 'No. Each item is a native details/summary pair. The optional height animation is a progressive enhancement behind an @supports check.' },
+    { q: 'Can two items be open at once?', a: 'Yes. There is no name attribute on the details elements, so each item keeps its own state — useful when readers compare answers.' },
+    { q: 'What happens with reduced motion?', a: 'The transition duration becomes zero and the panel opens immediately. Content is never hidden behind an animation.' },
+  ]}
+/>
+
+````mdx
+<Accordion
+  items={[
+    { q: 'Does it need JavaScript?', a: 'No — each item is a native details/summary pair.' },
+    { q: 'Can two items be open?', a: 'Yes, each keeps its own state.' },
+  ]}
+/>
+````
+
+## Combining components
+
+Components compose freely because each sets its own typography. A common docs pattern is a callout that introduces a tabbed example:
+
+````mdx
+<Callout variant="tip" title="Pick your package manager">
+  Both commands produce the same project.
+</Callout>
+
+<Tabs tabs={[{ id: 'npm', label: 'npm' }, { id: 'pnpm', label: 'pnpm' }]}>
+  <Fragment slot="npm">npm install</Fragment>
+  <Fragment slot="pnpm">pnpm install</Fragment>
+</Tabs>
+````
+
+If a component ever looks wrong inside prose, check that its root carries `not-prose` — that class opts its children out of the global prose rules so the component's own spacing wins.

@@ -63,20 +63,18 @@ const uid = `tabs-${tabsSequence.toString(36)}`;
     ))}
   </div>
 
-  {
-    panels.map(({ id, html }, index) => (
-      <div
-        role="tabpanel"
-        id={`${uid}-${id}-panel`}
-        aria-labelledby={`${uid}-${id}-tab`}
-        data-panel={id}
-        hidden={index !== 0}
-        tabindex="0"
-        class="mt-5"
-        set:html={html ?? ''}
-      />
-    ))
-  }
+  {panels.map(({ id, html }, index) => (
+    <div
+      role="tabpanel"
+      id={`${uid}-${id}-panel`}
+      aria-labelledby={`${uid}-${id}-tab`}
+      data-panel={id}
+      hidden={index !== 0}
+      tabindex="0"
+      class="mt-5"
+      set:html={html ?? ''}
+    />
+  ))}
 </div>
 
 <noscript>
@@ -113,8 +111,10 @@ const uid = `tabs-${tabsSequence.toString(36)}`;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
-    transition: color var(--dur-1) var(--ease-out-soft),
-      border-color var(--dur-1) var(--ease-out-soft), background-color var(--dur-1) var(--ease-out-soft);
+    transition:
+      color var(--dur-1) var(--ease-out-soft),
+      border-color var(--dur-1) var(--ease-out-soft),
+      background-color var(--dur-1) var(--ease-out-soft);
   }
 
   .tab-button:hover {

@@ -18,22 +18,24 @@ This post is the teardown: where the seconds went, which cuts mattered, and whic
 
 The first chart we drew was the boring one — a median and p95 per stage, over a week of real builds:
 
-| Stage | Median | p95 | Fixed cost? |
-| --- | --- | --- | --- |
-| Runner boot + checkout | 3.6s | 5.1s | Yes |
-| Install dependencies | 0.8s | 1.4s | Cacheable |
-| Build (render pages) | 1.2s | 2.0s | Cacheable |
-| Upload + deploy | 0.4s | 0.7s | Fixed cost |
+| Stage                  | Median | p95  | Fixed cost? |
+| ---------------------- | ------ | ---- | ----------- |
+| Runner boot + checkout | 3.6s   | 5.1s | Yes         |
+| Install dependencies   | 0.8s   | 1.4s | Cacheable   |
+| Build (render pages)   | 1.2s   | 2.0s | Cacheable   |
+| Upload + deploy        | 0.4s   | 0.7s | Fixed cost  |
 
 Two facts fell out immediately. The runner boot is a third of the budget and untouchable by us. And the p95 fatness of "build" was not slow pages — it was cache misses cascading into cold paths. Every optimization that follows is really about one number: the cache hit rate, which we now hold above 94% on main-adjacent branches.
 
 <Callout variant="warning" title="Beware the benchmark build">
-Every cache benchmark is a story about what it warms. "Cold build in 40s" headlines sell runners; the honest metric is the build a reviewer actually triggers — a branch two commits off main, one file changed. That is the build this post is about.
+  Every cache benchmark is a story about what it warms. "Cold build in 40s" headlines sell runners;
+  the honest metric is the build a reviewer actually triggers — a branch two commits off main, one
+  file changed. That is the build this post is about.
 </Callout>
 
 ## Three cache layers, one key
 
-Everything interesting is keyed the same way, on **content, not identity** — the hash of what goes *in* decides what comes out, never timestamps or branch names.
+Everything interesting is keyed the same way, on **content, not identity** — the hash of what goes _in_ decides what comes out, never timestamps or branch names.
 
 <CodeTabs
   label="Cache configuration samples"
@@ -97,7 +99,7 @@ The layers, in the order a build consults them:
 2. **Render output.** A page's key is the hash of its inputs: content file, components it uses, layout, config. Same inputs, same HTML — so a docs edit never re-renders the pricing page.
 3. **Assets.** Content hash of the source image, from which every optimized derivative is derived. Rebuilds re-derive nothing.
 
-The subtlety is layer 2. Hashing *every* input naively re-renders the whole site on any shared-layout change, which is exactly the cold-build cliff we were avoiding. The fix is boring and essential: hash the **import graph per page**, not the repo. When someone edits a blog post, the graph that says "home page imports the three latest posts" does include the home page — and correctly re-renders it. The 408 pages it does not include stay cached.
+The subtlety is layer 2. Hashing _every_ input naively re-renders the whole site on any shared-layout change, which is exactly the cold-build cliff we were avoiding. The fix is boring and essential: hash the **import graph per page**, not the repo. When someone edits a blog post, the graph that says "home page imports the three latest posts" does include the home page — and correctly re-renders it. The 408 pages it does not include stay cached.
 
 ## The two things we refused to fake
 
@@ -118,7 +120,8 @@ The honest accounting of our 1.2-second build:
 Hashing at 25% of budget raises eyebrows, so: we measured the alternative. A Bloom-filter "probably unchanged" check shaved 0.1s and cost us a week of debugging one bad rebuild in October. Deterministic and slightly slower beats probabilistic and occasionally wrong, every time, for a build system.
 
 <Callout variant="note">
-The repo layout that makes all this clean is worth copying — cache keys live beside the code they describe, so a refactor either preserves the graph or consciously changes it:
+  The repo layout that makes all this clean is worth copying — cache keys live beside the code they
+  describe, so a refactor either preserves the graph or consciously changes it:
 </Callout>
 
 <FileTree
@@ -126,12 +129,15 @@ The repo layout that makes all this clean is worth copying — cache keys live b
   tree={[
     { name: 'brasa.config.ts', note: 'cache strategy + layers', highlight: true },
     { name: 'scripts/', children: [{ name: 'cache-keys.mjs', note: 'import-graph hashing' }] },
-    { name: 'src/', children: [
-      { name: 'content/', children: [{ name: 'blog/' }, { name: 'docs/' }] },
-      { name: 'components/' },
-      { name: 'layouts/' },
-    ] },
+    {
+      name: 'src/',
+      children: [
+        { name: 'content/', children: [{ name: 'blog/' }, { name: 'docs/' }] },
+        { name: 'components/' },
+        { name: 'layouts/' },
+      ],
+    },
   ]}
 />
 
-Six seconds will get slower as the site grows, and that is fine — the number to defend is not the seconds, it is the hit rate. Seconds are what a hit rate of 94% *feels like*. Reviewers do not experience your cache; they experience the URL arriving before they have switched tabs.
+Six seconds will get slower as the site grows, and that is fine — the number to defend is not the seconds, it is the hit rate. Seconds are what a hit rate of 94% _feels like_. Reviewers do not experience your cache; they experience the URL arriving before they have switched tabs.

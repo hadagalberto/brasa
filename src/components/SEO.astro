@@ -111,22 +111,24 @@ if (breadcrumbs && breadcrumbs.length > 0) {
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={`${brasa.site.name} — ${brasa.site.tagline}`} />
 <meta property="og:locale" content="en_US" />
-{
-  article && type === 'article' && (
-    <>
-      <meta property="article:published_time" content={article.publishedTime.toISOString()} />
-      {article.modifiedTime && (
-        <meta property="article:modified_time" content={article.modifiedTime.toISOString()} />
-      )}
-      <meta property="article:author" content={article.authorName} />
-      {article.tags.map((tag) => <meta property="article:tag" content={tag} />)}
-    </>
-  )
-}
+{article && type === 'article' && (
+  <>
+    <meta property="article:published_time" content={article.publishedTime.toISOString()} />
+    {article.modifiedTime && (
+      <meta property="article:modified_time" content={article.modifiedTime.toISOString()} />
+    )}
+    <meta property="article:author" content={article.authorName} />
+    {article.tags.map((tag) => (
+      <meta property="article:tag" content={tag} />
+    ))}
+  </>
+)}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
 
-{graph.map((entry) => <script type="application/ld+json" set:html={JSON.stringify(entry)} />)}
+{graph.map((entry) => (
+  <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+))}

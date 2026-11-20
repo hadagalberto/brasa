@@ -1,0 +1,134 @@
+---
+title: Internationalization
+description: Configure locales, plan translated routes and keep hreflang and the locale switcher pointing at the same page.
+group: Guides
+order: 2
+sidebarLabel: Internationalization
+updated: 2026-11-20
+---
+
+import { Callout, FileTree, Tabs } from '../../components/mdx';
+
+Brasa treats language as configuration, not a hardcoded assumption. The typed `locales` block lists the languages a deployment supports; the reference site ships its prose in English, and the structure below is how you add a second language without duplicating the design system.
+
+## The locale config
+
+```ts
+// src/brasa.config.ts
+locales: {
+  default: 'en',
+  available: [
+    { code: 'en', label: 'English', lang: 'en' },
+    { code: 'pt-br', label: 'Português (Brasil)', lang: 'pt-BR' },
+  ],
+},
+```
+
+Three fields, three jobs:
+
+- `code` — the URL prefix (`/pt-br/…`) and the value stored in routing state.
+- `label` — what the locale switcher shows. Use the endonym, not "Portuguese (Brazil)".
+- `lang` — the BCP-47 value for `<html lang>` and `hreflang`.
+
+`BaseLayout` reads the default entry for the document language. A localized deployment sets it per route instead, from the active locale.
+
+<Callout variant="note" title="What ships today">
+The reference content — home, blog, docs, styleguide and their feeds — is written in English. The `pt-br` entry is declared in config so a localized build has a typed target, but no translated routes are generated until you add them. The guidance below is the integration path, not a description of hidden pages.
+</Callout>
+
+## Suggested content layout
+
+<FileTree
+  tree={[
+    { name: 'src/i18n/', note: 'add for a localized build', children: [
+      { name: 'en.ts', note: 'UI dictionary' },
+      { name: 'pt-br.ts', note: 'UI dictionary' },
+    ] },
+    { name: 'src/content/', children: [
+      { name: 'blog/en/', note: 'English posts' },
+      { name: 'blog/pt-br/', note: 'translated posts' },
+      { name: 'docs/pt-br/', note: 'translated manual' },
+    ] },
+    { name: 'src/pages/', children: [
+      { name: 'index.astro', note: 'default locale' },
+      { name: 'pt-br/index.astro', note: 'prefixed route' },
+    ] },
+  ]}
+/>
+
+Keep one dictionary per locale with the same keys. Type it from the English dictionary so a missing translation is a compile error:
+
+```ts
+// src/i18n/index.ts
+import en from './en';
+import ptBr from './pt-br';
+
+export const dictionaries = { en, 'pt-br': ptBr } as const;
+export type Locale = keyof typeof dictionaries;
+export const ui = (locale: Locale) => dictionaries[locale];
+```
+
+Strings that belong to the chrome — "On this page", "Edit this page", "Start typing to search", form labels — come from this dictionary. Prose stays in content collections, where translators can work without touching components.
+
+## Routing
+
+Astro's built-in i18n routing handles prefix detection and the default-locale rewrite:
+
+<Tabs
+  label="Astro i18n setup"
+  tabs={[
+    { id: 'config', label: 'astro.config.ts' },
+    { id: 'switch', label: 'Switcher' },
+  ]}
+>
+  <Fragment slot="config">
+    ```ts
+    export default defineConfig({
+      i18n: {
+        defaultLocale: 'en',
+        locales: ['en', 'pt-br'],
+        routing: { prefixDefaultLocale: false },
+      },
+    });
+    ```
+    With `prefixDefaultLocale: false`, English stays at `/docs/installation` and Portuguese lives at `/pt-br/docs/installation`. Set it to `true` if you prefer `/en/…` for both.
+  </Fragment>
+  <Fragment slot="switch">
+    ```astro
+    ---
+    import { AstroError } from 'astro/errors';
+    const current = Astro.currentLocale ?? 'en';
+    const path = Astro.url.pathname.replace(/^\/pt-br(?=\/|$)/, '');
+    const alternate = current === 'en' ? `/pt-br${path}` : path || '/';
+    ---
+
+    <a href={alternate} hreflang="pt-BR" lang="pt-BR">Português (Brasil)</a>
+    ```
+    Strip only the *other* locale's prefix, then keep the remainder of the path. That is what makes the switcher keep the current page instead of dumping the reader on a homepage.
+  </Fragment>
+</Tabs>
+
+## Head tags
+
+For every translated page, emit reciprocal alternates plus the canonical URL. `SEO.astro` already writes `<link rel="canonical">` and `og:locale`; extend it with the locale alternates:
+
+```html
+<link rel="alternate" hreflang="en" href="https://brasa.example.com/docs/installation" />
+<link rel="alternate" hreflang="pt-BR" href="https://brasa.example.com/pt-br/docs/installation" />
+<link rel="alternate" hreflang="x-default" href="https://brasa.example.com/docs/installation" />
+```
+
+Absolute URLs matter here. Build them from `Astro.site`, never from `window.location` — there is no window at build time.
+
+<Callout variant="warning" title="Search and feeds need a locale too">
+Pagefind indexes whatever is in `dist`, so a translated build will mix languages unless you index them separately (`--site dist/pt-br`) or filter by a `lang` filter. RSS and JSON feed generators should read the same collection subset as the visible archive; otherwise a feed advertises posts with no route.
+</Callout>
+
+## Checklist
+
+1. Add dictionaries with identical keys and type the second from the first.
+2. Wire `i18n` in `astro.config.ts` using the `code` values from `brasa.config.ts`.
+3. Gate nav, footer and SEO strings through `ui(locale)`.
+4. Create prefixed routes and translated collection entries.
+5. Emit reciprocal hreflang alternates and keep the switcher on the current page.
+6. Run `npm run build` and confirm both locales appear in `dist/`, then re-run the axe suite — translated strings change text length and can expose overflow.

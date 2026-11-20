@@ -1,0 +1,174 @@
+---
+/**
+ * Docs sidebar — section groups are native <details> (collapsible with zero
+ * JS), ordered by the collection schema. The current page gets a real
+ * aria-current plus an ember rail; the script only remembers open sections
+ * across View Transitions.
+ */
+import Icon from '../Icon.astro';
+import { docsHref, groupDocs, type Doc } from '../../lib/docs';
+
+interface Props {
+  docs: Doc[];
+  currentId?: string;
+  class?: string;
+}
+
+const { docs, currentId, class: className } = Astro.props;
+const groups = groupDocs(docs);
+---
+
+<nav aria-label="Documentation" class:list={['docs-sidebar', className]}>
+  <a
+    href={`${import.meta.env.BASE_URL}docs`}
+    class="sidebar-home group mb-6 flex items-center gap-2.5"
+  >
+    <span class="inline-flex size-7 items-center justify-center rounded-lg border border-line bg-surface-2 text-accent">
+      <Icon name="book" size={14} />
+    </span>
+    <span class="font-mono text-xs font-medium tracking-[0.12em] text-ink-2 uppercase group-hover:text-ink">
+      Documentation
+    </span>
+    <Icon
+      name="arrow-right"
+      size={13}
+      class="ml-auto text-ink-3 opacity-0 transition-opacity group-hover:opacity-100"
+    />
+  </a>
+
+  <div class="flex flex-col gap-1.5">
+    {groups.map((group) => (
+      <details class="doc-group" open data-doc-group={group.name}>
+        <summary class="group-summary">
+          <span>{group.name}</span>
+          <span class="group-count">{String(group.docs.length).padStart(2, '0')}</span>
+          <Icon name="chevron-down" size={14} class="group-chev" />
+        </summary>
+        <ul class="doc-links">
+          {group.docs.map((doc) => (
+            <li>
+              <a
+                href={docsHref(doc)}
+                class="doc-link"
+                aria-current={doc.id === currentId ? 'page' : undefined}
+                data-active={doc.id === currentId ? '' : undefined}
+              >
+                <span>{doc.data.sidebarLabel ?? doc.data.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+  </div>
+</nav>
+
+<style>
+  /* eslint-disable astro/no-unused-css-selector -- open/data-active are runtime state */
+  .doc-group {
+    border-block-start: 1px solid var(--line);
+    padding-block: 0.375rem;
+  }
+
+  .doc-group:last-child {
+    border-block-end: 1px solid var(--line);
+  }
+
+  .group-summary {
+    display: flex;
+    width: 100%;
+    cursor: pointer;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    list-style: none;
+    transition: color var(--dur-1) var(--ease-out-soft);
+  }
+
+  .group-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .group-summary:hover {
+    color: var(--ink);
+  }
+
+  .group-count {
+    margin-inline-start: auto;
+    font-size: 0.625rem;
+    color: var(--ink-2);
+  }
+
+  .group-chev {
+    transition: transform var(--dur-2) var(--ease-out-soft);
+  }
+
+  /* open appears at runtime; the checker cannot see it in the template. */
+  :global(details[open]) .group-chev {
+    transform: rotate(180deg);
+  }
+
+  .doc-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-block-end: 0.5rem;
+    list-style: none;
+    margin: 0;
+  }
+
+  .doc-link {
+    position: relative;
+    display: block;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--ink-3);
+    text-decoration: none;
+    text-wrap: pretty;
+    transition:
+      color var(--dur-1) var(--ease-out-soft),
+      background-color var(--dur-1) var(--ease-out-soft);
+  }
+
+  .doc-link::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.3125rem;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 999px;
+    background-image: var(--gradient-ember);
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out-soft);
+  }
+
+  .doc-link:hover {
+    color: var(--ink);
+    background-color: color-mix(in oklab, var(--surface) 80%, transparent);
+  }
+
+  /* data-active is set in the template (and kept in sync by the docs island). */
+  /* eslint-disable-next-line astro/no-unused-css-selector */
+  .doc-link[data-active] {
+    color: var(--accent);
+    font-weight: 560;
+    background-color: var(--accent-soft);
+  }
+
+  /* eslint-disable-next-line astro/no-unused-css-selector */
+  .doc-link[data-active]::before {
+    opacity: 1;
+  }
+
+  .sidebar-home:hover {
+    border-color: var(--line-strong);
+  }
+</style>

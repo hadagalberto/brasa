@@ -9,10 +9,14 @@
 export { default as Accordion } from './Accordion.astro';
 export type { QA } from './Accordion.astro';
 export { default as Badge } from './Badge.astro';
+export { default as Button } from './Button.astro';
 export { default as Callout } from './Callout.astro';
+export { default as Cards } from './Cards.astro';
+export type { CardItem } from './Cards.astro';
 export { default as CodeTabs } from './CodeTabs.astro';
 export type { CodeTab } from './CodeTabs.astro';
 export { default as FileTree } from './FileTree.astro';
+export { default as Icon } from './Icon.astro';
 export type { FileTreeItem } from './FileTree.astro';
 export { default as Steps } from './Steps.astro';
 export type { Step } from './Steps.astro';

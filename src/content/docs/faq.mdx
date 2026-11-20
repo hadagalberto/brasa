@@ -1,0 +1,173 @@
+---
+title: FAQ
+description: Straight answers about licensing, customization, content, search, i18n and the build pipeline.
+group: Resources
+order: 1
+sidebarLabel: FAQ
+updated: 2026-11-20
+---
+
+import { Accordion, Callout, Cards } from '../../components/mdx';
+import { docLink } from '../../lib/doc-link';
+
+The questions that come up most often after the first deploy, answered without a support ticket.
+
+## Using the theme
+
+<Accordion
+  items={[
+    {
+      q: 'What license is Brasa released under?',
+      a: 'MIT, copyright Hadagalberto Junior. Use it for client work, commercial products or your own blog. Keep the license notice; there is no attribution requirement beyond that.',
+    },
+    {
+      q: 'Is this a theme I install from npm, or a repository I fork?',
+      a: 'It is an Astro theme distributed as a template. You create a project from the repository and own every file. That is deliberate: the design system, search and OG generation are part of the source you can edit.',
+    },
+    {
+      q: 'Can I use it for a client project?',
+      a: 'Yes. Point site.name and logo.text at the client, replace the demo content in src/content/, set the accent hue in brasa.config.ts, and the demo reads as theirs.',
+    },
+    {
+      q: 'Does it require a database or a server?',
+      a: 'No. The output is static HTML, CSS and small JS islands. Content collections are read at build time; Pagefind builds a static index.',
+    },
+    {
+      q: 'Can I keep only the docs and drop the blog?',
+      a: 'Yes, but do it properly: remove the blog routes and content directory, take the nav and footer links out of brasa.config.ts, and remove blog-only scripts. The feature flags document what is available; they do not delete files for you.',
+    },
+  ]}
+/>
+
+## Design and customization
+
+<Accordion
+  items={[
+    {
+      q: 'How do I change the accent color?',
+      a: 'Set colors.accentHue in src/brasa.config.ts. The OKLCH ember scale, semantic accents, syntax themes and generated OG cards all derive from that number. The styleguide has a live slider for auditioning values.',
+    },
+    {
+      q: 'Why OKLCH instead of hex?',
+      a: 'Lightness and chroma are independent of hue, so contrast is predictable and a hue change does not wreck the palette. OKLCH also produces a more even ramp than HSL at the same numbers.',
+    },
+    {
+      q: 'Is light mode a real design or a filter?',
+      a: 'A real one. It has its own warm-paper surfaces, ink values, elevation and accent lightness. The axe suite audits both themes on every route.',
+    },
+    {
+      q: 'Can I swap the fonts?',
+      a: 'Yes. Fonts are self-hosted Fontsource packages imported in BaseLayout and named in global.css plus src/lib/color.ts for OG images. Replace the imports, the @theme font names and the preload URLs together.',
+    },
+    {
+      q: 'Why is there no dark-mode flash on reload?',
+      a: 'A tiny inline script in <head> reads the stored theme and sets data-theme on <html> before first paint. View Transitions carry the same attribute into the incoming document.',
+    },
+  ]}
+/>
+
+## Content and search
+
+<Accordion
+  items={[
+    {
+      q: 'Where do I write posts and docs?',
+      a: 'MDX files in src/content/blog and src/content/docs. Frontmatter is validated by Zod schemas in src/content.config.ts; the filename becomes the URL slug.',
+    },
+    {
+      q: 'Why did my MDX build fail on line 9?',
+      a: 'Almost always an import placed next to the frontmatter. YAML ends at the second --- and imports must come after it. npm run build runs scripts/verify-mdx.mjs first and prints the exact file and line.',
+    },
+    {
+      q: 'How do I add an author?',
+      a: 'Add a JSON file to src/content/authors with name, role, bio and optional links. Reference its filename (without .json) in a post’s author field. Avatars are generated initials, so no image is needed.',
+    },
+    {
+      q: 'How does search work?',
+      a: 'Pagefind builds a static index into dist/pagefind during npm run build. The dialog opens with Ctrl/⌘+K or /, loads the index lazily on first open and supports arrow-key navigation.',
+    },
+    {
+      q: 'Why does search say the index is unavailable?',
+      a: 'You probably ran astro build directly instead of npm run build, or you are in astro dev where no index exists. Build with the npm script and serve with npm run preview.',
+    },
+  ]}
+/>
+
+## Build and deployment
+
+<Accordion
+  items={[
+    {
+      q: 'What Node version do I need?',
+      a: 'Node 20 or newer; CI uses Node 22. Pin the same version in your host settings.',
+    },
+    {
+      q: 'Why is PAGES_BASE_PATH separate from SITE_URL?',
+      a: 'SITE_URL is the absolute origin used for canonical links and feeds. PAGES_BASE_PATH is the URL subpath a project site is served from. A GitHub Pages repo at /brasa needs both.',
+    },
+    {
+      q: 'Which hosts are supported?',
+      a: 'Any static host. The repository includes workflows for GitHub Pages and CI; the deployment guide covers Vercel, Netlify and Cloudflare Pages settings too.',
+    },
+    {
+      q: 'How do I verify a deployment?',
+      a: 'Check that the theme toggle persists, Ctrl+K returns results, the feeds load, an OG URL returns a PNG, and a missing URL renders the branded 404 with a 404 status.',
+    },
+  ]}
+/>
+
+## Quality and accessibility
+
+<Accordion
+  items={[
+    {
+      q: 'What does “zero violations” mean here?',
+      a: 'The axe suite runs on every route in both themes with WCAG 2.0/2.1 A and AA tags and must report an empty violations array. A single violation fails CI.',
+    },
+    {
+      q: 'How much JavaScript does a page ship?',
+      a: 'A Playwright test gzips every inline and external script on each route and fails at 20 KB. Individual islands target under 3 KB gzipped; Pagefind is fetched only on demand.',
+    },
+    {
+      q: 'What do the screenshots cover?',
+      a: 'Playwright captures every route of each page type at 375 and 1440 px in both themes into docs/screenshots/. They are reference captures, regenerated by npm test.',
+    },
+    {
+      q: 'Does the theme respect reduced motion?',
+      a: 'Yes. Scroll reveals, count-ups, the pointer glow, the step connector and dialog/sheet transitions all degrade to static, fully visible content.',
+    },
+  ]}
+/>
+
+<Callout variant="tip" title="Still unsure?">
+  Search the manual with <kbd>/</kbd>, or ask in the repository's discussions. If you found a bug,
+  an issue with a reproducible URL is worth more than a description.
+</Callout>
+
+## Where to go next
+
+<Cards
+  items={[
+    {
+      title: 'Component reference',
+      description: 'Props and live examples for every component in the theme.',
+      href: docLink('components'),
+      icon: 'book',
+      meta: 'Reference',
+    },
+    {
+      title: 'Accessibility',
+      description: 'Focus, contrast, motion and the automated checks behind them.',
+      href: docLink('accessibility'),
+      icon: 'shield',
+      meta: 'Guide',
+    },
+    {
+      title: 'Installation',
+      description: 'Back to the beginning, with the exact commands.',
+      href: docLink('installation'),
+      icon: 'terminal',
+      meta: 'Start',
+    },
+  ]}
+/>

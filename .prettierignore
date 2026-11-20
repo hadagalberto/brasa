@@ -8,3 +8,8 @@ coverage/
 package-lock.json
 docs/screenshots/
 public/fonts/
+
+# MDX embeds fenced code inside JSX fragments; Prettier's MDX parser mangles
+# both existing posts and docs pages. Content is validated by verify-mdx and
+# the Astro build instead.
+src/content/**/*.mdx

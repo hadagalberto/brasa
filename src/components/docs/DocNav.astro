@@ -1,0 +1,115 @@
+---
+/** Prev/next links for the docs manual, following the sidebar reading order. */
+import Icon from '../Icon.astro';
+import { docsHref, type Doc } from '../../lib/docs';
+
+interface Props {
+  prev: Doc | null;
+  next: Doc | null;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav aria-label="Documentation pages" class="doc-nav not-prose">
+    {prev ? (
+      <a href={docsHref(prev)} class="doc-nav-card group">
+        <span class="doc-nav-label">
+          <Icon name="chevron-left" size={14} />
+          Previous
+        </span>
+        <span class="doc-nav-title">{prev.data.title}</span>
+        <span class="doc-nav-group">{prev.data.group}</span>
+      </a>
+    ) : (
+      <span />
+    )}
+    {next ? (
+      <a href={docsHref(next)} class="doc-nav-card doc-nav-next group">
+        <span class="doc-nav-label">
+          Next
+          <Icon name="chevron-right" size={14} />
+        </span>
+        <span class="doc-nav-title">{next.data.title}</span>
+        <span class="doc-nav-group">{next.data.group}</span>
+      </a>
+    ) : (
+      <span />
+    )}
+  </nav>
+)}
+
+<style>
+  .doc-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .doc-nav-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 8.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    padding: 1.25rem;
+    text-decoration: none;
+    box-shadow: var(--elev-sm);
+    transition:
+      border-color var(--dur-2) var(--ease-out-soft),
+      background-color var(--dur-2) var(--ease-out-soft),
+      transform var(--dur-2) var(--ease-out-soft);
+  }
+
+  .doc-nav-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    background-color: var(--surface-2);
+  }
+
+  .doc-nav-next {
+    text-align: end;
+    align-items: flex-end;
+  }
+
+  .doc-nav-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .doc-nav-title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.25;
+    font-weight: 530;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .doc-nav-group {
+    margin-block-start: auto;
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 640px) {
+    .doc-nav {
+      grid-template-columns: 1fr;
+    }
+
+    .doc-nav-card {
+      min-height: 7rem;
+    }
+  }
+</style>

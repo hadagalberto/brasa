@@ -104,6 +104,7 @@ export const brasa: BrasaConfig = {
   },
   nav: [
     { label: 'Home', href: '/' },
+    { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '/blog' },
     { label: 'Styleguide', href: '/styleguide' },
   ],
@@ -127,6 +128,7 @@ export const brasa: BrasaConfig = {
       {
         title: 'Theme',
         links: [
+          { label: 'Documentation', href: '/docs' },
           { label: 'Styleguide', href: '/styleguide' },
           {
             label: 'Report an issue',

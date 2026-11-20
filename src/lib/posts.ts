@@ -14,8 +14,7 @@ export type Author = CollectionEntry<'authors'>;
 export async function getPosts(): Promise<Post[]> {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
   return posts.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() ||
-    a.id.localeCompare(b.id),
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id),
   );
 }
 
@@ -168,24 +167,20 @@ export function relatedPosts(all: Post[], post: Post, limit = 2): Post[] {
     .filter(({ shared }) => shared > 0)
     .sort(
       (a, b) =>
-        b.shared - a.shared ||
-        b.other.data.pubDate.valueOf() - a.other.data.pubDate.valueOf(),
+        b.shared - a.shared || b.other.data.pubDate.valueOf() - a.other.data.pubDate.valueOf(),
     )
     .slice(0, limit)
     .map(({ other }) => other);
 }
 
 /** Chronological neighbours of a post within the sorted list. */
-export function neighbours(
-  posts: Post[],
-  post: Post,
-): { prev: Post | null; next: Post | null } {
+export function neighbours(posts: Post[], post: Post): { prev: Post | null; next: Post | null } {
   const index = posts.findIndex((entry) => entry.id === post.id);
   if (index === -1) return { prev: null, next: null };
   return {
     // prev = older, next = newer (the list is newest-first).
-    prev: index < posts.length - 1 ? posts[index + 1] ?? null : null,
-    next: index > 0 ? posts[index - 1] ?? null : null,
+    prev: index < posts.length - 1 ? (posts[index + 1] ?? null) : null,
+    next: index > 0 ? (posts[index - 1] ?? null) : null,
   };
 }
 

@@ -55,4 +55,25 @@ const authors = defineCollection({
     .strict(),
 });
 
-export const collections = { blog, authors };
+/**
+ * Documentation — MDX pages that form one ordered manual. `group` drives the
+ * sidebar sections and `order` the position inside each section; the build
+ * derives prev/next navigation from the same sorted list.
+ */
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/docs' }),
+  schema: z
+    .object({
+      title: z.string().min(1),
+      /** One-sentence summary used by cards, the docs index and search. */
+      description: z.string().min(1),
+      group: z.enum(['Getting started', 'Guides', 'Reference', 'Resources']),
+      order: z.number().int().positive(),
+      /** Shorter label for the sidebar when the title is long. */
+      sidebarLabel: z.string().min(1).optional(),
+      updated: z.coerce.date().optional(),
+    })
+    .strict(),
+});
+
+export const collections = { blog, authors, docs };

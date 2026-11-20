@@ -39,9 +39,7 @@ export const GET: APIRoute = async ({ site }) => {
         title: post.data.title,
         summary: post.data.description,
         date_published: post.data.pubDate.toISOString(),
-        ...(post.data.updatedDate
-          ? { date_modified: post.data.updatedDate.toISOString() }
-          : {}),
+        ...(post.data.updatedDate ? { date_modified: post.data.updatedDate.toISOString() } : {}),
         tags: post.data.tags,
         ...(author
           ? {

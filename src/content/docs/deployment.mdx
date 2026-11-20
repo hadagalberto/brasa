@@ -1,0 +1,132 @@
+---
+title: Deployment
+description: Build the static output and host it on GitHub Pages, Vercel, Netlify or Cloudflare Pages with the right base path.
+group: Guides
+order: 3
+sidebarLabel: Deployment
+updated: 2026-11-20
+---
+
+import { Callout, FileTree, Steps, Tabs } from '../../components/mdx';
+
+Brasa builds to a fully static `dist/` directory. There is no server runtime, no database and no environment-specific rendering path. If a host can serve files, it can host Brasa.
+
+## The build contract
+
+```bash
+npm ci
+npm run build
+```
+
+`npm run build` performs three steps in order:
+
+1. `node scripts/verify-mdx.mjs` — validates every MDX frontmatter block.
+2. `astro build` — renders routes, feeds and OG images, and runs Astro's content schemas.
+3. `pagefind --site dist` — writes the search index to `dist/pagefind/`.
+
+<Callout variant="danger" title="Do not skip the Pagefind step">
+  Running `astro build` directly produces a site where the search dialog opens but reports an
+  unavailable index. Always use `npm run build`, or add the Pagefind command to your host's build
+  step explicitly.
+</Callout>
+
+The result:
+
+<FileTree
+  tree={[
+    {
+      name: 'dist/',
+      children: [
+        { name: 'index.html' },
+        { name: 'docs/', note: 'manual routes' },
+        { name: 'blog/', note: 'posts, tags, authors, pagination' },
+        { name: 'og/', note: 'generated PNG cards' },
+        { name: 'pagefind/', note: 'search index + JS', highlight: true },
+        { name: '_astro/', note: 'CSS, JS, fonts' },
+        { name: 'rss.xml', note: 'RSS feed' },
+        { name: 'feed.json', note: 'JSON feed' },
+        { name: '404.html' },
+      ],
+    },
+  ]}
+/>
+
+## Before you deploy
+
+<Steps
+  steps={[
+    {
+      icon: 'globe',
+      title: 'Set SITE_URL',
+      body: 'The canonical URL and all absolute feed links derive from it. Use the final public origin, including https.',
+    },
+    {
+      icon: 'folder',
+      title: 'Set PAGES_BASE_PATH',
+      body: 'Use / for a domain root or /repo-name for a GitHub Pages project site. Keep it identical in local builds and CI.',
+    },
+    {
+      icon: 'check',
+      title: 'Run the full gate',
+      body: 'npm run check, npm run lint, npm run build and npm test. CI runs the same commands in the same order.',
+    },
+  ]}
+/>
+
+<Tabs
+  label="Environment by host"
+  tabs={[
+    { id: 'gh', label: 'GitHub Pages' },
+    { id: 'vercel', label: 'Vercel' },
+    { id: 'netlify', label: 'Netlify' },
+    { id: 'cf', label: 'Cloudflare' },
+  ]}
+>
+  <Fragment slot="gh">
+    ```bash SITE_URL=https://username.github.io/repo-name PAGES_BASE_PATH=/repo-name ``` The
+    included workflow publishes `dist/` with the official Pages action. It only runs on `main`; the
+    CI workflow handles pull requests. If your repository is at the root of a user site, use `/` as
+    the base path and omit the repo segment from `SITE_URL`.
+  </Fragment>
+  <Fragment slot="vercel">
+    ```bash SITE_URL=https://your-domain.example PAGES_BASE_PATH=/ ``` Framework preset: Astro.
+    Build command: `npm run build`. Output directory: `dist`. Vercel's default Node version is
+    configurable — pin Node 22 to match CI.
+  </Fragment>
+  <Fragment slot="netlify">
+    ```bash SITE_URL=https://your-site.netlify.app PAGES_BASE_PATH=/ ``` Build command: `npm run
+    build`. Publish directory: `dist`. Add `NODE_VERSION=22` in the site environment. Netlify's
+    asset post-processing can rewrite generated PNGs; leave it disabled for byte-stable OG cards.
+  </Fragment>
+  <Fragment slot="cf">
+    ```bash SITE_URL=https://your-site.pages.dev PAGES_BASE_PATH=/ ``` Build command: `npm run
+    build`. Build output directory: `dist`. Set the Node compatibility flag to `nodejs_22` (or
+    newer) in `wrangler.toml` or the dashboard.
+  </Fragment>
+</Tabs>
+
+## Base paths and links
+
+Every internal URL goes through `import.meta.env.BASE_URL`: nav links, footer links, feed alternates, OG image paths, the favicon and the Pagefind module URL. That is why the same source builds at `/` and at `/brasa/` without a link audit.
+
+<Callout variant="warning" title="A wrong base path fails quietly">
+  The HTML still renders, but CSS, fonts, images and the search index 404. After a base-path change,
+  open the deployed site and check the browser console, then run the "all internal links and assets
+  resolve" Playwright test against the preview with the same `PAGES_BASE_PATH` set.
+</Callout>
+
+## Caching
+
+Fingerprinted assets in `dist/_astro/` are safe to cache immutably. Generated OG images carry `Cache-Control: public, max-age=31536000, immutable` in their endpoint headers, but a static host serves the file directly — set a long cache lifetime for `/og/` in your host config if you want the same behavior.
+
+`pagefind/` should be cached with the rest of the static output and invalidated on each deploy. Because the index is content-addressed internally, a stale index cannot be partially loaded.
+
+## Verify the deployment
+
+```bash
+SITE_URL=https://your-domain.example PAGES_BASE_PATH=/ npm run build
+npm run preview
+npm test
+```
+
+Then check, on the live host: the theme toggle persists across a reload with no flash, `Ctrl+K` returns results, `/rss.xml` and `/feed.json` load, an OG URL returns a PNG, and the 404 page renders with its own status code.

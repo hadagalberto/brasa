@@ -18,33 +18,32 @@ interface Props {
 
 const { variant = 'note', title, class: className } = Astro.props;
 
-const meta: Record<Variant, { icon: IconName; label: string; tone: string; iconColor: string }> =
-  {
-    note: {
-      icon: 'info',
-      label: 'Note',
-      tone: 'callout-note',
-      iconColor: 'text-accent',
-    },
-    tip: {
-      icon: 'sparkles',
-      label: 'Tip',
-      tone: 'callout-tip',
-      iconColor: 'text-ember-300',
-    },
-    warning: {
-      icon: 'alert',
-      label: 'Warning',
-      tone: 'callout-warning',
-      iconColor: 'text-ember-400',
-    },
-    danger: {
-      icon: 'flame',
-      label: 'Danger',
-      tone: 'callout-danger',
-      iconColor: 'text-ember-500',
-    },
-  };
+const meta: Record<Variant, { icon: IconName; label: string; tone: string; iconColor: string }> = {
+  note: {
+    icon: 'info',
+    label: 'Note',
+    tone: 'callout-note',
+    iconColor: 'text-accent',
+  },
+  tip: {
+    icon: 'sparkles',
+    label: 'Tip',
+    tone: 'callout-tip',
+    iconColor: 'text-ember-300',
+  },
+  warning: {
+    icon: 'alert',
+    label: 'Warning',
+    tone: 'callout-warning',
+    iconColor: 'text-ember-400',
+  },
+  danger: {
+    icon: 'flame',
+    label: 'Danger',
+    tone: 'callout-danger',
+    iconColor: 'text-ember-500',
+  },
+};
 
 const { icon, label, tone, iconColor } = meta[variant];
 ---

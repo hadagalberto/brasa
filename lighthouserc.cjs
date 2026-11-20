@@ -12,7 +12,7 @@ module.exports = {
     collect: {
       staticDistDir: './dist',
       // The 404 page is intentionally noindexed, so its SEO is not audited.
-      url: ['index.html', 'styleguide/index.html'],
+      url: ['index.html', 'styleguide/index.html', 'docs/installation/index.html'],
       numberOfRuns: 1,
     },
     assert: {

@@ -1,0 +1,237 @@
+---
+/**
+ * Docs article layout — the manual's reading surface. Three columns on wide
+ * screens (sidebar / article / TOC), a native modal drawer for the sidebar on
+ * phones, and a TOC disclosure where the sticky rail does not fit.
+ */
+import { brasa } from '../brasa.config';
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Container from '../components/Container.astro';
+import DocsSidebar from '../components/docs/DocsSidebar.astro';
+import DocNav from '../components/docs/DocNav.astro';
+import Icon from '../components/Icon.astro';
+import Prose from '../components/Prose.astro';
+import Toc from '../components/Toc.astro';
+import type { TocHeading } from '../components/Toc.astro';
+import { docsHref, editUrl, type Doc } from '../lib/docs';
+import { formatDate } from '../lib/posts';
+
+interface Props {
+  doc: Doc;
+  docs: Doc[];
+  headings: TocHeading[];
+  prev: Doc | null;
+  next: Doc | null;
+}
+
+const { doc, docs, headings, prev, next } = Astro.props;
+const { title, description, group } = doc.data;
+const crumbs: Array<{ label: string; href?: string }> = [
+  { label: 'Home', href: `${import.meta.env.BASE_URL}` },
+  { label: 'Docs', href: `${import.meta.env.BASE_URL}docs` },
+  { label: title },
+];
+const seoCrumbs = [
+  { label: 'Home', href: `${import.meta.env.BASE_URL}` },
+  { label: 'Docs', href: `${import.meta.env.BASE_URL}docs` },
+  { label: title, href: docsHref(doc) },
+];
+const edit = editUrl(doc, brasa.site.github);
+---
+
+<BaseLayout
+  {title}
+  {description}
+  breadcrumbs={seoCrumbs}
+  image={`${import.meta.env.BASE_URL}og/docs/${doc.id}.png`}
+>
+  <div class="docs-shell pb-8">
+    <Container size="xl" class="pt-9 lg:pt-12">
+      <Breadcrumbs items={crumbs} />
+
+      <header class="docs-heading mt-8 max-w-[52rem]">
+        <p class="eyebrow">
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+          Docs · {group}
+        </p>
+        <h1 class="mt-5 font-display text-display-xl text-ink text-balance">{title}</h1>
+        <p class="mt-4 max-w-[58ch] text-body-lg text-ink-2 text-pretty">{description}</p>
+        <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-ink-3">
+          {doc.data.updated && (
+            <span class="inline-flex items-center gap-2">
+              <Icon name="calendar" size={13} />
+              Updated {formatDate(doc.data.updated)}
+            </span>
+          )}
+          <span class="inline-flex items-center gap-2">
+            <Icon name="book" size={13} />
+            {docs.length} pages in this manual
+          </span>
+        </div>
+      </header>
+
+      <div class="mt-8 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 lg:hidden">
+        <span class="font-mono text-[0.6875rem] tracking-[0.12em] text-ink-3 uppercase">
+          {group}
+        </span>
+        <button
+          type="button"
+          data-docs-drawer-open
+          aria-controls="docs-drawer"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-label="Browse documentation"
+          class="inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface-2 px-3.5 py-2 font-mono text-xs font-medium text-ink transition-colors duration-(--dur-1) hover:bg-surface-3"
+        >
+          <Icon name="menu" size={14} />
+          Browse docs
+        </button>
+      </div>
+
+      {headings.length > 0 && (
+        <details class="docs-toc mt-5 rounded-2xl border border-line bg-surface xl:hidden">
+          <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 font-mono text-xs font-medium tracking-[0.14em] text-ink-2 uppercase transition-colors duration-(--dur-1) hover:text-ink [&::-webkit-details-marker]:hidden">
+            On this page
+            <Icon
+              name="chevron-down"
+              size={14}
+              class="docs-toc-chev transition-transform duration-(--dur-2) ease-(--ease-out-soft)"
+            />
+          </summary>
+          <div class="px-5 pt-1 pb-5">
+            <Toc {headings} />
+          </div>
+        </details>
+      )}
+
+      <div class="docs-grid mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[13rem_minmax(0,1fr)_12rem] xl:gap-9">
+        <aside class="hidden lg:block" aria-label="Documentation sections">
+          <div class="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto pb-8">
+            <DocsSidebar {docs} currentId={doc.id} />
+          </div>
+        </aside>
+
+        <article class="min-w-0" data-pagefind-body>
+          <Prose>
+            <slot />
+          </Prose>
+
+          <div class="docs-end mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 not-prose">
+            <a
+              href={edit}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group inline-flex items-center gap-2.5 text-sm font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
+            >
+              <Icon name="github" size={16} class="text-accent" />
+              Edit this page
+              <Icon
+                name="arrow-up-right"
+                size={13}
+                class="opacity-60 transition-transform duration-(--dur-2) group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              />
+            </a>
+            <p class="font-mono text-xs text-ink-3">MIT · open source · built with Astro</p>
+          </div>
+
+          <div class="mt-8 not-prose">
+            <DocNav {prev} {next} />
+          </div>
+        </article>
+
+        {headings.length > 0 && (
+          <aside class="hidden xl:block" aria-label="On this page">
+            <div class="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto pb-8">
+              <Toc {headings} />
+              <a
+                href="#main"
+                class="mt-6 inline-flex items-center gap-2 font-mono text-xs text-ink-3 transition-colors duration-(--dur-1) hover:text-accent"
+              >
+                <Icon name="chevron-down" size={13} class="rotate-180" />
+                Back to top
+              </a>
+            </div>
+          </aside>
+        )}
+      </div>
+    </Container>
+  </div>
+
+  <dialog
+    id="docs-drawer"
+    data-docs-drawer
+    aria-label="Documentation navigation"
+    class="docs-drawer"
+  >
+    <div class="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
+      <span class="font-mono text-xs font-medium tracking-[0.14em] text-ink-2 uppercase">
+        Documentation
+      </span>
+      <button
+        type="button"
+        data-docs-drawer-close
+        aria-label="Close documentation navigation"
+        class="inline-flex size-9 items-center justify-center rounded-full border border-line bg-surface-2 text-ink transition-colors duration-(--dur-1) hover:bg-surface-3"
+      >
+        <Icon name="close" size={17} />
+      </button>
+    </div>
+    <div class="overflow-y-auto px-5 py-6">
+      <DocsSidebar {docs} currentId={doc.id} />
+    </div>
+  </dialog>
+</BaseLayout>
+
+<script>
+  import '../scripts/docs';
+</script>
+
+<style>
+  /* eslint-disable astro/no-unused-css-selector -- open is native <details>/<dialog> state */
+  :global(.docs-toc[open] .docs-toc-chev) {
+    transform: rotate(180deg);
+  }
+
+  .docs-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: min(88vw, 22rem);
+    max-width: none;
+    max-height: none;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-inline-end: 1px solid var(--line-strong);
+    border-radius: 0;
+    background-color: var(--canvas);
+    color: var(--ink);
+    padding: 0;
+    box-shadow: var(--elev-lg);
+  }
+
+  .docs-drawer::backdrop {
+    background: oklch(0.08 0.015 40 / 0.68);
+    backdrop-filter: blur(4px);
+  }
+
+  :global(.docs-drawer[open]) {
+    animation: drawer-in var(--dur-3) var(--ease-out-soft) both;
+  }
+
+  @keyframes drawer-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.docs-drawer[open]) {
+      animation: none;
+    }
+  }
+</style>
