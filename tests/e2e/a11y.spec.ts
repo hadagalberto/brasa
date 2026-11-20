@@ -9,6 +9,12 @@ test.describe('axe accessibility audit', () => {
   for (const route of allRoutes) {
     for (const theme of themes) {
       test(`${route} — ${theme} theme has zero axe violations`, async ({ page }) => {
+        // Audit the settled page. Entrance animations fade content in on load;
+        // under reduced motion every animation is disabled by design, so axe
+        // always samples fully-opaque, final-state colors instead of racing a
+        // mid-fade frame. The reduced-motion rendering itself is covered by
+        // the dedicated animation specs.
+        await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.goto(route);
         await setTheme(page, theme);
         // Give the theme transition (if any) and fonts a beat to settle.
@@ -20,7 +26,13 @@ test.describe('axe accessibility audit', () => {
           .analyze();
 
         const summary = results.violations
-          .map((violation) => `${violation.id}: ${violation.nodes.length} nodes`)
+          .map((violation) => {
+            const targets = violation.nodes
+              .map((node) => node.target.join(' '))
+              .slice(0, 6)
+              .join(', ');
+            return `${violation.id}: ${violation.nodes.length} nodes [${targets}]`;
+          })
           .join('; ');
         expect(results.violations, `axe violations on ${route} (${theme}): ${summary}`).toEqual([]);
       });

@@ -1,0 +1,133 @@
+---
+/**
+ * "How it works" — numbered steps joined by a connector that draws itself as
+ * the section scrolls into view (scroll-driven animation with an @supports
+ * guard; browsers without it — and reduced-motion users — get the full line,
+ * instantly). The connector runs between step nodes: vertical on mobile,
+ * horizontal from md up.
+ */
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+export interface Step {
+  icon: IconName;
+  title: string;
+  body: string;
+}
+
+interface Props {
+  steps: Step[];
+  class?: string;
+}
+
+const { steps, class: className } = Astro.props;
+---
+
+<ol class:list={['steps grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8', className]}>
+  {steps.map((step, index) => (
+    <li class="step">
+      <div class="flex size-12 items-center justify-center rounded-full border border-line-strong bg-surface-2 shadow-sm">
+        <Icon name={step.icon} size={20} class="text-accent" />
+      </div>
+      <p class="mt-6 font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+        Step {String(index + 1).padStart(2, '0')}
+      </p>
+      <h3 class="mt-2.5 font-display text-display-sm text-ink text-balance">{step.title}</h3>
+      <p class="mt-3 max-w-[38ch] text-sm leading-relaxed text-ink-2 text-pretty">{step.body}</p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .step {
+    position: relative;
+  }
+
+  /* Static connector segments: node edge → next node edge. */
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 48px;
+    bottom: calc(-3rem + 24px);
+    width: 2px;
+    background: var(--line);
+  }
+
+  @media (min-width: 768px) {
+    .step:not(:last-child)::before {
+      left: 48px;
+      right: calc(-2rem - 24px);
+      top: 23px;
+      bottom: auto;
+      width: auto;
+      height: 2px;
+    }
+  }
+
+  /* Ember overlay drawn along the same path, scroll-linked when supported. */
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 48px;
+    bottom: calc(-3rem + 24px);
+    width: 2px;
+    background-image: var(--gradient-ember);
+    transform: scaleY(1);
+    transform-origin: top center;
+  }
+
+  @media (min-width: 768px) {
+    .step:not(:last-child)::after {
+      left: 48px;
+      right: calc(-2rem - 24px);
+      top: 23px;
+      bottom: auto;
+      width: auto;
+      height: 2px;
+      transform: scaleX(1);
+      transform-origin: left center;
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .step:not(:last-child)::after {
+        animation: step-draw-v 400ms linear both;
+        animation-timeline: view();
+        animation-range: entry 15% cover 40%;
+      }
+    }
+  }
+
+  @media (min-width: 768px) {
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .step:not(:last-child)::after {
+          animation-name: step-draw-h;
+        }
+      }
+    }
+  }
+
+  @keyframes step-draw-v {
+    from {
+      transform: scaleY(0);
+    }
+
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes step-draw-h {
+    from {
+      transform: scaleX(0);
+    }
+
+    to {
+      transform: scaleX(1);
+    }
+  }
+</style>

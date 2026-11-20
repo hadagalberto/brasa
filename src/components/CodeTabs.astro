@@ -1,0 +1,139 @@
+---
+/**
+ * WAI-ARIA tabs around Expressive Code blocks (CLI / config / API).
+ *
+ * - Full ARIA pattern: roving tabindex, Arrow/Home/End keys, automatic
+ *   activation, `aria-controls`/`aria-labelledby` wiring.
+ * - No-JS fallback: the tablist is hidden and every panel renders stacked,
+ *   each with its own Expressive Code title bar, so nothing is unreachable.
+ * - The switcher is a few hundred bytes of vanilla TS (see the script below),
+ *   re-initialised on `astro:page-load` so it survives View Transitions.
+ */
+import { Code } from 'astro-expressive-code/components';
+import Icon from './Icon.astro';
+import type { IconName } from './Icon.astro';
+
+export interface CodeTab {
+  /** Stable id — used to wire tab ↔ panel ARIA attributes. */
+  id: string;
+  label: string;
+  icon?: IconName;
+  lang: string;
+  /** Expressive Code title bar (also the no-JS panel label). */
+  title: string;
+  code: string;
+}
+
+interface Props {
+  tabs: CodeTab[];
+  /** Accessible name for the tablist. */
+  label?: string;
+  class?: string;
+}
+
+const { tabs, label = 'Code samples', class: className } = Astro.props;
+
+// Unique id prefix per instance (the component can appear several times).
+let codeTabsSequence = 0;
+codeTabsSequence += 1;
+const uid = `code-tabs-${codeTabsSequence.toString(36)}`;
+---
+
+<div data-code-tabs class:list={['not-prose', className]}>
+  <div role="tablist" aria-label={label} class="flex flex-wrap gap-1.5">
+    {tabs.map((tab, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`${uid}-${tab.id}-tab`}
+        aria-selected={index === 0 ? 'true' : 'false'}
+        aria-controls={`${uid}-${tab.id}-panel`}
+        tabindex={index === 0 ? 0 : -1}
+        data-tab={tab.id}
+        class:list={[
+          'inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border px-4 font-mono text-xs font-medium tracking-[0.08em] uppercase transition-colors duration-(--dur-1)',
+          index === 0
+            ? 'border-line-strong bg-surface-3 text-ink'
+            : 'border-line bg-transparent text-ink-3 hover:border-line-strong hover:text-ink',
+        ]}
+      >
+        {tab.icon && <Icon name={tab.icon} size={14} />}
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+  {tabs.map((tab, index) => (
+    <div
+      role="tabpanel"
+      id={`${uid}-${tab.id}-panel`}
+      aria-labelledby={`${uid}-${tab.id}-tab`}
+      data-panel={tab.id}
+      hidden={index !== 0}
+      tabindex="0"
+      class="mt-5"
+    >
+      <Code lang={tab.lang} title={tab.title} code={tab.code} />
+    </div>
+  ))}
+</div>
+
+<noscript>
+  <style is:inline>
+    [data-code-tabs] [role='tablist'] {
+      display: none;
+    }
+
+    [data-code-tabs] [role='tabpanel'],
+    [data-code-tabs] [role='tabpanel'][hidden] {
+      display: block !important;
+    }
+  </style>
+</noscript>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-code-tabs]').forEach((root) => {
+      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+      if (tabs.length === 0 || panels.length === 0) return;
+
+      const select = (tab: HTMLButtonElement, focus = true): void => {
+        for (const other of tabs) {
+          const active = other === tab;
+          other.setAttribute('aria-selected', String(active));
+          other.tabIndex = active ? 0 : -1;
+          other.classList.toggle('border-line-strong', active);
+          other.classList.toggle('bg-surface-3', active);
+          other.classList.toggle('text-ink', active);
+          other.classList.toggle('border-line', !active);
+          other.classList.toggle('bg-transparent', !active);
+          other.classList.toggle('text-ink-3', !active);
+        }
+        for (const panel of panels) {
+          panel.hidden = panel.dataset.panel !== tab.dataset.tab;
+        }
+        if (focus) tab.focus();
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          select(tab, false);
+        });
+      });
+
+      root.addEventListener('keydown', (event) => {
+        const current = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+        let next = -1;
+        if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        if (next >= 0) {
+          event.preventDefault();
+          select(tabs[next] as HTMLButtonElement);
+        }
+      });
+    });
+  });
+</script>

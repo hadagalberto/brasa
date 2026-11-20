@@ -1,0 +1,118 @@
+---
+/**
+ * Logo cloud — fictional companies rendered as hand-drawn SVG wordmarks.
+ * Each mark is a tiny piece of typography in the theme fonts (one carries the
+ * display serif, another the mono, and so on), so the row looks like real
+ * brands rather than a row of identical grey logos. All currentColor: muted
+ * at rest, warm ink on hover.
+ */
+interface Props {
+  caption: string;
+  class?: string;
+}
+
+const { caption, class: className } = Astro.props;
+---
+
+<div class:list={[className]}>
+  <p class="text-center font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+    {caption}
+  </p>
+  <ul aria-hidden="true" class="mt-7 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="122" height="26" viewBox="0 0 122 26">
+        <text x="0" y="19" class="font-display italic" font-size="19" fill="currentColor">
+          Fjord
+        </text>
+        <text x="55" y="18" class="font-mono" font-size="9" letter-spacing="2" fill="currentColor">
+          &amp; CO
+        </text>
+      </svg>
+    </li>
+
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="88" height="26" viewBox="0 0 88 26">
+        <text
+          x="0"
+          y="18"
+          class="font-mono font-semibold"
+          font-size="15"
+          letter-spacing="5"
+          fill="currentColor"
+        >
+          ALTO
+        </text>
+        <circle cx="74" cy="13" r="3" fill="currentColor"></circle>
+      </svg>
+    </li>
+
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="112" height="26" viewBox="0 0 112 26">
+        <path
+          d="M2 6c7-7 14 7 21 0s14-7 21 0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        ></path>
+        <text x="0" y="21" class="font-sans font-medium" font-size="16" fill="currentColor">
+          cadence
+        </text>
+      </svg>
+    </li>
+
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="126" height="26" viewBox="0 0 126 26">
+        <text
+          x="0"
+          y="18"
+          class="font-mono font-semibold"
+          font-size="13"
+          letter-spacing="3"
+          fill="currentColor"
+        >
+          KILN
+        </text>
+        <text
+          x="42"
+          y="18"
+          class="font-sans font-light"
+          font-size="13"
+          letter-spacing="3"
+          fill="currentColor"
+        >
+          WORKS
+        </text>
+      </svg>
+    </li>
+
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="136" height="26" viewBox="0 0 136 26">
+        <path
+          d="M15 2.9c6.1 7 9 10.7 9 13.2a9 9 0 1 1-18 0c0-4.2 3-8.5 9-13.2Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        ></path>
+        <text x="30" y="19" class="font-display italic" font-size="19" fill="currentColor">
+          Halfmoon
+        </text>
+      </svg>
+    </li>
+
+    <li class="text-ink-3 transition-colors duration-(--dur-2) hover:text-ink">
+      <svg width="134" height="26" viewBox="0 0 134 26">
+        <text x="0" y="19" class="font-sans font-semibold" font-size="16" fill="currentColor">
+          northloop
+        </text>
+        <path
+          d="M103 4a9.5 9.5 0 1 1-9.5 9.5M103 0v4.4h-4.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        ></path>
+      </svg>
+    </li>
+  </ul>
+</div>

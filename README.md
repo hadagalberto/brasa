@@ -9,10 +9,15 @@ to amber, editorial serif display type, and obsessive attention to speed and
 accessibility.
 
 This repository is being built milestone by milestone, following
-[SPEC.md](./SPEC.md). **Milestone 1** ships the Astro scaffold, the full OKLCH
+[SPEC.md](./SPEC.md). **Milestone 1** shipped the Astro scaffold, the full OKLCH
 design system, the base layout (sticky translucent header, full-screen mobile
 sheet, rich footer, theme toggle, view transitions) and a living styleguide
-at `/styleguide`. The remaining milestones (home, pricing, blog, docs,
+at `/styleguide`. **Milestone 2** completed the home page: a hero with the
+pointer-reactive ember glow and an HTML/CSS deploy-dashboard mock, SVG wordmark
+logo cloud, spotlight bento grid, scroll-drawn “how it works” line, Expressive
+Code tabs (CLI / config / API), count-up metrics, an accessible testimonial
+marquee, a pricing teaser, an animated FAQ and the closing CTA with a copy-to-
+clipboard install chip. The remaining milestones (pricing, blog, docs,
 changelog, i18n and packaging) build on this foundation.
 
 ## Quick start

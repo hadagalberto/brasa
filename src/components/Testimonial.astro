@@ -1,0 +1,30 @@
+---
+import Avatar from './Avatar.astro';
+
+interface Props {
+  quote: string;
+  name: string;
+  role: string;
+  class?: string;
+}
+
+const { quote, name, role, class: className } = Astro.props;
+---
+
+<figure
+  class:list={[
+    'flex w-[19.5rem] shrink-0 flex-col justify-between gap-5 rounded-2xl border border-line bg-surface p-6 shadow-sm sm:w-[24rem]',
+    className,
+  ]}
+>
+  <blockquote class="text-[0.9375rem] leading-relaxed text-ink-2 text-pretty">
+    <p>“{quote}”</p>
+  </blockquote>
+  <figcaption class="flex items-center gap-3">
+    <Avatar name={name} size={38} />
+    <div class="min-w-0">
+      <p class="truncate text-sm font-semibold text-ink">{name}</p>
+      <p class="truncate text-xs text-ink-3">{role}</p>
+    </div>
+  </figcaption>
+</figure>

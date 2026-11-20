@@ -20,6 +20,19 @@ export interface FooterColumn {
   links: NavLink[];
 }
 
+export interface NewsletterConfig {
+  /** Small-caps heading shown above the form. */
+  heading: string;
+  description: string;
+  /**
+   * Form endpoint the newsletter posts to. Empty string keeps the form local
+   * (it submits to the current page — swap in Formspree, Buttondown or your
+   * own endpoint without touching the layout).
+   */
+  action: string;
+  note: string;
+}
+
 export interface SocialLink extends NavLink {
   /** Icon name from the Icon component set. */
   icon: 'github' | 'x' | 'discord' | 'rss' | 'mail';
@@ -49,6 +62,7 @@ export interface BrasaConfig {
   footer: {
     columns: FooterColumn[];
     socials: SocialLink[];
+    newsletter: NewsletterConfig;
     note: string;
   };
   locales: {
@@ -146,6 +160,13 @@ export const brasa: BrasaConfig = {
       { label: 'X (Twitter)', href: 'https://x.com/hadagalberto', icon: 'x' },
       { label: 'Discord', href: 'https://discord.gg/brasa', icon: 'discord' },
     ],
+    newsletter: {
+      heading: 'Notes from the forge',
+      description:
+        'A short letter whenever something ships — new sections, performance notes, the occasional ember screenshot. No tracking, ever.',
+      action: '',
+      note: 'One email a month. Unsubscribe anytime — we would rather be missed than muted.',
+    },
     note: 'Brasa is open-source under the MIT license. Built with Astro, warm by design.',
   },
   locales: {

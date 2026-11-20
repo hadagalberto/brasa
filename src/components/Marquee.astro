@@ -1,0 +1,96 @@
+---
+/**
+ * Accessible marquee.
+ *
+ * - The row is a labelled, focusable region: hovering OR focusing it pauses
+ *   the loop (`animation-play-state`), so keyboard users get the same pause
+ *   mouse users get.
+ * - The track carries the content twice; the duplicate is aria-hidden so
+ *   screen readers announce each item exactly once.
+ * - `prefers-reduced-motion` stops the animation entirely and turns the
+ *   region into a normal horizontal scroller.
+ * - No JS at all — the loop is one CSS keyframe.
+ */
+interface Props {
+  /** Accessible name for the scrolling region. */
+  label: string;
+  /** Loop duration in seconds. */
+  speed?: number;
+  class?: string;
+}
+
+const { label, speed = 46, class: className } = Astro.props;
+---
+
+<div
+  class:list={['marquee-region', className]}
+  role="region"
+  aria-label={label}
+  tabindex="0"
+  style={`--marquee-speed: ${speed}s;`}
+>
+  <div class="marquee-track">
+    <div class="marquee-group">
+      <slot />
+    </div>
+    <div class="marquee-group" aria-hidden="true">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .marquee-region {
+    position: relative;
+    overflow-x: clip;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll var(--marquee-speed, 46s) linear infinite;
+  }
+
+  /* Two identical groups + uniform trailing gap = a seamless loop. */
+  .marquee-group {
+    display: flex;
+    align-items: stretch;
+    gap: 1.25rem;
+    padding-inline-end: 1.25rem;
+  }
+
+  /* Pause for pointer and keyboard alike. */
+  .marquee-region:hover .marquee-track,
+  .marquee-region:focus .marquee-track {
+    animation-play-state: paused;
+  }
+
+  .marquee-region:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  /* Soft edge fade while the loop runs; dropped when the row becomes a
+     manual scroller so no content sits behind a permanent mask. */
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-region {
+      mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+    }
+
+    .marquee-region {
+      overflow-x: auto;
+    }
+  }
+
+  @keyframes marquee-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+</style>

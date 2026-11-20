@@ -1,0 +1,43 @@
+---
+/**
+ * Metric with a count-up entrance (driven from scripts/behaviors.ts).
+ *
+ * The final value is server-rendered, so the number is correct for
+ * no-JS users, reduced-motion users, search engines and the first paint.
+ * When JavaScript runs and motion is welcome, the value counts up from zero
+ * once the metric scrolls into view. Mono + tabular figures + a locked
+ * min-width keep the count-up free of layout shift.
+ */
+interface Props {
+  value: number;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+  sub?: string;
+  class?: string;
+}
+
+const { value, decimals = 0, prefix = '', suffix = '', label, sub, class: className } = Astro.props;
+
+const formatted = value.toFixed(decimals);
+const finalText = `${prefix}${formatted}${suffix}`;
+---
+
+<div class:list={['flex flex-col gap-2', className]}>
+  <p class="text-gradient-ember font-mono text-[clamp(2.25rem,3.4vw,3.25rem)] leading-none font-semibold tracking-tight tabular-nums">
+    <span
+      data-countup
+      data-value={value}
+      data-decimals={decimals}
+      data-prefix={prefix}
+      data-suffix={suffix}
+      class="inline-block text-right"
+      style={`min-width: ${finalText.length}ch;`}
+    >
+      {finalText}
+    </span>
+  </p>
+  <p class="text-sm font-medium text-ink">{label}</p>
+  {sub && <p class="text-xs text-ink-3">{sub}</p>}
+</div>

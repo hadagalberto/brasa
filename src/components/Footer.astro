@@ -3,6 +3,7 @@ import { brasa } from '../brasa.config';
 import Container from './Container.astro';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
+import Newsletter from './Newsletter.astro';
 
 const year = new Date().getFullYear();
 ---
@@ -26,6 +27,7 @@ const year = new Date().getFullYear();
             </a>
           ))}
         </div>
+        <Newsletter />
       </div>
 
       {brasa.footer.columns.map((column) => (

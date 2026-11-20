@@ -1,0 +1,93 @@
+---
+/**
+ * Pricing tier card. `featured` lifts the card a step (ember hairline,
+ * slightly warmer surface) without resorting to scale — layout shift is a
+ * pricing-page sin in both directions.
+ */
+import Badge from './Badge.astro';
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  name: string;
+  price: string;
+  /** Charged per what — rendered after the price. */
+  unit?: string;
+  blurb: string;
+  features: string[];
+  ctaLabel: string;
+  ctaHref: string;
+  featured?: boolean;
+  class?: string;
+}
+
+const {
+  name,
+  price,
+  unit,
+  blurb,
+  features,
+  ctaLabel,
+  ctaHref,
+  featured = false,
+  class: className,
+} = Astro.props;
+---
+
+<article
+  class:list={[
+    'relative flex h-full flex-col rounded-2xl border p-6 sm:p-7 transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-1 hover:shadow-lg',
+    featured
+      ? 'tier-featured border-accent/30 bg-surface shadow-md'
+      : 'border-line bg-surface shadow-sm hover:border-line-strong',
+    className,
+  ]}
+  data-featured={featured ? 'true' : undefined}
+>
+  {featured && (
+    <Badge variant="solid" class="absolute -top-3.5 left-1/2 -translate-x-1/2 shadow-sm">
+      Most popular
+    </Badge>
+  )}
+
+  <h3 class="font-display text-display-sm text-ink">{name}</h3>
+  <p class="mt-2.5 text-sm leading-relaxed text-ink-2 text-pretty">{blurb}</p>
+
+  <p class="mt-6 flex items-baseline gap-2">
+    <span class="font-mono text-[2rem] leading-none font-semibold tracking-tight text-ink tabular-nums">
+      {price}
+    </span>
+    {unit && <span class="text-xs text-ink-3">{unit}</span>}
+  </p>
+
+  <ul class="mt-7 flex flex-1 flex-col gap-2.5 border-t border-line pt-6">
+    {features.map((feature) => (
+      <li class="flex items-start gap-2.5 text-sm text-ink-2">
+        <Icon name="check" size={15} class="mt-0.5 shrink-0 text-accent" strokeWidth={2.4} />
+        <span class="text-pretty">{feature}</span>
+      </li>
+    ))}
+  </ul>
+
+  <Button
+    href={ctaHref}
+    variant={featured ? 'primary' : 'secondary'}
+    class="mt-8 w-full"
+    icon="arrow-right"
+  >
+    {ctaLabel}
+  </Button>
+</article>
+
+<style>
+  /* Ember hairline crowning the featured tier. */
+  article[data-featured='true']::before {
+    content: '';
+    position: absolute;
+    inset-inline: 2.5rem;
+    top: 0;
+    height: 2px;
+    border-radius: 999px;
+    background-image: var(--gradient-ember);
+  }
+</style>

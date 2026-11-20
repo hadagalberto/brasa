@@ -1,0 +1,79 @@
+---
+/**
+ * FAQ accordion — native <details>/<summary>, zero JS for toggling.
+ *
+ * Height animation uses the modern `::details-content` transition with
+ * `interpolate-size: allow-keywords`. In browsers without support the panels
+ * simply open instantly — the content is always fully accessible either way.
+ */
+import Icon from './Icon.astro';
+
+export interface QA {
+  q: string;
+  a: string;
+}
+
+interface Props {
+  items: QA[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<div class:list={['divide-y divide-line rounded-2xl border border-line bg-surface', className]}>
+  {items.map((item, index) => (
+    <details class="faq-item group">
+      <summary class="flex cursor-pointer list-none items-baseline gap-4 px-6 py-5 transition-colors duration-(--dur-1) hover:bg-surface-2/60 sm:px-7 [&::-webkit-details-marker]:hidden">
+        <span class="font-mono text-xs font-medium text-accent">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <span class="flex-1 text-[0.9375rem] font-medium text-ink text-pretty">{item.q}</span>
+        <span class="faq-icon mt-0.5 inline-flex shrink-0 self-start justify-self-end text-ink-3 transition-transform duration-(--dur-2) ease-(--ease-out-soft)">
+          <Icon name="chevron-down" size={17} />
+        </span>
+      </summary>
+      <div class="faq-body px-6 pb-6 sm:px-7 sm:pl-[4.25rem]">
+        <p class="max-w-[62ch] text-sm leading-relaxed text-ink-2 text-pretty">{item.a}</p>
+      </div>
+    </details>
+  ))}
+</div>
+
+<style>
+  // The open attribute only appears at runtime — the lint rule cannot see it.
+  // eslint-disable-next-line astro/no-unused-css-selector
+  details[open] > summary .faq-icon {
+    transform: rotate(180deg);
+  }
+
+  // eslint-disable-next-line astro/no-unused-css-selector
+  details[open] > summary {
+    color: var(--ink);
+  }
+
+  @supports (interpolate-size: allow-keywords) {
+    details {
+      interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 300ms var(--ease-out-soft),
+        content-visibility 300ms allow-discrete;
+    }
+
+    // eslint-disable-next-line astro/no-unused-css-selector
+    details[open]::details-content {
+      block-size: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    details::details-content {
+      transition-duration: 0s;
+    }
+  }
+</style>
