@@ -152,6 +152,7 @@ test('the Open Graph image renders the brand palette', async ({ page }) => {
 test('the 404 page is branded and served with status 404', async ({ page }) => {
   const response = await page.goto('/this-route-burnt-out');
   expect(response?.status()).toBe(404);
-  await expect(page.locator('h1')).toContainText('burnt out');
+  await expect(page.locator('[data-locale="en"] h1')).toHaveText('Page not found');
+  await expect(page.getByText('burnt out')).toBeVisible();
   await expect(page.locator('main a[href="/"]')).toBeVisible();
 });

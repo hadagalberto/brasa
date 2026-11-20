@@ -1,0 +1,21 @@
+{
+  "version": "2.4.0",
+  "date": "2026-11-18",
+  "title": "Previews that remember where you were",
+  "summary": "Comment threads now follow the reviewer back to the exact component and scroll position, even after a rebuild.",
+  "groups": [
+    {
+      "title": "Added",
+      "items": [
+        "Comment anchors survive a rebuild",
+        "Per-branch links copy the current viewport",
+        "Portuguese (Brazil) interface and content"
+      ]
+    },
+    {
+      "title": "Changed",
+      "items": ["Preview cards show build provenance", "Cache keys now include framework version"]
+    }
+  ],
+  "lang": "en"
+}

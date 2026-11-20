@@ -6,17 +6,23 @@ import Icon from '../Icon.astro';
 import TagPill from './TagPill.astro';
 import { postHref } from '../../lib/posts';
 import type { Post } from '../../lib/posts';
+import { ui, type Locale } from '../../i18n';
 
 interface Props {
   prev: Post | null;
   next: Post | null;
+  lang?: Locale;
 }
 
-const { prev, next } = Astro.props;
+const { prev, next, lang = prev?.data.lang ?? next?.data.lang ?? 'en' } = Astro.props;
+const strings = ui(lang).blog;
 ---
 
 {(prev || next) && (
-  <nav aria-label="Post navigation" class="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <nav
+    aria-label={lang === 'pt-br' ? 'Navegação entre artigos' : 'Post navigation'}
+    class="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2"
+  >
     {prev && (
       <a
         href={postHref(prev)}
@@ -25,7 +31,7 @@ const { prev, next } = Astro.props;
       >
         <span class="inline-flex items-center gap-1.5 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
           <Icon name="chevron-left" size={14} />
-          Older
+          {strings.prev}
         </span>
         <span class="font-display text-lg leading-snug text-ink text-balance transition-colors duration-(--dur-1) group-hover:text-accent">
           {prev.data.title}
@@ -44,7 +50,7 @@ const { prev, next } = Astro.props;
         class="group flex flex-col items-end gap-3 rounded-2xl border border-line bg-surface p-6 text-right shadow-sm transition-all duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md sm:col-start-2"
       >
         <span class="inline-flex items-center gap-1.5 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
-          Newer
+          {strings.next}
           <Icon name="chevron-right" size={14} />
         </span>
         <span class="font-display text-lg leading-snug text-ink text-balance transition-colors duration-(--dur-1) group-hover:text-accent">

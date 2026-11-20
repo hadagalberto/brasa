@@ -15,6 +15,11 @@ const ecThemes = brasaEcThemes(brasa.colors.accentHue);
 export default defineConfig({
   site: SITE_URL,
   base: BASE_PATH,
+  i18n: {
+    defaultLocale: brasa.locales.default,
+    locales: brasa.locales.available.map((entry) => entry.code),
+    routing: { prefixDefaultLocale: false, redirectToDefaultLocale: false },
+  },
   integrations: [
     expressiveCode({
       // Named "dark"/"light" so the default themeCssSelector

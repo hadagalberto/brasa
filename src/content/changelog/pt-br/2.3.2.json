@@ -1,0 +1,20 @@
+{
+  "version": "2.3.2",
+  "date": "2026-10-29",
+  "title": "Um cold start mais rápido",
+  "summary": "A restauração de dependências passou a usar o cache compartilhado por conteúdo. Builds do zero caíram quase um terço.",
+  "groups": [
+    {
+      "title": "Corrigido",
+      "items": [
+        "Builds do zero reaproveitavam menos camadas em cache",
+        "Monorepos grandes atingiam timeout na primeira execução"
+      ]
+    },
+    {
+      "title": "Alterado",
+      "items": ["Logs de build chegam com lotes mais compactos"]
+    }
+  ],
+  "lang": "pt-br"
+}

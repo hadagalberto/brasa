@@ -7,12 +7,14 @@
  * illustrates the copy next to it rather than carrying information itself.
  */
 import Icon from './Icon.astro';
+import { normalizeLocale, ui } from '../i18n';
 
 interface Props {
   class?: string;
 }
 
 const { class: className } = Astro.props;
+const d = ui(normalizeLocale(Astro.currentLocale)).dashboard;
 
 const stages = [
   { label: 'install', time: '0.8s', done: true },
@@ -22,11 +24,11 @@ const stages = [
 ] as const;
 
 const logs = [
-  { time: '12:04:18', level: 'ok', body: 'deps restored from cache · 214 packages' },
-  { time: '12:04:19', level: 'info', body: 'building 214 routes on 4 runners' },
-  { time: '12:04:21', level: 'ok', body: 'route data prefetched · gru, iad, fra' },
-  { time: '12:04:22', level: 'info', body: 'smoke tests passing — 18/18' },
-  { time: '12:04:24', level: 'live', body: 'published · preview-8f2k.brasa.cloud' },
+  { time: '12:04:18', level: 'ok', body: d.logs[0] },
+  { time: '12:04:19', level: 'info', body: d.logs[1] },
+  { time: '12:04:21', level: 'ok', body: d.logs[2] },
+  { time: '12:04:22', level: 'info', body: d.logs[3] },
+  { time: '12:04:24', level: 'live', body: d.logs[4] },
 ] as const;
 ---
 
@@ -46,7 +48,7 @@ const logs = [
       </span>
       <span class="live-pill inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/25 bg-accent-soft px-2.5 py-1 font-mono text-[10px] font-medium tracking-[0.1em] text-accent uppercase">
         <span class="live-dot"></span>
-        live
+        {d.live}
       </span>
     </div>
 
@@ -58,7 +60,7 @@ const logs = [
           feat/ember-glow
         </span>
       </span>
-      <span class="shrink-0 font-mono text-[10px] text-ink-3">push · 2m ago · 8f2k41</span>
+      <span class="shrink-0 font-mono text-[10px] text-ink-3">{d.ago('2m')}</span>
     </div>
 
     <div class="grid grid-cols-4 divide-x divide-line border-b border-line px-4 py-3">
@@ -114,13 +116,13 @@ const logs = [
       <p class="log-line flex items-baseline gap-2" style="--i: 5">
         <span class="shrink-0 text-ink-3">12:04:25</span>
         <span class="mock-cursor shrink-0" aria-hidden="true"></span>
-        <span class="text-ink-3">waiting for new pushes</span>
+        <span class="text-ink-3">{d.waiting}</span>
       </p>
     </div>
 
     <div class="flex items-center justify-between border-t border-line bg-surface-2/50 px-4 py-2.5 font-mono text-[10px] text-ink-3">
       <span>build 6.2s</span>
-      <span class="text-accent">cache hit 97%</span>
+      <span class="text-accent">{d.cache}</span>
       <span>gru · iad · fra</span>
     </div>
   </div>

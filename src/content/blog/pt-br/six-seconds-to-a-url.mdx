@@ -1,0 +1,145 @@
+---
+title: Seis segundos até uma URL — o que cortamos para chegar lá
+description: 'Uma dissecção de performance do pipeline de preview da Brasa Cloud com build aquecido: cache por conteúdo, três camadas de cache e as duas coisas que nos recusamos a fingir.'
+author: tomas-ferreira
+tags:
+  - performance
+  - previews de implantação
+pubDate: 2026-10-21
+lang: 'pt-br'
+---
+
+import { Callout, CodeTabs, FileTree } from '../../../components/mdx';
+
+Seis segundos não é um número heroico. É o build aquecido de um site Astro de porte médio em um runner compartilhado: dependências resolvidas, páginas renderizadas, artefatos enviados, URL no ar. O heroico é quão pouco desses seis segundos é nosso — 4,1 segundos do total são custo fixo da plataforma, e a engenharia interessante foi nos recusarmos a inflar os dois restantes.
+
+Este post é a dissecção: para onde foram os segundos, quais cortes importaram e quais "otimizações" foram teatro.
+
+## Meça o pipeline que você realmente executa
+
+O primeiro gráfico que desenhamos foi o entediante — mediana e p95 por etapa, ao longo de uma semana de builds reais:
+
+| Etapa                          | Mediana | p95  | Custo fixo?  |
+| ------------------------------ | ------- | ---- | ------------ |
+| Boot do runner + checkout      | 3,6s    | 5,1s | Sim          |
+| Instalar dependências          | 0,8s    | 1,4s | Cacheável    |
+| Build (renderizar páginas)     | 1,2s    | 2,0s | Cacheável    |
+| Envio + implantação            | 0,4s    | 0,7s | Custo fixo   |
+
+Dois fatos saltaram imediatamente. O boot do runner é um terço do orçamento e intocável por nós. E a gordura do p95 de "build" não eram páginas lentas — eram falhas de cache cascateando em caminhos frios. Toda otimização a seguir é, na verdade, sobre um número: a taxa de acerto do cache, que hoje mantemos acima de 94% em branches próximos à principal.
+
+<Callout variant="warning" title="Cuidado com o build de benchmark">
+  Todo benchmark de cache é uma história sobre o que ele aquece. Manchetes de "build frio em 40s"
+  vendem runners; a métrica honesta é o build que uma pessoa revisora realmente dispara — um branch
+  dois commits atrás da principal, com um arquivo alterado. É deste build que este post fala.
+</Callout>
+
+## Três camadas de cache, uma chave
+
+Tudo o que é interessante tem a mesma chave, baseada no **conteúdo, não na identidade** — o hash do que entra _determina_ o que sai, nunca carimbos de data nem nomes de branch.
+
+<CodeTabs
+  label="Exemplos de configuração de cache"
+  tabs={[
+    {
+      id: 'cli',
+      label: 'CLI',
+      icon: 'terminal',
+      lang: 'bash',
+      title: 'terminal',
+      code: [
+        '# warm the shared cache from main, then build the branch',
+        'brasa cache warm --base main',
+        'brasa build --json | jq "{pages, ms, hitRate}"',
+        '',
+        '# {"pages":412,"ms":1210,"hitRate":0.94}',
+      ].join('\n'),
+    },
+    {
+      id: 'config',
+      label: 'Config',
+      icon: 'sliders',
+      lang: 'ts',
+      title: 'brasa.config.ts',
+      code: [
+        "import { defineConfig } from 'brasa-cloud';",
+        '',
+        'export default defineConfig({',
+        "  project: 'brasa/site',",
+        '  cache: {',
+        "    strategy: 'content-addressed',",
+        '    layers: [',
+        "      'node-modules',   // lockfile hash -> installed tree",
+        "      'render-output',  // (input file hashes + component code) -> HTML",
+        "      'assets',         // image content hash -> optimized derivatives",
+        '    ],',
+        '  },',
+        '});',
+      ].join('\n'),
+    },
+    {
+      id: 'api',
+      label: 'API',
+      icon: 'code',
+      lang: 'bash',
+      title: 'api.brasa.cloud',
+      code: [
+        'curl -s https://api.brasa.cloud/v1/builds/8f2k/cache \\',
+        '  -H "Authorization: Bearer $BRASA_TOKEN"',
+        '',
+        '# {"layer":"render-output","hitRate":0.94,"entries":38841,',
+        '#  "savedMs":52110,"bytesServed":"4.1 GiB"}',
+      ].join('\n'),
+    },
+  ]}
+/>
+
+As camadas, na ordem em que um build as consulta:
+
+1. **Dependências.** O hash do lockfile é a chave; o valor é a árvore instalada. Não resolvemos de novo o que o lockfile já decidiu.
+2. **Saída de renderização.** A chave de uma página é o hash de suas entradas: arquivo de conteúdo, componentes usados, layout, configuração. Mesmas entradas, mesmo HTML — então uma edição na documentação nunca re-renderiza a página de preços.
+3. **Assets.** O hash de conteúdo da imagem de origem, do qual todo derivado otimizado é gerado. Rebuilds não derivam nada de novo.
+
+A sutileza está na camada 2. Fazer hash de _todas_ as entradas de forma ingênua re-renderiza o site inteiro a qualquer mudança de layout compartilhado, exatamente a queda abrupta para build frio que estávamos evitando. A correção é entediante e essencial: fazer hash do **grafo de imports por página**, não do repositório. Quando alguém edita um post do blog, o grafo que diz "a página inicial importa os três posts mais recentes" inclui a página inicial — e a re-renderiza, corretamente. As 408 páginas que ele não inclui permanecem em cache.
+
+## As duas coisas que nos recusamos a fingir
+
+Todo pipeline rápido recebe eventualmente uma oferta como estas. Dissemos não duas vezes:
+
+**Sem imagens "douradas" pré-construídas.** Uma imagem especial aquecida para o job de build fazia as demos voarem e a produção se comportar de outro jeito — a propriedade imperdoável para um sistema cuja função é prever a produção.
+
+**Sem pular o envio em builds de mesmo conteúdo.** Verificar que o artefato corresponde ao alvo da implantação significa enviar um manifesto, sempre. Isso custa 0,4 segundo e compra implantações idempotentes — a propriedade que torna retentativas seguras e incidentes às 3 da manhã curtos.
+
+## Para onde vai o tempo restante
+
+A contabilidade honesta do nosso build de 1,2 segundo:
+
+- **0,7s** — renderizando os ~6% das páginas cujas entradas realmente mudaram
+- **0,3s** — hash das entradas (barato, passada única, em fluxo)
+- **0,2s** — verificação do manifesto de cache
+
+Hash consumindo 25% do orçamento levanta sobrancelha, então medimos a alternativa. Uma checagem com filtro de Bloom de "provavelmente inalterado" economizou 0,1s e nos custou uma semana depurando um rebuild errado em outubro. Determinístico e um pouco mais lento vence probabilístico e ocasionalmente errado, sempre, em um sistema de build.
+
+<Callout variant="note">
+  A disposição do repositório que deixa tudo isso limpo vale copiar — as chaves de cache ficam ao
+  lado do código que descrevem, de modo que um refactor ou preserva o grafo ou o muda
+  conscientemente:
+</Callout>
+
+<FileTree
+  label="Configuração de cache do pipeline"
+  tree={[
+    { name: 'brasa.config.ts', note: 'estratégia + camadas de cache', highlight: true },
+    { name: 'scripts/', children: [{ name: 'cache-keys.mjs', note: 'hash do grafo de imports' }] },
+    {
+      name: 'src/',
+      children: [
+        { name: 'content/', children: [{ name: 'blog/' }, { name: 'docs/' }] },
+        { name: 'components/' },
+        { name: 'layouts/' },
+      ],
+    },
+  ]}
+/>
+
+Seis segundos vão ficar mais lentos conforme o site cresce, e tudo bem — o número a defender não é o dos segundos, é a taxa de acerto. Segundos são o que uma taxa de acerto de 94% _parece_. Quem revisa não sente o seu cache; sente a URL chegando antes de trocar de aba.

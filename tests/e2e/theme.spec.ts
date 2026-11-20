@@ -40,11 +40,8 @@ test('the toggle persists and survives client-side navigation', async ({ page })
   await expect(page.locator('html')).toHaveAttribute('data-theme', flipped);
 
   // Soft navigation via the header nav (View Transitions keep the theme).
-  await page
-    .getByRole('navigation', { name: 'Main' })
-    .getByRole('link', { name: 'Styleguide' })
-    .click();
-  await expect(page.locator('h1')).toContainText('Every token');
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Docs' }).click();
+  await expect(page.locator('h1')).toContainText('yours');
   expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(flipped);
 
   const stored = await page.evaluate(() => localStorage.getItem('brasa:theme'));

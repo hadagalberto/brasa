@@ -1,0 +1,24 @@
+{
+  "version": "2.4.0",
+  "date": "2026-11-18",
+  "title": "Prévias que lembram onde você estava",
+  "summary": "Threads de comentários agora acompanham quem revisa até o componente e a posição de rolagem exatos, mesmo depois de uma recompilação.",
+  "groups": [
+    {
+      "title": "Adicionado",
+      "items": [
+        "Âncoras de comentário sobrevivem a recompilações",
+        "Links por branch copiam a viewport atual",
+        "Interface e conteúdo em português (Brasil)"
+      ]
+    },
+    {
+      "title": "Alterado",
+      "items": [
+        "Cartões de prévia mostram a origem do build",
+        "Chaves de cache agora incluem a versão do framework"
+      ]
+    }
+  ],
+  "lang": "pt-br"
+}

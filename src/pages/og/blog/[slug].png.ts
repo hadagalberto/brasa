@@ -1,34 +1,35 @@
 /**
- * Per-post Open Graph images, prerendered at build time:
- * /og/blog/<slug>.png — 1200×630, theme fonts and ember palette via
- * satori + resvg (see src/lib/og.ts). Referenced by each post's <meta og:image>.
+ * Per-post Open Graph images, prerendered at build time. English posts live at
+ * /og/blog/<slug>.png and Portuguese ones at /og/blog/<slug>-pt-br.png.
  */
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 
-import { formatDate, getAuthor } from '../../../lib/posts';
+import { formatDate, getAuthor, postSlug } from '../../../lib/posts';
 import { renderBlogOg } from '../../../lib/og';
+
+const assetSlug = (post: CollectionEntry<'blog'>): string =>
+  `${postSlug(post)}${post.data.lang === 'pt-br' ? '-pt-br' : ''}`;
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
-  return posts.map((post) => ({ params: { slug: post.id } }));
+  return posts.map((post) => ({ params: { slug: assetSlug(post) } }));
 }
 
 export const GET: APIRoute = async ({ params }) => {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
-  const post = posts.find((entry) => entry.id === params.slug);
+  const post = posts.find((entry) => assetSlug(entry) === params.slug);
   if (!post) return new Response('Post not found', { status: 404 });
 
-  const author = await getAuthor(post.data.author);
+  const author = await getAuthor(post.data.author, post.data.lang);
   const png = await renderBlogOg({
     title: post.data.title,
     description: post.data.description,
     tagLabel: post.data.tags[0] ?? 'Notes',
     authorName: author.data.name,
-    dateLabel: formatDate(post.data.pubDate),
+    dateLabel: formatDate(post.data.pubDate, post.data.lang),
   });
 
-  // Buffer<ArrayBufferLike> is not a DOM BodyInit; copy into a plain view.
   return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',

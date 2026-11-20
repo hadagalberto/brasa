@@ -1,0 +1,135 @@
+---
+title: Internacionalização
+description: Configure idiomas, planeje rotas traduzidas e mantenha o hreflang e o seletor de idioma apontando para a mesma página.
+group: Guides
+order: 2
+sidebarLabel: Internacionalização
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Tabs } from '../../../components/mdx';
+
+O Brasa trata o idioma como configuração, não como uma suposição fixa no código. O bloco tipado `locales` lista os idiomas que um deploy suporta; o site de referência traz seu texto em inglês, e a estrutura abaixo mostra como adicionar um segundo idioma sem duplicar o design system.
+
+## A configuração de idiomas
+
+```ts
+// src/brasa.config.ts
+locales: {
+  default: 'en',
+  available: [
+    { code: 'en', label: 'English', lang: 'en' },
+    { code: 'pt-br', label: 'Português (Brasil)', lang: 'pt-BR' },
+  ],
+},
+```
+
+Três campos, três funções:
+
+- `code` — o prefixo da URL (`/pt-br/…`) e o valor armazenado no estado de roteamento.
+- `label` — o que o seletor de idioma exibe. Use o endônimo, não o nome em inglês "Portuguese (Brazil)".
+- `lang` — o valor BCP-47 para `<html lang>` e `hreflang`.
+
+`BaseLayout` lê a entrada padrão para o idioma do documento. Um deploy localizado define isso por rota, a partir do idioma ativo.
+
+<Callout variant="note" title="O que vem pronto hoje">
+O conteúdo de referência — home, blog, documentação, guia de estilos e seus feeds — está escrito em inglês. A entrada `pt-br` está declarada na configuração para que um build localizado tenha um alvo tipado, mas nenhuma rota traduzida é gerada até que você as adicione. As orientações abaixo são o caminho de integração, não a descrição de páginas ocultas.
+</Callout>
+
+## Estrutura de conteúdo sugerida
+
+<FileTree
+  tree={[
+    { name: 'src/i18n/', note: 'adicione para um build localizado', children: [
+      { name: 'en.ts', note: 'dicionário da UI' },
+      { name: 'pt-br.ts', note: 'dicionário da UI' },
+    ] },
+    { name: 'src/content/', children: [
+      { name: 'blog/en/', note: 'posts em inglês' },
+      { name: 'blog/pt-br/', note: 'posts traduzidos' },
+      { name: 'docs/pt-br/', note: 'manual traduzido' },
+    ] },
+    { name: 'src/pages/', children: [
+      { name: 'index.astro', note: 'idioma padrão' },
+      { name: 'pt-br/index.astro', note: 'rota com prefixo' },
+    ] },
+  ]}
+/>
+
+Mantenha um dicionário por idioma com as mesmas chaves. Tipte o segundo a partir do dicionário em inglês para que uma tradução faltante seja um erro de compilação:
+
+```ts
+// src/i18n/index.ts
+import en from './en';
+import ptBr from './pt-br';
+
+export const dictionaries = { en, 'pt-br': ptBr } as const;
+export type Locale = keyof typeof dictionaries;
+export const ui = (locale: Locale) => dictionaries[locale];
+```
+
+As strings que pertencem à interface — "Nesta página", "Editar esta página", "Comece a digitar para buscar", rótulos de formulário — vêm deste dicionário. O texto corrido fica nas content collections, onde os tradutores podem trabalhar sem tocar nos componentes.
+
+## Roteamento
+
+O roteamento i18n nativo do Astro cuida da detecção do prefixo e da reescrita do idioma padrão:
+
+<Tabs
+  label="Configuração de i18n no Astro"
+  tabs={[
+    { id: 'config', label: 'astro.config.ts' },
+    { id: 'switch', label: 'Seletor' },
+  ]}
+>
+  <Fragment slot="config">
+    ```ts
+    export default defineConfig({
+      i18n: {
+        defaultLocale: 'en',
+        locales: ['en', 'pt-br'],
+        routing: { prefixDefaultLocale: false },
+      },
+    });
+    ```
+    Com `prefixDefaultLocale: false`, o inglês fica em `/docs/installation` e o português em `/pt-br/docs/installation`. Defina como `true` se preferir `/en/…` para ambos.
+  </Fragment>
+  <Fragment slot="switch">
+    ```astro
+    ---
+    import { AstroError } from 'astro/errors';
+    const current = Astro.currentLocale ?? 'en';
+    const path = Astro.url.pathname.replace(/^\/pt-br(?=\/|$)/, '');
+    const alternate = current === 'en' ? `/pt-br${path}` : path || '/';
+    ---
+
+    <a href={alternate} hreflang="pt-BR" lang="pt-BR">Português (Brasil)</a>
+    ```
+    Remova apenas o prefixo do *outro* idioma e mantenha o restante do caminho. É isso que faz o seletor manter a página atual em vez de jogar o leitor na página inicial.
+  </Fragment>
+</Tabs>
+
+## Tags do head
+
+Para cada página traduzida, emita alternâncias recíprocas além da URL canônica. `SEO.astro` já escreve `<link rel="canonical">` e `og:locale`; estenda-o com as alternâncias de idioma:
+
+```html
+<link rel="alternate" hreflang="en" href="https://brasa.example.com/docs/installation" />
+<link rel="alternate" hreflang="pt-BR" href="https://brasa.example.com/pt-br/docs/installation" />
+<link rel="alternate" hreflang="x-default" href="https://brasa.example.com/docs/installation" />
+```
+
+URLs absolutas importam aqui. Monte-as a partir de `Astro.site`, nunca de `window.location` — não existe window no momento do build.
+
+<Callout variant="warning" title="Busca e feeds também precisam de idioma">
+O Pagefind indexa tudo o que estiver em `dist`, então um build traduzido vai misturar idiomas a menos que você os indexe separadamente (`--site dist/pt-br`) ou faça a filtragem por um campo `lang`. Os geradores de feeds RSS e JSON devem ler o mesmo subconjunto da collection exibido no arquivo; do contrário, o feed anuncia posts sem rota.
+</Callout>
+
+## Checklist
+
+1. Adicione dicionários com chaves idênticas e type o segundo a partir do primeiro.
+2. Configure `i18n` em `astro.config.ts` usando os valores de `code` de `brasa.config.ts`.
+3. Passe as strings de navegação, rodapé e SEO por `ui(locale)`.
+4. Crie rotas com prefixo e entradas traduzidas nas collections.
+5. Emita alternâncias hreflang recíprocas e mantenha o seletor na página atual.
+6. Execute `npm run build` e confirme que ambos os idiomas aparecem em `dist/`, depois rode novamente a suíte axe — strings traduzidas mudam o comprimento do texto e podem expor estouros.

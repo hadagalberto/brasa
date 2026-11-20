@@ -1,0 +1,20 @@
+{
+  "version": "2.2.1",
+  "date": "2026-09-15",
+  "title": "Reversões em que dá para confiar",
+  "summary": "Todo deploy agora é um snapshot com nome, autor e restauração em um clique.",
+  "groups": [
+    {
+      "title": "Adicionado",
+      "items": [
+        "Snapshots nomeados para deploys de produção",
+        "Restaure direto da lista de deploys"
+      ]
+    },
+    {
+      "title": "Corrigido",
+      "items": ["Prévias restauradas mantinham a chave de cache antiga"]
+    }
+  ],
+  "lang": "pt-br"
+}

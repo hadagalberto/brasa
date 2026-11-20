@@ -1,0 +1,87 @@
+---
+title: OKLCH, ou como parei de adivinhar cores
+description: Migramos toda a paleta da Brasa para tokens OKLCH e as reuniões de design mudaram de forma. Um relato de campo sobre espaços de cor perceptuais, acentos relativos ao matiz e por que os códigos hex escondem as decisões que realmente importam.
+author: sofia-marques
+tags:
+  - design systems
+pubDate: 2026-08-18
+lang: 'pt-br'
+---
+
+import { Callout, FileTree } from '../../../components/mdx';
+
+As cores mais caras de qualquer base de código são as que ninguém escolheu. Chegam como valores hex copiados de uma apresentação de três reformulações de marca atrás, acumulam um `!important` por vez e se defendem pela pura dificuldade de saber o que _fazem_. Nosso design system havia acumulado uma centena delas. Esta é a história de trocá-las por onze números e um espaço de cor que diz a verdade.
+
+## Por que códigos hex mentem
+
+Hex é um formato de arquivamento para monitores, não uma descrição de cor. A mentira aparece com mais clareza nos cinzas de uma paleta:
+
+| Token     | Hex     | Luminosidade perceptual         |
+| --------- | ------- | ------------------------------- |
+| gray-100  | #f5f5f5 | muito claro, neutro             |
+| amber-100 | #fef3c7 | luminosidade _semelhante_, quente |
+| brand-50  | #fff7ed | parecida de novo, ainda mais quente |
+
+Três cores "claras", três sensações diferentes — e, em hex, o motivo é invisível. OKLCH coloca a resposta na string: `oklch(0.98 0.01 80)` _lê-se_ como "98% de luz, quase sem cor, matiz amarelo quente". Luminosidade, croma e matiz — os três eixos que um designer realmente decide — tornam-se os três números no arquivo.
+
+A diferença prática não é estética, é de _raciocínio_. Quando surge uma questão de contraste, "esta superfície tem L 0.98 e a tinta tem L 0.23" a resolve em um passo. Em hex, a mesma pergunta significa abrir uma calculadora e torcer para o resultado sobreviver ao próximo tema.
+
+## Os onze números
+
+Todo o tema escuro da Brasa são onze decisões perceptuais — o resto é derivado:
+
+```css
+:root {
+  --canvas: oklch(0.16 0.012 40); /* near-black, warm */
+  --surface: oklch(0.19 0.014 42); /* layered by lightness */
+  --ink: oklch(0.94 0.008 85); /* warm white, never #fff */
+  --accent-hue: 35; /* the one that re-themes everything */
+}
+```
+
+Repare no que _não_ está ali: nenhum código hex e um único matiz para governar todos. Cada tom de brasa é calculado em relação a `--accent-hue` — 35 para o vermelho-alaranjado profundo que a marca usa — e uma única edição produz um dourado quente coerente ou um verde-brasa frio sem tocar em mais nada:
+
+<FileTree
+  label="Arquivos de token (dark-first, fonte única de verdade)"
+  tree={[
+    {
+      name: 'src/',
+      children: [
+        {
+          name: 'styles/',
+          children: [{ name: 'global.css', note: 'tokens ficam aqui', highlight: true }],
+        },
+        { name: 'brasa.config.ts', note: 'accentHue: 35', highlight: true },
+        { name: 'lib/', children: [{ name: 'color.ts', note: 'cálculo OKLCH para JS' }] },
+      ],
+    },
+  ]}
+/>
+
+O lado JS espelha exatamente os números do CSS — um módulo faz a conversão OKLCH→sRGB para que os temas de bloco de código e as imagens OG geradas no build derivem das mesmas onze decisões, e não de aproximações escolhidas à mão.
+
+<Callout variant="tip" title="Roube esta regra">
+  Um matiz, muitas luminosidades. Quando todos os acentos do sistema compartilham um matiz e variam
+  apenas em L e C, "isso combina?" deixa de ser uma reunião — a resposta é sim, e a única pergunta
+  restante é o *destaque*, que a luminosidade responde em voz alta.
+</Callout>
+
+## O que mudou na prática com OKLCH
+
+Três reuniões mudaram de forma:
+
+**As revisões de contraste viraram aritmética.** As razões de contraste WCAG precisam de luminância relativa, e o componente de luminosidade do OKLCH mapeia para ela de modo direto o bastante para uma checagem de olho. "Texto de corpo no tema escuro" deixou de ser um exercício de amostragem e virou "tinta em L 0.94 sobre canvas em L 0.16 — AAA tranquilamente".
+
+**As variantes de tema viraram um diff, não um projeto.** O modo claro são os mesmos onze números reajustados: canvas subindo para L 0.98 com o matiz mantido quente, tinta descendo para L 0.23, acento _dessaturado e escurecido_ para manter contraste no papel. Doze linhas de CSS, não uma segunda paleta para defender.
+
+**O acento virou um recurso de produto.** Como a escala é relativa ao matiz, "reformular o site com a cor da sua marca" é um valor de configuração. Testamos definindo matizes que nunca lançaríamos — 130 gera um verde-sálvia coerente, 260 um violeta estranho — e, toda vez, _tudo_ acompanha: botões, blocos de código, anéis de foco, as imagens OG. Coerência não é talento; é estrutura.
+
+## As ressalvas honestas
+
+OKLCH não é mágica, e duas limitações nos mantêm humildes:
+
+Primeiro, **o croma não tem limite na notação**, mas é limitado pela gama do seu monitor — `oklch(0.7 0.4 35)` descreve uma cor que a maioria das telas não consegue mostrar, e os navegadores a comprimem silenciosamente para o valor representável mais próximo. Mantenha o croma abaixo de ~0.21 em acentos quentes e as compressões ficam invisíveis.
+
+Segundo, **"perceptualmente uniforme" é relativo ao monitor.** OKLCH é uniforme no modelo Oklab, não em nenhum painel específico. É dramaticamente melhor que hex para raciocínio, e ainda assim não substitui uma checagem de contraste antes de publicar texto de corpo. Mantemos os dois: o espaço para o gosto, a calculadora para o piso.
+
+A mudança mais profunda, porém, nunca foi o espaço de cor. Foi a paleta ter se tornado _legível_. Uma pessoa nova na equipe consegue ler onze decisões numeradas e entender toda a temperatura visual do produto — e, quando alguém pede "um modo escuro um pouco mais quente", a resposta agora é um número, não um projeto de arqueologia.

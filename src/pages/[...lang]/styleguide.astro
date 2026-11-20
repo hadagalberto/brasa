@@ -1,0 +1,739 @@
+---
+import { Code } from 'astro-expressive-code/components';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Badge from '../../components/Badge.astro';
+import Button from '../../components/Button.astro';
+import Card from '../../components/Card.astro';
+import Container from '../../components/Container.astro';
+import Heading from '../../components/Heading.astro';
+import Icon from '../../components/Icon.astro';
+import type { IconName } from '../../components/Icon.astro';
+import Prose from '../../components/Prose.astro';
+import Section from '../../components/Section.astro';
+import SpotlightCard from '../../components/SpotlightCard.astro';
+import { normalizeLocale, ui } from '../../i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const s = t.styleguide;
+
+/* ------------------------------ Token data ------------------------------ */
+
+const semanticTokens: { name: string; css: string }[] = [
+  { name: 'canvas', css: '--canvas' },
+  { name: 'canvas-deep', css: '--canvas-deep' },
+  { name: 'surface', css: '--surface' },
+  { name: 'surface-2', css: '--surface-2' },
+  { name: 'surface-3', css: '--surface-3' },
+  { name: 'ink', css: '--ink' },
+  { name: 'ink-2', css: '--ink-2' },
+  { name: 'ink-3', css: '--ink-3' },
+  { name: 'line', css: '--line' },
+  { name: 'line-strong', css: '--line-strong' },
+  { name: 'accent', css: '--accent' },
+  { name: 'accent-2', css: '--accent-2' },
+  { name: 'on-accent', css: '--on-accent' },
+];
+
+const emberSteps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+
+const typeScale: { name: string; classes: string; sample: string }[] = [
+  {
+    name: 'hero',
+    classes: 'font-sans font-semibold text-hero',
+    sample: s.typeScale.hero,
+  },
+  {
+    name: 'display-2xl',
+    classes: 'font-display text-display-2xl',
+    sample: s.typeScale.display,
+  },
+  {
+    name: 'display-xl',
+    classes: 'font-display text-display-xl',
+    sample: s.typeScale.display,
+  },
+  {
+    name: 'display-lg',
+    classes: 'font-display text-display-lg',
+    sample: s.typeScale.display,
+  },
+  {
+    name: 'display-md',
+    classes: 'font-display text-display-md',
+    sample: s.typeScale.display,
+  },
+  {
+    name: 'display-sm',
+    classes: 'font-display text-display-sm',
+    sample: s.typeScale.display,
+  },
+  {
+    name: 'body-lg',
+    classes: 'text-body-lg',
+    sample: s.typeScale.bodyLg,
+  },
+  {
+    name: 'body',
+    classes: 'text-base',
+    sample: s.typeScale.body,
+  },
+  {
+    name: 'mono',
+    classes: 'font-mono text-sm',
+    sample: s.typeScale.mono,
+  },
+];
+
+const spacingSteps: { label: string; classes: string }[] = [
+  { label: '0.5rem', classes: 'w-2' },
+  { label: '1rem', classes: 'w-4' },
+  { label: '1.5rem', classes: 'w-6' },
+  { label: '2rem', classes: 'w-8' },
+  { label: '3rem', classes: 'w-12' },
+  { label: '4rem', classes: 'w-16' },
+  { label: '6rem', classes: 'w-24' },
+];
+
+const radii: { name: string; classes: string }[] = [
+  { name: 'xs', classes: 'rounded-xs' },
+  { name: 'sm', classes: 'rounded-sm' },
+  { name: 'md', classes: 'rounded-md' },
+  { name: 'lg', classes: 'rounded-lg' },
+  { name: 'xl', classes: 'rounded-xl' },
+  { name: '2xl', classes: 'rounded-2xl' },
+  { name: '3xl', classes: 'rounded-3xl' },
+];
+
+const shadows: { name: string; classes: string }[] = [
+  { name: 'shadow-sm', classes: 'shadow-sm' },
+  { name: 'shadow-md', classes: 'shadow-md' },
+  { name: 'shadow-lg', classes: 'shadow-lg' },
+  { name: 'shadow-glow', classes: 'shadow-glow' },
+];
+
+const iconNames: IconName[] = [
+  'flame',
+  'sun',
+  'moon',
+  'menu',
+  'close',
+  'arrow-right',
+  'arrow-up-right',
+  'chevron-down',
+  'chevron-right',
+  'check',
+  'search',
+  'terminal',
+  'code',
+  'book',
+  'copy',
+  'mail',
+  'rss',
+  'heart',
+  'sparkles',
+  'bolt',
+  'git-branch',
+  'lock',
+  'shield',
+  'message',
+  'bell',
+  'rotate-ccw',
+  'link',
+  'chart',
+  'sliders',
+  'globe',
+  'users',
+  'github',
+  'x',
+  'discord',
+];
+
+const configSnippet = `// One number re-themes the whole site.
+export const brasa = {
+  colors: {
+    accentHue: 35, // deep red-orange → amber
+  },
+  fonts: {
+    display: 'Fraunces Variable',
+    sans: 'Geist Variable',
+    mono: 'Geist Mono Variable',
+  },
+} satisfies BrasaConfig;`;
+---
+
+<BaseLayout title={s.title} description={s.description} {lang}>
+  <Section id="intro" class="pt-24">
+    <Container size="md">
+      <div class="reveal">
+        <Heading eyebrow={s.intro.eyebrow} as="h1" title={s.intro.title} lede={s.intro.lede} />
+      </div>
+
+      <Card class="mt-10 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <label
+            for="hue-slider"
+            class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase"
+          >
+            {s.intro.hueLabel}
+          </label>
+          <p class="mt-2 max-w-md text-sm text-ink-2 text-pretty">
+            {s.intro.hueBodyBefore}{' '}
+            <code class="font-mono text-accent">brasa.config.ts → colors.accentHue</code>{' '}
+            {s.intro.hueBodyAfter}
+          </p>
+        </div>
+        <div class="flex shrink-0 items-center gap-4">
+          <input
+            id="hue-slider"
+            data-hue-slider
+            type="range"
+            min="0"
+            max="360"
+            step="1"
+            value="35"
+            class="h-9 w-44 cursor-pointer accent-(--accent)"
+          />
+          <output data-hue-value class="w-12 text-right font-mono text-sm text-accent">
+            35
+          </output>
+        </div>
+      </Card>
+    </Container>
+  </Section>
+
+  <Section id="color" tone="surface">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.color.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.color.title}
+          lede={s.color.lede}
+        />
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {(['dark', 'light'] as const).map((theme) => (
+          <div data-theme={theme} class="rounded-2xl border border-line bg-canvas p-6 shadow-md">
+            <div class="flex items-center justify-between">
+              <Badge variant={theme === 'dark' ? 'ember' : 'outline'}>
+                {theme === 'dark' ? s.color.darkBadge : s.color.lightBadge}
+              </Badge>
+              <span class="font-mono text-xs text-ink-3">[data-theme="{theme}"]</span>
+            </div>
+            <ul class="mt-6 space-y-3">
+              {semanticTokens.map((token) => (
+                <li class="flex items-center gap-4">
+                  <i
+                    class="size-10 shrink-0 rounded-lg border border-line-strong"
+                    style={`background: var(${token.css})`}
+                  />
+                  <span class="w-32 shrink-0 font-mono text-sm text-ink">{token.name}</span>
+                  <code
+                    data-token={token.css}
+                    class="min-w-0 flex-1 truncate font-mono text-xs text-ink-3"
+                  >
+                    —
+                  </code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-10">
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.color.emberScale}
+          </p>
+          <span class="font-mono text-xs text-ink-3">{s.color.sameBothThemes}</span>
+        </div>
+        <div class="mt-4 grid grid-cols-11 gap-1.5 sm:gap-2">
+          {emberSteps.map((step) => (
+            <figure>
+              <div
+                class="aspect-square rounded-md border border-line/60"
+                style={`background: var(--color-ember-${step})`}
+              />
+              <figcaption class="mt-2 text-center font-mono text-[0.65rem] text-ink-3">
+                {step}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        <div
+          class="mt-6 h-16 rounded-xl border border-line shadow-sm"
+          style="background: var(--gradient-ember)"
+          aria-label={s.color.gradientAria}
+          role="img"
+        ></div>
+        <p class="mt-3 font-mono text-xs text-ink-3">
+          --gradient-ember: linear-gradient(100deg, oklch(0.65 0.21 &lt;hue&gt;), oklch(0.82 0.16
+          &lt;hue + 40&gt;))
+        </p>
+      </div>
+    </Container>
+  </Section>
+
+  <Section id="typography">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.typography.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.typography.title}
+          lede={s.typography.lede}
+        />
+      </div>
+
+      <div class="mt-10 space-y-8">
+        {typeScale.map((step) => (
+          <div class="flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:gap-8">
+            <span class="w-28 shrink-0 font-mono text-xs text-ink-3 uppercase">{step.name}</span>
+            <p class:list={['min-w-0 text-ink text-balance', step.classes]}>{step.sample}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card class="p-6">
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.typography.fontPairing}
+          </p>
+          <p class="mt-4 font-sans text-2xl font-semibold tracking-tight text-ink">
+            {s.typography.pairingBefore}{' '}
+            <em class="font-display text-gradient-ember italic">{s.typography.pairingEm}</em>{' '}
+            {s.typography.pairingAfter}
+          </p>
+        </Card>
+        <Card class="p-6">
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.typography.families}
+          </p>
+          <ul class="mt-4 space-y-3 text-ink-2">
+            <li class="font-display text-xl text-ink">{s.typography.familyFraunces}</li>
+            <li class="font-sans text-base">{s.typography.familyGeist}</li>
+            <li class="font-mono text-sm">{s.typography.familyMono}</li>
+          </ul>
+        </Card>
+      </div>
+    </Container>
+  </Section>
+
+  <Section id="space" tone="surface">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.space.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.space.title}
+          lede={s.space.lede}
+        />
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-2">
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.space.spacing}
+          </p>
+          <ul class="mt-6 space-y-3">
+            {spacingSteps.map((step) => (
+              <li class="flex items-center gap-4">
+                <span class="w-16 shrink-0 font-mono text-xs text-ink-3">{step.label}</span>
+                <span class:list={['h-4 rounded-xs bg-ember-gradient opacity-90', step.classes]} />
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.space.radii}
+          </p>
+          <ul class="mt-6 grid grid-cols-4 gap-3">
+            {radii.map((radius) => (
+              <li class="flex flex-col items-center gap-2">
+                <span
+                  class:list={['size-16 border border-line-strong bg-surface-2', radius.classes]}
+                />
+                <span class="font-mono text-[0.65rem] text-ink-3">{radius.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+          {s.space.shadows}
+        </p>
+        <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {shadows.map((shadow) => (
+            <li class:list={['rounded-lg border border-line bg-surface p-6', shadow.classes]}>
+              <p class="font-mono text-sm text-ink-2">{shadow.name}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Container>
+  </Section>
+
+  <Section id="motion">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.motion.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.motion.title}
+          lede={s.motion.lede}
+        />
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-2">
+        <div class="space-y-4">
+          <div class="group flex cursor-pointer items-center gap-4">
+            <span class="w-32 shrink-0 font-mono text-xs text-ink-3">ease-out-soft</span>
+            <span class="flex h-8 flex-1 items-center rounded-full border border-line bg-surface-2 px-1">
+              <span class="size-6 rounded-full bg-ember-gradient transition-transform duration-(--dur-2) ease-(--ease-out-soft) group-hover:translate-x-[calc(100%+7.5rem)]" />
+            </span>
+          </div>
+          <div class="group flex cursor-pointer items-center gap-4">
+            <span class="w-32 shrink-0 font-mono text-xs text-ink-3">ease-in-out-soft</span>
+            <span class="flex h-8 flex-1 items-center rounded-full border border-line bg-surface-2 px-1">
+              <span class="size-6 rounded-full bg-ember-gradient transition-transform duration-(--dur-3) ease-(--ease-in-out-soft) group-hover:translate-x-[calc(100%+7.5rem)]" />
+            </span>
+          </div>
+          <p class="text-xs text-ink-3">{s.motion.durations}</p>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.motion.texture}
+          </p>
+          <p class="mt-3 max-w-md text-sm text-ink-2 text-pretty">{s.motion.textureBody}</p>
+          <div
+            data-glow
+            class="mt-6 grid h-40 place-items-center overflow-hidden rounded-xl border border-line"
+          >
+            <p class="font-display text-display-sm italic text-ink-2">{s.motion.glowHint}</p>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <Section id="a11y" tone="surface">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.a11y.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.a11y.title}
+          lede={s.a11y.lede}
+        />
+      </div>
+      <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card class="p-6">
+          <p class="text-body-lg text-ink-2 text-pretty">{s.a11y.selectionBody}</p>
+        </Card>
+        <Card class="flex items-center gap-3 p-6">
+          <Button size="sm">{s.a11y.tabToMe}</Button>
+          <Button size="sm" variant="secondary">
+            {s.a11y.thenMe}
+          </Button>
+          <Button size="sm" variant="ghost">
+            {s.a11y.andMe}
+          </Button>
+        </Card>
+      </div>
+    </Container>
+  </Section>
+
+  <Section id="components">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={s.components.eyebrow}
+          as="h2"
+          size="display-md"
+          title={s.components.title}
+          lede={s.components.lede}
+        />
+      </div>
+
+      <div class="mt-12 space-y-14">
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.button.label}
+          </p>
+          <div class="mt-5 space-y-5">
+            <div class="flex flex-wrap items-center gap-4">
+              <Button>{s.components.button.primary}</Button>
+              <Button variant="secondary">{s.components.button.secondary}</Button>
+              <Button variant="ghost">{s.components.button.ghost}</Button>
+              <Button variant="link">{s.components.button.link}</Button>
+              <Button disabled>{s.components.button.disabled}</Button>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+              <Button size="sm">{s.components.button.small}</Button>
+              <Button size="md" icon="arrow-right">
+                {s.components.button.medium}
+              </Button>
+              <Button size="lg" iconStart="flame">
+                {s.components.button.large}
+              </Button>
+              <Button href="/styleguide" variant="secondary" icon="arrow-up-right">
+                {s.components.button.asAnchor}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.badge.label}
+          </p>
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <Badge variant="ember">
+              <Icon name="flame" size={12} /> {s.components.badge.ember}
+            </Badge>
+            <Badge variant="solid">{s.components.badge.solid}</Badge>
+            <Badge variant="outline">{s.components.badge.outline}</Badge>
+            <Badge variant="neutral">{s.components.badge.neutral}</Badge>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.card.label}
+          </p>
+          <div class="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <Card class="p-6">
+              <h3 class="font-display text-display-sm text-ink">{s.components.card.staticTitle}</h3>
+              <p class="mt-3 text-sm text-ink-2 text-pretty">{s.components.card.staticBody}</p>
+            </Card>
+            <Card interactive class="p-6">
+              <h3 class="font-display text-display-sm text-ink">
+                {s.components.card.interactiveTitle}
+              </h3>
+              <p class="mt-3 text-sm text-ink-2 text-pretty">{s.components.card.interactiveBody}</p>
+            </Card>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.spotlight.label}
+          </p>
+          <div class="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <SpotlightCard class="p-6">
+              <Icon name="bolt" size={22} class="text-accent" />
+              <h3 class="mt-4 font-display text-display-sm text-ink">
+                {s.components.spotlight.hoverTitle}
+              </h3>
+              <p class="mt-3 text-sm text-ink-2 text-pretty">{s.components.spotlight.hoverBody}</p>
+            </SpotlightCard>
+            <SpotlightCard class="p-6">
+              <Icon name="sun" size={22} class="text-accent" />
+              <h3 class="mt-4 font-display text-display-sm text-ink">
+                {s.components.spotlight.themesTitle}
+              </h3>
+              <p class="mt-3 text-sm text-ink-2 text-pretty">{s.components.spotlight.themesBody}</p>
+            </SpotlightCard>
+            <SpotlightCard class="p-6">
+              <Icon name="heart" size={22} class="text-accent" />
+              <h3 class="mt-4 font-display text-display-sm text-ink">
+                {s.components.spotlight.reducedTitle}
+              </h3>
+              <p class="mt-3 text-sm text-ink-2 text-pretty">
+                {s.components.spotlight.reducedBody}
+              </p>
+            </SpotlightCard>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.heading.label}
+          </p>
+          <div class="mt-5 grid grid-cols-1 gap-6">
+            <Heading
+              eyebrow={s.components.heading.sectionEyebrow}
+              as="h3"
+              size="display-md"
+              title={s.components.heading.sectionTitle}
+              lede={s.components.heading.sectionLede}
+            />
+            <Heading
+              eyebrow={s.components.heading.centeredEyebrow}
+              as="h3"
+              size="display-md"
+              title={s.components.heading.centeredTitle}
+              lede={s.components.heading.centeredLede}
+              align="center"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.icon.label}
+          </p>
+          <ul class="mt-5 grid grid-cols-4 gap-4 rounded-2xl border border-line bg-surface p-6 sm:grid-cols-6 lg:grid-cols-8">
+            {iconNames.map((name) => (
+              <li class="flex flex-col items-center gap-2.5 text-ink-2">
+                <Icon name={name} size={22} />
+                <span class="font-mono text-[0.625rem] text-ink-3">{name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {s.components.prose.label}
+          </p>
+          <div class="mt-5">
+            <Prose>
+              <h2>{s.components.prose.title}</h2>
+              <p>
+                {s.components.prose.lede} <a href="#color">{s.components.prose.link}</a>,{' '}
+                <strong>{s.components.prose.strong}</strong>
+                {s.components.prose.afterStrong} <em>{s.components.prose.em}</em>
+                {s.components.prose.afterEm}
+                <code>code</code>
+                {s.components.prose.beforeKbd}
+                <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                {s.components.prose.tail}
+              </p>
+              <ul>
+                <li>{s.components.prose.ul[0]}</li>
+                <li>{s.components.prose.ul[1]}</li>
+                <li>{s.components.prose.ul[2]}</li>
+              </ul>
+              <ol>
+                <li>{s.components.prose.ol[0]}</li>
+                <li>{s.components.prose.ol[1]}</li>
+              </ol>
+              <blockquote>{s.components.prose.quote}</blockquote>
+              <Code lang="ts" title="brasa.config.ts" code={configSnippet} />
+              <figure>
+                <svg
+                  viewBox="0 0 800 340"
+                  width="800"
+                  height="340"
+                  role="img"
+                  aria-label={s.components.prose.figureAria}
+                  class="h-auto w-full"
+                >
+                  <defs>
+                    <linearGradient id="sg-ember" x1="0" y1="1" x2="1" y2="0">
+                      <stop offset="0" style="stop-color: var(--color-ember-600)"></stop>
+                      <stop offset="1" style="stop-color: var(--color-ember-300)"></stop>
+                    </linearGradient>
+                  </defs>
+                  <rect width="800" height="340" rx="16" style="fill: var(--surface)"></rect>
+                  {emberSteps.map((step, index) => (
+                    <rect
+                      x={40 + index * 66}
+                      y={190}
+                      width="52"
+                      height="88"
+                      rx="8"
+                      style={`fill: var(--color-ember-${step})`}
+                    />
+                  ))}
+                  <path
+                    d="M404 52c11 54-4 98-37 133-31 34-66 66-66 118 0 0 0 0 0 0"
+                    fill="none"
+                    style="stroke: url(#sg-ember)"
+                    stroke-width="0"
+                  />
+                  <path
+                    d="M416 44c10 48-3 87-32 118-27 30-58 58-58 104a73 73 0 0 0 146 0c0-23-11-41-26-56-10-10-21-19-26-31-8 9-11 20-9 33-13-14-21-27-25-44l-7-21-3-3Z"
+                    transform="translate(-4 0) scale(1.1)"
+                    fill="url(#sg-ember)"
+                  />
+                  <text
+                    x="40"
+                    y="60"
+                    style="fill: var(--ink-3)"
+                    font-size="14"
+                    font-weight="600"
+                    font-style="normal"
+                  >
+                    {s.components.prose.svgHue}
+                  </text>
+                  <text x="40" y="84" style="fill: var(--ink-3)" font-size="12">
+                    fraunces / geist / geist mono
+                  </text>
+                </svg>
+                <figcaption>{s.components.prose.caption}</figcaption>
+              </figure>
+              <hr />
+              <table>
+                <thead>
+                  <tr>
+                    <th>{s.components.prose.table.token}</th>
+                    <th>{s.components.prose.table.role}</th>
+                    <th>{s.components.prose.table.notes}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>canvas</td>
+                    <td>{s.components.prose.table.canvasRole}</td>
+                    <td>{s.components.prose.table.canvasNotes}</td>
+                  </tr>
+                  <tr>
+                    <td>surface</td>
+                    <td>{s.components.prose.table.surfaceRole}</td>
+                    <td>{s.components.prose.table.surfaceNotes}</td>
+                  </tr>
+                  <tr>
+                    <td>ember 500</td>
+                    <td>{s.components.prose.table.emberRole}</td>
+                    <td>oklch(0.685 0.19 35)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </Prose>
+          </div>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</BaseLayout>
+
+<script>
+  // Styleguide-only helpers: live token values + the accent hue demo.
+  document.addEventListener('astro:page-load', () => {
+    const refreshTokens = () => {
+      document.querySelectorAll<HTMLElement>('[data-token]').forEach((element) => {
+        const name = element.dataset.token;
+        if (!name) return;
+        element.textContent = getComputedStyle(element).getPropertyValue(name).trim() || '—';
+      });
+    };
+
+    refreshTokens();
+
+    const slider = document.querySelector<HTMLInputElement>('[data-hue-slider]');
+    const output = document.querySelector<HTMLOutputElement>('[data-hue-value]');
+    slider?.addEventListener('input', () => {
+      document.documentElement.style.setProperty('--accent-hue', slider.value);
+      if (output) output.textContent = slider.value;
+      refreshTokens();
+    });
+  });
+</script>

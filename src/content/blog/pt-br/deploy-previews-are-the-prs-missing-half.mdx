@@ -1,0 +1,103 @@
+---
+title: Prévias de deploy são a metade faltante do pull request
+description: Um diff mostra o que mudou. Um preview mostra se funciona. Notas de um ano publicando cada branch numa URL e revisando no navegador em vez de no diff.
+author: hadjunior
+tags:
+  - previews de deploy
+  - cultura de engenharia
+pubDate: 2026-11-02
+featured: true
+lang: 'pt-br'
+---
+
+import { Callout, Steps, Tabs } from '../../../components/mdx';
+
+Um pull request é um artefato estranho. Passamos horas escrevendo código e então entregamos aos revisores uma parede de texto vermelho e verde, pedindo que *imaginem* o software rodando. Toda revisão é um exercício de tradução: do diff para o comportamento, na cabeça de quem revisa, em alta velocidade. Funciona — até que deixa de funcionar, e o "looks good to me" que escapou de um fluxo de checkout renderizado errado vai para produção.
+
+A solução não são ferramentas de diff melhores. É entregar aos revisores o próprio artefato.
+
+Cada branch, compilado e servido em uma URL, com o banco populado e as feature flags definidas. O pull request se torna um *link com uma conversa anexada*, e a revisão acontece onde o software de fato vive: no navegador, no celular, com dados reais.
+
+## O ciclo de revisão, medido
+
+Há um ano, mudamos o desenvolvimento do próprio Brasa Cloud para priorizar previews. O ciclo em que chegamos é nada extraordinário — e é essa a questão: ele cabe nos intervalos de um dia normal:
+
+<Steps
+  class="not-prose"
+  steps={[
+    { icon: 'git-branch', title: 'Envie um branch', body: 'O monitor de CI dispara no push, não na criação do PR — então branches em andamento também ganham preview, antes que alguém seja chamado para olhar.' },
+    { icon: 'bolt', title: 'Compile isoladamente', body: 'Cada branch compila contra um cache endereçado por conteúdo, então uma compilação fria é a exceção e uma compilação quente de seis segundos é a regra.' },
+    { icon: 'link', title: 'Cole a URL na conversa', body: 'O corpo do PR se atualiza com o link do preview, o QR code para celulares e o registro do que a compilação fez.' },
+    { icon: 'message', title: 'Revise no navegador', body: 'Os comentários caem no commit com uma captura de tela anexada automaticamente, para que o diff e o comportamento fiquem vizinhos.' },
+  ]}
+/>
+
+Medindo o ciclo antigo com honestidade, o constrangimento é o resultado: nossa revisão mediana era aberta 40 minutos depois de o autor pedi-la, e o primeiro feedback *funcional* — alguém de fato clicando na coisa — chegava horas depois, frequentemente após o merge. O ciclo dos previews derruba os dois números. Quem revisa para de revisar o diff como texto e passa a revisar a mudança como produto.
+
+<Callout variant="tip" title="Compartilhe antes de estar pronto">
+  A mudança cultural mais forte não custa nada: publique a URL do preview enquanto o branch
+  ainda está bruto, com um recado como "o cabeçalho está uma bagunça, mas o fluxo faz
+  sentido?". Previews precoces treinam a equipe a ler um trabalho em andamento com
+  generosidade — e revelam as discordâncias que os diffs melhor escondem.
+</Callout>
+
+## O que um preview realmente muda
+
+Três mudanças, nenhuma delas sobre infraestrutura:
+
+1. **As revisões ficam concretas.** "Parece lento" vira uma URL reproduzível com um relatório do Lighthouse anexado. Gosto ainda é bem-vindo; evidência é melhor.
+2. **Designers voltam ao ciclo.** Capturas no Figma perguntam "era isso que você queria?". Previews perguntam "foi isso que você construiu?" — uma conversa muito mais curta.
+3. **O merge para de assustar.** Quando todo branch vem rodando no formato de produção há dias, o botão de merge é burocracia, não um salto de fé.
+
+> Na primeira semana, quem revisava continuava abrindo o diff por hábito e clicando no link do preview por curiosidade. Na segunda semana, a ordem se inverteu. Nada mais no nosso processo mudou.
+
+O crédito é do nosso engenheiro sênior, e a inversão da ordem é a tese inteira: o preview vira o artefato principal, e o diff vira suas notas de rodapé.
+
+## Efêmero, privado, entediante
+
+Duas propriedades decidem se os previews sobrevivem ao contato com uma equipe real:
+
+**Efêmeros por padrão.** Um preview é uma entrada de cache com TTL, não um servidor para ficar vigiando. Trinta dias e pronto: some. Se um branch vive mais que seu preview, isso é um sinal sobre o branch, não sobre o preview.
+
+**Privados por padrão.** Previews herdam o acesso do repositório. Colaboradores externos recebem uma senha escalonada que expira com a compilação. Uma URL pública para trabalho interno é um vazamento com etapas extras.
+
+A superfície operacional é deliberadamente pequena — um comando cobre os caminhos comuns:
+
+<Tabs
+  label="Operações de preview"
+  tabs={[
+    { id: 'deploy', label: 'Deploy', icon: 'bolt' },
+    { id: 'share', label: 'Compartilhar', icon: 'users' },
+  ]}
+>
+  <Fragment slot="deploy">
+    ```bash
+    # build and serve the current branch
+    brasa deploy --branch "$BRANCH_NAME"
+
+    # -> https://preview-8f2k.brasa.cloud  (built in 6.2s)
+    ```
+  </Fragment>
+  <Fragment slot="share">
+    ```bash
+    # a scoped password for an outside reviewer, expires with the preview
+    brasa share --expires 48h --password
+
+    # -> https://preview-8f2k.brasa.cloud/#/guest/9ab1
+    ```
+
+    O QR code do mesmo link é impresso a cada deploy — revisar o layout no celular em que ele vai rodar vale mais que apertar os olhos num diff de 27 polegadas.
+  </Fragment>
+</Tabs>
+
+<Callout variant="note">
+  Retenção e acesso são configurações por projeto, não decisões por desenvolvedor. O padrão
+  de 30 dias mantém a conta previsível; picos de curta duração (semana de release) não
+  custam nada extra porque os previews compartilham o mesmo cache de compilação da produção.
+</Callout>
+
+## A conta, com honestidade
+
+Previews não são grátis — paga-se para renderizar trabalho que pode ser descartado. A conta é honesta se dois índices forem mantidos em mente: uma compilação de preview deve reaproveitar 80–95% das camadas em cache de uma compilação de produção, e o tráfego de preview deve ser um erro de arredondamento ao lado do tráfego de produção. Quando um dos dois escapa, a solução é cache, não corte de orçamento. Uma equipe que apaga previews para economizar é uma equipe prestes a voltar a revisar em diffs.
+
+Nada disso é ideia nova — deploys de preview são prática de equipes de plataforma bem geridas há uma década. O que mudou é o piso de custo: quando uma compilação quente custa seis segundos e uma fria, minutos, *todo branch* pode ter preview, não só os assustadores. Essa é a mudança que vale fazer de propósito.

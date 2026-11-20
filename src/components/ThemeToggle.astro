@@ -1,11 +1,14 @@
 ---
 import Icon from './Icon.astro';
+import { normalizeLocale, ui } from '../i18n';
+
+const strings = ui(normalizeLocale(Astro.currentLocale)).common;
 ---
 
 <button
   type="button"
   data-theme-toggle
-  aria-label="Toggle color theme"
+  aria-label={strings.toggleTheme}
   class="inline-flex size-9 cursor-pointer items-center justify-center rounded-full border border-transparent text-ink-2 transition-colors duration-(--dur-1) hover:border-line hover:bg-surface hover:text-ink"
 >
   <Icon name="sun" size={17} class="theme-icon-sun" />

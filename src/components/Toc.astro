@@ -5,6 +5,8 @@
  * IntersectionObserver keeps `data-active` in sync with the section in
  * view); without JS every link still works, just unhighlighted.
  */
+import { normalizeLocale, ui } from '../i18n';
+
 export interface TocHeading {
   depth: number;
   slug: string;
@@ -17,11 +19,12 @@ interface Props {
   label?: string;
 }
 
-const { headings, label = 'On this page' } = Astro.props;
+const lang = normalizeLocale(Astro.currentLocale);
+const { headings, label = ui(lang).common.onThisPage } = Astro.props;
 ---
 
 <div class="toc" hidden={headings.length === 0}>
-  <nav data-toc aria-label="Table of contents">
+  <nav data-toc aria-label={label}>
     <p class="eyebrow toc-label">
       <span class="eyebrow-dash" aria-hidden="true"></span>
       {label}

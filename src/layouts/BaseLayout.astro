@@ -12,6 +12,7 @@ import frauncesItalic from '@fontsource-variable/fraunces/files/fraunces-latin-o
 import geistNormal from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
 
 import { brasa } from '../brasa.config';
+import { localeLang, ui, type Locale } from '../i18n';
 import SEO from '../components/SEO.astro';
 import type { SeoArticle, SeoCrumb } from '../components/SEO.astro';
 import Header from '../components/Header.astro';
@@ -29,16 +30,16 @@ interface Props {
   article?: SeoArticle;
   /** BreadcrumbList JSON-LD. */
   breadcrumbs?: SeoCrumb[];
+  /** Active locale. Defaults to English for unprefixed routes. */
+  lang?: Locale;
 }
 
-const { title, description, type, noindex, image, article, breadcrumbs } = Astro.props;
-const locale = brasa.locales.available.find((entry) => entry.code === brasa.locales.default) ?? {
-  lang: 'en',
-};
+const { title, description, type, noindex, image, article, breadcrumbs, lang = 'en' } = Astro.props;
+const strings = ui(lang).common;
 ---
 
 <!doctype html>
-<html lang={locale.lang} style={`--accent-hue: ${brasa.colors.accentHue};`}>
+<html lang={localeLang[lang]} style={`--accent-hue: ${brasa.colors.accentHue};`}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,7 +61,7 @@ const locale = brasa.locales.available.find((entry) => entry.code === brasa.loca
         }
       })();
     </script>
-    <SEO {title} {description} {type} {noindex} {image} {article} {breadcrumbs} />
+    <SEO {title} {description} {type} {noindex} {image} {article} {breadcrumbs} {lang} />
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <link
       rel="alternate"
@@ -80,15 +81,21 @@ const locale = brasa.locales.available.find((entry) => entry.code === brasa.loca
     <ClientRouter />
   </head>
   <body class="flex min-h-dvh flex-col bg-canvas font-sans text-ink">
+    <div
+      data-pagefind-filter={`lang:${lang}`}
+      data-pagefind-meta={`lang:${lang}`}
+      class="hidden"
+      aria-hidden="true"
+    ></div>
     <a href="#main" class="skip-link">
-      Skip to content
+      {strings.skipLink}
     </a>
-    <Header />
+    <Header {lang} />
     <main id="main" tabindex="-1" class="relative flex-1">
       <slot />
     </main>
-    <Footer />
-    <SearchDialog />
+    <Footer {lang} />
+    <SearchDialog {lang} />
     <script>
       import '../scripts/behaviors';
       import '../scripts/search';

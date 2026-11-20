@@ -1,0 +1,204 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import Cards from '../../../components/Cards.astro';
+import Container from '../../../components/Container.astro';
+import Icon from '../../../components/Icon.astro';
+import { docsHref, getDocs, groupDocs } from '../../../lib/docs';
+import { localizedPath, normalizeLocale, ui } from '../../../i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const s = t.docs.pages;
+const docs = await getDocs(lang);
+const groups = groupDocs(docs);
+
+const startHere = s.startHere.cards.map((card, index) => ({
+  ...card,
+  href: docsHref(
+    docs.find((doc) => doc.id.endsWith(card.title.toLowerCase().replaceAll(' ', '-'))) ?? docs[0],
+  ),
+  icon: (['terminal', 'sliders', 'sparkles'] as const)[index],
+}));
+---
+
+<BaseLayout title={t.docs.title} description={s.description} {lang}>
+  <div data-pagefind-body>
+    <section
+      class="docs-index-hero relative overflow-hidden pt-14 pb-16 lg:pt-20 lg:pb-20"
+      data-glow
+    >
+      <Container size="xl">
+        <Breadcrumbs
+          items={[
+            { label: lang === 'pt-br' ? 'Início' : 'Home', href: localizedPath('/', lang) },
+            { label: t.docs.title },
+          ]}
+        />
+        <div class="mt-10 grid items-end gap-10 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div class="max-w-[54rem]">
+            <p class="eyebrow">
+              <span class="eyebrow-dash" aria-hidden="true"></span>
+              {s.eyebrow}
+            </p>
+            <h1 class="mt-6 font-display text-display-2xl text-ink text-balance">
+              {s.title.before} <em class="text-gradient-ember italic">{s.title.em}</em>{' '}
+              {s.title.after}
+            </h1>
+            <p class="mt-6 max-w-[52ch] text-body-lg text-ink-2 text-pretty">{s.lede}</p>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href={startHere[0].href}
+                class="inline-flex items-center gap-2 rounded-full bg-ember-gradient px-5 py-3 text-sm font-semibold text-on-accent shadow-glow transition-transform duration-(--dur-2) ease-(--ease-out-soft) hover:-translate-y-0.5"
+              >
+                {s.startInstallation}
+                <Icon name="arrow-right" size={16} />
+              </a>
+              <button
+                type="button"
+                data-search-open
+                aria-haspopup="dialog"
+                aria-controls="search-dialog"
+                aria-expanded="false"
+                class="inline-flex items-center gap-2 rounded-full border border-line-strong px-5 py-3 text-sm font-medium text-ink-2 transition-colors duration-(--dur-1) hover:bg-surface hover:text-ink"
+              >
+                <Icon name="search" size={15} />
+                {s.searchDocs}
+                <kbd class="ms-1 rounded border border-line-strong px-1.5 py-0.5 font-mono text-[0.625rem] text-ink-3">
+                  ⌘K
+                </kbd>
+              </button>
+            </div>
+          </div>
+          <dl class="grid grid-cols-3 gap-6 border-t border-line pt-6 lg:min-w-[19rem] lg:border-t-0 lg:border-s lg:ps-8 lg:pt-0">
+            <div>
+              <dt class="font-mono text-[0.625rem] tracking-[0.14em] text-ink-3 uppercase">
+                {s.stats.pages}
+              </dt>
+              <dd class="mt-1 font-display text-display-sm text-ink">
+                {docs.length.toString().padStart(2, '0')}
+              </dd>
+            </div>
+            <div>
+              <dt class="font-mono text-[0.625rem] tracking-[0.14em] text-ink-3 uppercase">
+                {s.stats.sections}
+              </dt>
+              <dd class="mt-1 font-display text-display-sm text-ink">
+                {groups.length.toString().padStart(2, '0')}
+              </dd>
+            </div>
+            <div>
+              <dt class="font-mono text-[0.625rem] tracking-[0.14em] text-ink-3 uppercase">
+                {s.stats.license}
+              </dt>
+              <dd class="mt-1 font-display text-display-sm text-ink">MIT</dd>
+            </div>
+          </dl>
+        </div>
+      </Container>
+    </section>
+
+    <Container size="xl" class="pb-8">
+      <section aria-labelledby="start-heading">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p class="eyebrow">
+              <span class="eyebrow-dash" aria-hidden="true"></span>
+              {s.startHere.eyebrow}
+            </p>
+            <h2 id="start-heading" class="mt-3 font-display text-display-md text-ink text-balance">
+              {s.startHere.title}
+            </h2>
+          </div>
+          <p class="max-w-[32ch] text-sm text-ink-3 text-pretty">{s.startHere.lede}</p>
+        </div>
+        <Cards items={startHere} columns={3} class="mt-8" />
+      </section>
+
+      <div class="mt-20 flex flex-col gap-16">
+        {groups.map((group) => (
+          <section aria-labelledby={`group-${group.name.replace(/\s+/g, '-').toLowerCase()}`}>
+            <div class="flex flex-wrap items-baseline justify-between gap-4 border-b border-line pb-5">
+              <h2
+                id={`group-${group.name.replace(/\s+/g, '-').toLowerCase()}`}
+                class="font-display text-display-md text-ink"
+              >
+                {s.groups[group.name]}
+              </h2>
+              <span class="font-mono text-xs tracking-[0.14em] text-ink-3 uppercase">
+                {s.pagesLabel(group.docs.length)}
+              </span>
+            </div>
+            <p class="mt-5 max-w-[62ch] text-body-lg text-ink-2 text-pretty">
+              {s.groupCopy[group.name]}
+            </p>
+            <ul class="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
+              {group.docs.map((doc, index) => (
+                <li class="bg-canvas">
+                  <a
+                    href={docsHref(doc)}
+                    class="group flex h-full items-start gap-4 px-5 py-5 transition-colors duration-(--dur-1) hover:bg-surface"
+                  >
+                    <span class="mt-0.5 font-mono text-xs text-accent">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block font-display text-[1.125rem] font-medium text-ink text-balance">
+                        {doc.data.title}
+                      </span>
+                      <span class="mt-1.5 block text-sm leading-relaxed text-ink-2 text-pretty">
+                        {doc.data.description}
+                      </span>
+                    </span>
+                    <Icon
+                      name="arrow-up-right"
+                      size={15}
+                      class="mt-1 shrink-0 text-ink-3 transition-all duration-(--dur-2) ease-(--ease-out-soft) group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+                    />
+                  </a>
+                </li>
+              ))}
+              {group.docs.length % 2 !== 0 && (
+                <li class="hidden bg-canvas sm:block" aria-hidden="true" />
+              )}
+            </ul>
+          </section>
+        ))}
+      </div>
+
+      <aside class="mt-20 rounded-3xl border border-line bg-surface p-7 sm:p-10">
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div class="max-w-[48ch]">
+            <p class="eyebrow">
+              <span class="eyebrow-dash" aria-hidden="true"></span>
+              {s.help.eyebrow}
+            </p>
+            <h2 class="mt-3 font-display text-display-sm text-ink text-balance">{s.help.title}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-ink-2 text-pretty">{s.help.lede}</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <a
+              href={docsHref(docs.find((doc) => doc.id.endsWith('faq')) ?? docs[0])}
+              class="inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-surface-2"
+            >
+              {s.help.cta}
+            </a>
+            <a
+              href="https://github.com/hadagalberto/brasa/discussions"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink"
+            >
+              {lang === 'pt-br' ? 'Discussões' : 'Discussions'}
+              <Icon name="arrow-up-right" size={14} />
+            </a>
+          </div>
+        </div>
+      </aside>
+    </Container>
+  </div>
+</BaseLayout>

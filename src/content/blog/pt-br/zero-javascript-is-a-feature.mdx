@@ -1,0 +1,92 @@
+---
+title: Zero JavaScript é um recurso, não uma limitação
+description: 'Este blog envia menos JavaScript do que um único pixel de rastreamento. O método por trás disso: aprimoramento progressivo como disciplina de build, ilhas que degradam com honestidade e os dois lugares onde ainda gastamos bytes.'
+author: tomas-ferreira
+tags:
+  - performance
+pubDate: 2026-07-22
+lang: 'pt-br'
+---
+
+import { Badge, Callout, Steps } from '../../../components/mdx';
+
+A página média da web hoje envia mais JavaScript do que o _Doom_ original. Essa comparação tem uma década e envelheceu como leite: as páginas agora enviam mais JavaScript do que vários Dooms, e os megabytes extras em geral não fazem nada que a pessoa que lê tenha pedido.
+
+Este blog está na outra ponta da distribuição — seu orçamento total de JavaScript é aplicado no CI em menos de 20 KB _comprimidos_, e um artigo típico usa uma fração disso. A limitação é real (o teste de CI quebra o build), mas a parte interessante é o método que a faz parecer inexistente.
+
+## A disciplina, em uma frase
+
+**Renderize tudo, aprimore com intenção.** Todo recurso existe primeiro como HTML simples e completo — renderizado no servidor, estilizado, acessível. O JavaScript então se conecta apenas onde o HTML é genuinamente insuficiente, e apenas na menor área possível.
+
+Aplicada como disciplina de build, essa frase se decompõe em quatro hábitos:
+
+<Steps
+  class="not-prose"
+  steps={[
+    {
+      icon: 'code',
+      title: 'Renderize primeiro',
+      body: 'O alternador de tema envia um `<button>` que funciona como botão antes de qualquer byte de JS decidir o que ele alterna. Se o script nunca rodar, a página continua sendo uma página.',
+    },
+    {
+      icon: 'shield',
+      title: 'Projete o estado sem JS',
+      body: 'Abas caem para painéis empilhados com rótulos visíveis; o menu mobile vira uma lista simples de âncoras. O estado degradado é projetado, não descoberto.',
+    },
+    {
+      icon: 'bolt',
+      title: 'Delimite cada ilha',
+      body: 'A interatividade vive em pequenas ilhas de `<script>` com eventos delegados e um orçamento rígido por ilha — 3 KB comprimidos cada, medidos no build.',
+    },
+    {
+      icon: 'chart',
+      title: 'Aplique no CI',
+      body: 'Um teste Playwright soma todos os scripts inline e externos em cada tipo de rota e falha acima de 20 KB. Orçamento sem teste é só vibe.',
+    },
+  ]}
+/>
+
+## Para onde vão os bytes de verdade
+
+Sendo honestos no inventário, toda a superfície interativa deste blog cabe em um recibo curto:
+
+| Ilha            | Função                                   | Tamanho aproximado (comprimido) |
+| --------------- | ---------------------------------------- | ------------------------------- |
+| behaviors       | tema, menu, rolagem, spotlight, copiar   | ~1,5 KB                         |
+| blog            | destaque do índice, copiar link de compartilhamento | ~0,5 KB               |
+| tabs            | padrão de teclado para grupos de abas    | ~0,6 KB                         |
+| expressive-code | botão de copiar em blocos de código      | ~1 KB                           |
+
+<Badge variant="ember">Total abaixo de 5 KB</Badge> — o resto da página é HTML, CSS e duas fontes
+variáveis pré-carregadas. Nada aqui é heroico; é a mesma quantidade de JavaScript que esses recursos
+custariam se fossem escritos à mão, menos o framework que viria para entregá-los a você.
+
+<Callout variant="tip" title="O truque de delegação que paga por tudo">
+  Um módulo, um listener de clique no nível de <code>document</code>, muitos comportamentos. Cada
+  botão declara sua intenção em um atributo data — <code>data-theme-toggle</code>,{' '}
+  <code>data-menu-toggle</code>, <code>data-copy</code> — e o handler delegado despacha. Componentes
+  novos custam zero bindings novos, e as View Transitions são sobrevividas de graça, porque nunca
+  nada precisa ser reconectado depois de uma troca.
+</Callout>
+
+## Os dois lugares onde ainda gastamos
+
+"Zero JavaScript" como meta literal é teatro de performance — algumas experiências realmente precisam de comportamento. A versão honesta deste método é saber exatamente onde os bytes compram algo que a pessoa sente:
+
+**Troca de tema.** Armazenar e aplicar uma preferência sem flashes exige ~30 bytes inline antes da primeira pintura e um pequeno handler de alternância depois. Este é o caso raro em que um flash de conteúdo errado é _pior_ do que um pouco de JS, porque o conteúdo errado é a página inteira.
+
+**Tudo o que a plataforma se recusa a fazer.** O destaque da seção ativa no índice (IntersectionObserver), semântica de teclado para abas, confirmação de área de transferência. Cada um desses tem um estado sem JS projetado, completo e honesto — o JS só acrescenta a parte que o HTML não consegue expressar.
+
+Todo o resto — a leitura, a navegação, a paginação, os feeds, a possibilidade de busca, a impressão, os links profundos para qualquer título — é apenas HTML que por acaso é bonito.
+
+## O que a limitação devolve
+
+Os benefícios mais citados — tempo de parsing, memória, bateria — são reais, mas abstratos. Os que se sentem:
+
+**A página nunca quebra.** Sem runtime para falhar, as modalidades de falha se resumem a "servidor fora". Um erro de sintaxe em uma ilha degrada um recurso em uma página, e o teste no build pega até isso.
+
+**Acessibilidade deixa de ser um projeto.** Elementos nativos já trazem seu próprio comportamento de teclado, gerenciamento de foco e semântica. Gastamos nosso esforço de auditoria no punhado de coisas que _de fato_ construímos, em vez de auditar a reimplementação do navegador feita por um framework.
+
+**Cada aprimoramento é uma decisão que alguém consegue encontrar.** Quando a interatividade são onze arquivos em vez de um grafo de bundle, "por que isso parece lento?" tem uma resposta que cabe em uma revisão de código. Performance deixa de ser personalidade e passa a ser um lugar no repositório.
+
+A limitação, mantida com honestidade, não tem a ver com contar bytes — tem a ver com fazer cada byte pedir permissão.

@@ -1,0 +1,20 @@
+{
+  "version": "2.3.2",
+  "date": "2026-10-29",
+  "title": "A faster cold start",
+  "summary": "Dependency restoration moved onto the shared content-addressed cache. Cold builds fell by almost a third.",
+  "groups": [
+    {
+      "title": "Fixed",
+      "items": [
+        "Cold builds reused fewer cached layers",
+        "Large monorepos timed out on the first run"
+      ]
+    },
+    {
+      "title": "Changed",
+      "items": ["Build logs stream with tighter batching"]
+    }
+  ],
+  "lang": "en"
+}

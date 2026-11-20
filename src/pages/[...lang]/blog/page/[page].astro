@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import Container from '../../../../components/Container.astro';
+import Icon from '../../../../components/Icon.astro';
+import Pagination from '../../../../components/Pagination.astro';
+import PostCard from '../../../../components/blog/PostCard.astro';
+import {
+  getAuthor,
+  getPosts,
+  pageHref,
+  paginate,
+  pickFeatured,
+  PAGE_SIZE,
+} from '../../../../lib/posts';
+import { localizedPath, locales, normalizeLocale, ui } from '../../../../i18n';
+
+export async function getStaticPaths() {
+  const paths: Array<{ params: { lang: string | undefined; page: string } }> = [];
+  for (const lang of locales) {
+    const posts = await getPosts(lang);
+    const gridPosts = posts.filter((post) => post.id !== pickFeatured(posts)?.id);
+    const totalPages = Math.max(1, Math.ceil(gridPosts.length / PAGE_SIZE));
+    paths.push(
+      ...Array.from({ length: totalPages }, (_, index) => index + 1)
+        .filter((page) => page > 1)
+        .map((page) => ({
+          params: { lang: lang === 'en' ? undefined : lang, page: String(page) },
+        })),
+    );
+  }
+  return paths;
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const b = t.blog.pages;
+const { page: pageParam } = Astro.params;
+const page = Number(pageParam ?? '1');
+
+const posts = await getPosts(lang);
+const featured = pickFeatured(posts);
+const gridPosts = posts.filter((post) => post.id !== featured?.id);
+const basePath = localizedPath('/blog', lang);
+const { posts: pagePosts, totalPages } = paginate(gridPosts, page, basePath);
+
+const pageData = await Promise.all(
+  pagePosts.map(async (post) => ({ post, author: await getAuthor(post.data.author, lang) })),
+);
+---
+
+<BaseLayout title={`${t.blog.allEssays} — ${t.blog.page(page)}`} description={b.description} {lang}>
+  <div class="section-y" data-glow>
+    <Container size="md">
+      <header class="flex flex-col gap-5">
+        <p class="eyebrow">
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+          {b.archive.eyebrow}
+        </p>
+        <h1 class="font-display text-display-lg text-ink text-balance">
+          {b.title.before} <em class="text-gradient-ember italic">{b.title.em}</em> {b.title.after}{' '}
+          <span class="text-ink-3">
+            {'— '}
+            {lang === 'pt-br' ? 'página' : 'page'}{' '}
+            <span class="text-accent tabular-nums">{page}</span>
+            {lang === 'pt-br' ? ' de ' : ' of '}
+            {totalPages}
+          </span>
+        </h1>
+        <p class="max-w-[62ch] text-pretty text-body-lg text-ink-2">{b.archive.lede}</p>
+        <a
+          href={basePath}
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
+        >
+          <Icon name="chevron-left" size={15} />
+          {b.archive.back}
+        </a>
+      </header>
+
+      <section aria-label={b.archive.sectionLabel(page)} class="mt-12">
+        <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {pageData.map(({ post, author }, index) => (
+            <li>
+              <PostCard post={post} author={author} index={index + 1} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div class="mt-14">
+        <Pagination {page} {totalPages} hrefFor={(target) => pageHref(basePath, target)} />
+      </div>
+    </Container>
+  </div>
+</BaseLayout>

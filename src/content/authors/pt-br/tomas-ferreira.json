@@ -1,0 +1,11 @@
+{
+  "name": "Tomás Ferreira",
+  "role": "Engenheiro de performance e plataforma",
+  "bio": "Mede primeiro, refatora depois, nunca tuíta. Reduziu três builds de produto de minutos para segundos com endereçamento por conteúdo e uma desconfiança saudável de mitos sobre cache. Mantém uma planilha com cada execução do Lighthouse desde 2021 e não se arrepende disso.",
+  "location": "Porto, Portugal",
+  "links": [
+    { "label": "GitHub", "href": "https://github.com/tomasferreira", "icon": "github" },
+    { "label": "X (Twitter)", "href": "https://x.com/tomasfcodes", "icon": "x" }
+  ],
+  "lang": "pt-br"
+}

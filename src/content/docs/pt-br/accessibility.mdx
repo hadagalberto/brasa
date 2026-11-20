@@ -1,0 +1,101 @@
+---
+title: Acessibilidade
+description: Como o Brasa lida com foco, contraste, movimento e semântica — e o que a suíte automatizada realmente verifica.
+group: Guides
+order: 4
+sidebarLabel: Acessibilidade
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, Tabs, Steps } from '../../../components/mdx';
+
+Acessibilidade faz parte do padrão de qualidade, não é uma auditoria final. O tema é construído para que o comportamento acessível seja o caminho padrão — elementos nativos primeiro, JavaScript apenas onde ele agrega algo.
+
+## Estrutura e pontos de referência
+
+Toda página começa com o mesmo esqueleto: um link de pular (skip link), `<header>`, `<main id="main">` e `<footer>`. O link de pular é o primeiro ponto de foco e move o foco para `main`, que usa `tabindex="-1"` para que o foco chegue de forma confiável em todos os navegadores.
+
+- **Navegação** usa `<nav aria-label="…">`, de modo que o cabeçalho, a folha mobile, as colunas do rodapé, as trilhas de navegação, o TOC e a barra lateral de docs tenham cada um um nome acessível distinto.
+- **Trilhas de navegação** marcam a última migalha com `aria-current="page"` e também são emitidas como JSON-LD.
+- **Links da barra lateral e do TOC** definem `aria-current` na página ou seção ativa; a trilha em brasa é um eco visual desse estado, nunca o único sinal.
+- **Tabelas** em MDX usam `<thead>`/`<tbody>` reais com cabeçalhos monoespaçados em maiúsculas.
+
+## Foco
+
+`:focus-visible` desenha um anel em brasa de 2px com 3px de deslocamento em todo o site. Nada remove o contorno sem substituí-lo.
+
+<Tabs
+  label="Comportamento do foco"
+  tabs={[
+    { id: 'menu', label: 'Menu mobile' },
+    { id: 'search', label: 'Diálogo de busca' },
+    { id: 'docs', label: 'Gaveta de docs' },
+  ]}
+>
+  <Fragment slot="menu">
+    A folha de tela cheia é um `role="dialog"` com `aria-modal="true"`. Abri-la move o foco para o primeiro link, Tab e Shift+Tab circulam dentro dela, Escape a fecha e o foco retorna ao gatilho. A rolagem do body fica travada enquanto ela está aberta.
+  </Fragment>
+  <Fragment slot="search">
+    O painel de busca é um `<dialog>` nativo aberto com `showModal()`. Isso fornece o aprisionamento de foco, o fundo inerte e o comportamento de Escape. As setas movem entre os resultados, Enter abre o destacado, e a região de status ao vivo anuncia a contagem de resultados.
+  </Fragment>
+  <Fragment slot="docs">
+    A barra lateral de docs mobile é um segundo `<dialog>` nativo. Fechá-lo — pelo botão, clique no fundo, Escape ou ao seguir um link — restaura o foco no gatilho "Navegar pelos docs".
+  </Fragment>
+</Tabs>
+
+As abas e os painéis de aba seguem o padrão WAI-ARIA: tabindex móvel, teclas seta/Home/End e as ligações `aria-controls` e `aria-labelledby`. Com JavaScript desabilitado, a tablist fica oculta e cada painel é renderizado empilhado com seu próprio rótulo, para que nenhum conteúdo fique inacessível.
+
+## Contraste
+
+A paleta é projetada no eixo da luminosidade. O texto do corpo mantém **AAA (7:1)** e todo o resto atende no mínimo a **AA (4.5:1)** em ambos os temas. O modo claro é papel quente com texto tinta, não uma versão escurecida do tema escuro.
+
+| Par | Proporção aprox. | Uso |
+| --- | --- | --- |
+| Ink sobre canvas (escuro) | ~13:1 | Corpo, títulos |
+| Ink sobre canvas (claro) | ~12:1 | Corpo, títulos |
+| Ink-3 sobre surface | ~4.6:1 | Apenas metadados e legendas |
+| Accent sobre surface | ≥4.5:1 | Links, anéis de foco |
+
+Anéis de foco, bordas de callout e estados selecionados também trazem uma mudança de forma ou de texto — a cor nunca é o único indicador.
+
+<Callout variant="warning" title="Tons personalizados precisam de uma nova verificação">
+A escala em brasa gira o matiz com luminosidade fixa, mas o contraste percebido muda ligeiramente com o matiz. Depois de alterar `colors.accentHue`, execute a suíte axe em ambos os temas antes de publicar.
+</Callout>
+
+## Movimento
+
+`prefers-reduced-motion: reduce` é respeitado em todo lugar:
+
+- Animações `reveal` controladas por rolagem se tornam conteúdo simples e visível.
+- O conector de etapas é desenhado instantaneamente em vez de durante a rolagem.
+- Métricas com contagem crescente renderizam seu valor final sem loop de rAF.
+- O brilho do hero reativo ao ponteiro para de atualizar as custom properties.
+- Animações de folha, gaveta e busca são desabilitadas; expansões ainda abrem.
+
+A regra de aprimoramento progressivo é simples: se um navegador não tem `animation-timeline`, se o movimento reduzido está ativado ou se o JavaScript nunca executa, o conteúdo fica visível e utilizável. A animação nunca condiciona o acesso à informação.
+
+## Formulários e conteúdo interativo
+
+Os formulários de contato e newsletter usam rótulos reais, não placeholders como rótulos. As mensagens de validação são associadas aos seus campos e anunciadas de forma polite. Os endpoints `action` são configuráveis na config; o tema não adiciona analytics nem rastreamento por padrão.
+
+A alternância de preços mensal/anual é um par de botões estilo rádio com um nome acessível; ela troca o texto sem deslocar o layout. Acordeões e itens de FAQ são `<details>`/`<summary>` nativos, então funcionam com teclado e tecnologia assistiva sem scripts.
+
+## O que a suíte de testes verifica
+
+<Steps
+  steps={[
+    { icon: 'shield', title: 'axe em toda rota', body: '@axe-core/playwright audita cada rota em ambos os temas com as tags wcag2a, wcag2aa, wcag21a e wcag21aa. Zero violações é o único estado de aprovação.' },
+    { icon: 'check', title: 'Percursos por teclado', body: 'Os testes cobrem o link de pular como primeiro ponto de foco, o alternador de tema, o aprisionamento de foco da folha mobile, abas por teclado, atalhos de busca e a restauração de foco.' },
+    { icon: 'chart', title: 'Invariantes visuais', body: 'Testes de layout afirmam que não há overflow horizontal em 375, 768 e 1440 px e verificam que o movimento reduzido desabilita a animação. Capturas de tela são feitas em 375 e 1440 em ambos os temas.' },
+  ]}
+/>
+
+```bash
+npm run build
+npm test
+```
+
+<Callout variant="tip" title="Estendendo a suíte">
+Ao adicionar uma rota, adicione-a a `routes` em `tests/e2e/helpers.ts`. Essa única alteração a submete ao axe em ambos os temas, ao rastreamento de links, às verificações de SEO no head, ao orçamento de JS e à captura de tela.
+</Callout>

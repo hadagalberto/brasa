@@ -1,5 +1,13 @@
 ---
 import { brasa } from '../brasa.config';
+import {
+  localeLang,
+  locales,
+  ogLocale,
+  switchLocalePath,
+  unlocalizedPath,
+  type Locale,
+} from '../i18n';
 
 export interface SeoArticle {
   publishedTime: Date;
@@ -25,6 +33,7 @@ interface Props {
   article?: SeoArticle;
   /** Emits a BreadcrumbList JSON-LD alongside the site graph. */
   breadcrumbs?: SeoCrumb[];
+  lang?: Locale;
 }
 
 const {
@@ -35,11 +44,18 @@ const {
   noindex = false,
   article,
   breadcrumbs,
+  lang = 'en',
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://example.com');
 const canonical = new URL(Astro.url.pathname, site);
 const ogImage = new URL(image, site);
+const alternates = locales.map((code) => ({
+  code,
+  lang: localeLang[code],
+  href: new URL(switchLocalePath(Astro.url.pathname, code), site).toString(),
+}));
+const xDefault = new URL(unlocalizedPath(Astro.url.pathname), site).toString();
 const fullTitle =
   title === brasa.site.name
     ? `${brasa.site.name} — ${brasa.site.tagline}`
@@ -98,6 +114,10 @@ if (breadcrumbs && breadcrumbs.length > 0) {
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
+{alternates.map((alternate) => (
+  <link rel="alternate" hreflang={alternate.lang} href={alternate.href} />
+))}
+<link rel="alternate" hreflang="x-default" href={xDefault} />
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 <meta name="theme-color" content="#120c09" />
 
@@ -110,7 +130,12 @@ if (breadcrumbs && breadcrumbs.length > 0) {
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={`${brasa.site.name} — ${brasa.site.tagline}`} />
-<meta property="og:locale" content="en_US" />
+<meta property="og:locale" content={ogLocale(lang)} />
+{alternates
+  .filter((alternate) => alternate.code !== lang)
+  .map((alternate) => (
+    <meta property="og:locale:alternate" content={ogLocale(alternate.code)} />
+  ))}
 {article && type === 'article' && (
   <>
     <meta property="article:published_time" content={article.publishedTime.toISOString()} />

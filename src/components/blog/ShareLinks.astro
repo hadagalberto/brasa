@@ -4,14 +4,17 @@
  * button confirmed inline (scripts/blog.ts handles the clipboard).
  */
 import Icon from '../Icon.astro';
+import { ui, type Locale } from '../../i18n';
 
 interface Props {
   title: string;
   url: string;
+  lang?: Locale;
   class?: string;
 }
 
-const { title, url, class: className } = Astro.props;
+const { title, url, lang = 'en', class: className } = Astro.props;
+const strings = ui(lang).blog;
 
 const shareText = encodeURIComponent(title);
 const shareUrl = encodeURIComponent(url);
@@ -19,13 +22,13 @@ const shareUrl = encodeURIComponent(url);
 
 <div class:list={['flex flex-wrap items-center gap-2', className]}>
   <span class="mr-1 font-mono text-xs font-medium tracking-[0.12em] text-ink-3 uppercase">
-    Share
+    {lang === 'pt-br' ? 'Compartilhe' : 'Share'}
   </span>
   <a
     href={`https://x.com/intent/post?text=${shareText}&url=${shareUrl}`}
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="Share on X (Twitter)"
+    aria-label={strings.shareOn('X (Twitter)')}
     class="share-link"
   >
     <Icon name="x" size={15} />
@@ -34,12 +37,18 @@ const shareUrl = encodeURIComponent(url);
     href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
     target="_blank"
     rel="noopener noreferrer"
-    aria-label="Share on LinkedIn"
+    aria-label={strings.shareOn('LinkedIn')}
     class="share-link"
   >
     <Icon name="linkedin" size={15} />
   </a>
-  <button type="button" data-share-copy aria-label="Copy link to this post" class="share-link">
+  <button
+    type="button"
+    data-share-copy
+    data-copied-label={strings.linkCopied}
+    aria-label={strings.copyLink}
+    class="share-link"
+  >
     <Icon name="link" size={15} />
     <span data-share-feedback class="sr-only" aria-live="polite"></span>
   </button>

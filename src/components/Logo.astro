@@ -1,9 +1,11 @@
 ---
 import { brasa } from '../brasa.config';
+import { localizedPath, normalizeLocale } from '../i18n';
 
 interface Props {
   /** Hide the wordmark (used where the name is already visible). */
   markOnly?: boolean;
+  href?: string;
 }
 
 // Unique gradient id per instance (Logo appears in header, sheet and footer).
@@ -13,11 +15,12 @@ function nextLogoId(): string {
   return `ember-mark-${logoSequence.toString(36)}`;
 }
 const gradientId = nextLogoId();
-const { markOnly = false } = Astro.props;
+const { markOnly = false, href = localizedPath('/', normalizeLocale(Astro.currentLocale)) } =
+  Astro.props;
 ---
 
 <a
-  href="/"
+  href={href}
   class="group inline-flex items-center gap-2.5 rounded-lg"
   aria-label={`${brasa.site.name} — home`}
 >

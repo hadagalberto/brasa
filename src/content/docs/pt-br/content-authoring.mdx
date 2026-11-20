@@ -1,0 +1,190 @@
+---
+title: Criação de conteúdo
+description: Adicione posts, páginas de docs e autores por meio de coleções de conteúdo tipadas, com componentes MDX e sem links quebrados.
+group: Guides
+order: 1
+sidebarLabel: Criação de conteúdo
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Steps, Tabs } from '../../../components/mdx';
+
+O conteúdo fica em `src/content/` e é validado por schemas Zod em `src/content.config.ts`. Um erro de digitação em um nome de campo falha o build com o caminho do arquivo — exatamente o que você quer de um manual deste tamanho.
+
+## Coleções em resumo
+
+<FileTree
+  tree={[
+    {
+      name: 'src/content/',
+      children: [
+        { name: 'blog/', note: 'um .mdx por artigo', highlight: true },
+        { name: 'docs/', note: 'um .mdx por página do manual' },
+        { name: 'authors/', note: 'um .json por autor' },
+      ],
+    },
+    { name: 'src/content.config.ts', note: 'os três schemas' },
+    { name: 'src/components/mdx.ts', note: 'o barrel de imports' },
+  ]}
+/>
+
+### Frontmatter de blog
+
+```mdx
+---
+title: Six seconds to a URL
+description: Why a warm build is the real feature.
+author: hadjunior
+tags:
+  - Performance
+  - Developer experience
+pubDate: 2026-05-12
+updatedDate: 2026-06-01
+featured: true
+draft: false
+---
+
+import { Callout, CodeTabs } from '../../../components/mdx';
+
+The first paragraph starts here — after the closing delimiter.
+```
+
+`author` deve corresponder a um `id` em `src/content/authors/`. `tags` se tornam páginas `/blog/tags/<slug>` automaticamente; o slugifier converte para minúsculas, remove acentos e transforma sequências de não alfanuméricos em um único hífen. `featured` renderiza o post como card de destaque na primeira página do blog. `draft: true` o remove de todas as rotas e feeds.
+
+### Frontmatter de docs
+
+```mdx
+---
+title: Installation
+description: Scaffold the theme and run it locally.
+group: Getting started
+order: 1
+sidebarLabel: Install
+updated: 2026-11-20
+---
+
+import { Steps } from '../../../components/mdx';
+```
+
+`group` é um de `Getting started`, `Guides`, `Reference`, `Resources`. `order` ordena dentro do grupo; o manual completo é então achatado nessa mesma ordem para os links anterior/próximo. `sidebarLabel` é opcional e apenas encurta a entrada na barra lateral.
+
+<Callout variant="danger" title="Imports vão abaixo do --- final">
+  O frontmatter YAML termina no segundo `---`. Uma linha `import` logo após ele — ou uma linha acima dele —
+  é um erro de parse. `npm run build` executa `scripts/verify-mdx.mjs` primeiro e reporta o arquivo e a
+  linha exatos, então o CI falha rápido com uma mensagem útil em vez de um stack trace do compilador.
+</Callout>
+
+### Registros de autores
+
+```json
+{
+  "name": "Hadagalberto Junior",
+  "role": "Theme author",
+  "bio": "Builds design systems and writes about the boring parts that matter.",
+  "location": "Brazil",
+  "links": [{ "label": "GitHub", "href": "https://github.com/hadagalberto", "icon": "github" }]
+}
+```
+
+Avatares são iniciais determinísticas geradas a partir de `name` — nenhum arquivo de imagem para gerenciar, nenhuma URL de avatar quebrada.
+
+## Escrevendo MDX
+
+MDX é Markdown mais componentes. Markdown comum funciona como esperado; tags de componente permitem inserir layouts mais ricos. Todos os componentes do tema são reexportados de um único barrel:
+
+```mdx
+import {
+  Accordion,
+  Badge,
+  Callout,
+  Cards,
+  CodeTabs,
+  FileTree,
+  Steps,
+  Tabs,
+  Testimonial,
+} from '../../../components/mdx';
+```
+
+O caminho é relativo porque os arquivos de conteúdo ficam fora da configuração de alias de `src/`. Use imports nomeados e mantenha-os logo após o frontmatter.
+
+<Tabs
+  label="Padrões de MDX"
+  tabs={[
+    { id: 'callout', label: 'Callout' },
+    { id: 'steps', label: 'Steps' },
+  ]}
+>
+  <Fragment slot="callout">
+    ```mdx
+    <Callout variant="tip" title="Small, specific, useful">
+      Prefer one concrete instruction to three vague encouragements.
+    </Callout>
+    ```
+  </Fragment>
+  <Fragment slot="steps">
+    ```mdx
+    <Steps
+      steps={[
+        { icon: 'terminal', title: 'Install', body: 'Run npm install.' },
+        { icon: 'bolt', title: 'Build', body: 'Run npm run build.' },
+      ]}
+    />
+    ```
+  </Fragment>
+</Tabs>
+
+Blocos de código são destacados pelo Expressive Code com as paletas clara e escura do próprio tema, mais um botão de copiar. Adicione uma linguagem e um título opcional:
+
+````mdx
+```ts title="src/brasa.config.ts"
+export const brasa = { colors: { accentHue: 35 } };
+```
+````
+
+<Callout variant="note" title="Sem hotlinks de imagens externas">
+  A SPEC os proíbe, e com bom motivo: uma imagem remota pode desaparecer ou vazar o IP do leitor.
+  Construa diagramas com CSS/SVG ou coloque um asset licenciado em `public/` e referencie-o com um
+  caminho local.
+</Callout>
+
+## Adicionando uma página
+
+<Steps
+  steps={[
+    {
+      icon: 'file',
+      title: 'Crie o arquivo',
+      body: 'Use um id em minúsculas com hífens — o nome do arquivo se torna a rota: src/content/blog/my-post.mdx → /blog/my-post.',
+    },
+    {
+      icon: 'sliders',
+      title: 'Preencha os campos obrigatórios',
+      body: 'Copie o frontmatter de uma entrada existente da mesma coleção. Schemas estritos rejeitam chaves desconhecidas.',
+    },
+    {
+      icon: 'code',
+      title: 'Escreva o corpo',
+      body: 'Importe apenas os componentes que usar. Mantenha os títulos em ordem: um h1 já é renderizado pelo layout, então comece com h2.',
+    },
+    {
+      icon: 'check',
+      title: 'Verifique localmente',
+      body: 'Execute npm run check e npm run build, depois abra a nova rota no preview para conferir o TOC, o card OG e o resultado da busca.',
+    },
+  ]}
+/>
+
+## Superfícies geradas
+
+Adicionar um post ou uma página de docs também atualiza coisas que você não edita manualmente:
+
+- **Índice do blog, paginação, páginas de tag e de autor** — derivados de `getPosts()`.
+- **Feeds RSS e JSON** — URLs absolutas construídas a partir de `SITE_URL` e `BASE_URL`.
+- **Imagens OG** — `/og/blog/<id>.png` e `/og/docs/<id>.png`, renderizadas no build com as fontes do tema.
+- **Índice do Pagefind** — gerado em `dist/pagefind/` depois que o Astro termina o build; toda região `data-pagefind-body` é indexada.
+- **Links anterior/próximo** — a ordem achatada do manual de docs.
+- **Capturas deste site** — `npm test` grava novas capturas para as rotas listadas em `tests/e2e/helpers.ts`.
+
+Se você adicionar um novo _tipo_ de página em vez de uma nova entrada, adicione sua rota a `routes` nesse arquivo auxiliar para que os testes de rastreamento de links, axe, layout, orçamento e capturas cubram tudo.

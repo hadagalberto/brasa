@@ -1,0 +1,17 @@
+{
+  "version": "2.1.0",
+  "date": "2026-07-30",
+  "title": "Regions, at last",
+  "summary": "Pick where a preview lives. The closest region wins by default, and Enterprise gets dedicated runners.",
+  "groups": [
+    {
+      "title": "Added",
+      "items": [
+        "Three shared build regions",
+        "Region picker in project settings",
+        "Dedicated regions for Enterprise"
+      ]
+    }
+  ],
+  "lang": "en"
+}

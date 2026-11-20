@@ -1,0 +1,38 @@
+---
+import { render } from 'astro:content';
+
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+import { docSlug, docsNeighbours, getDocs, type Doc } from '../../../lib/docs';
+import { locales, type Locale } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const paths: Array<{
+    params: { lang: string | undefined; slug: string };
+    props: { doc: Doc; docs: Doc[]; lang: Locale };
+  }> = [];
+  for (const lang of locales) {
+    const docs = await getDocs(lang);
+    paths.push(
+      ...docs.map((doc) => ({
+        params: { lang: lang === 'en' ? undefined : lang, slug: docSlug(doc) },
+        props: { doc, docs, lang },
+      })),
+    );
+  }
+  return paths;
+}
+
+interface Props {
+  doc: Doc;
+  docs: Doc[];
+  lang: Locale;
+}
+
+const { doc, docs, lang } = Astro.props;
+const { Content, headings } = await render(doc);
+const { prev, next } = docsNeighbours(docs, doc);
+---
+
+<DocsLayout {doc} {docs} {headings} {prev} {next} {lang}>
+  <Content />
+</DocsLayout>

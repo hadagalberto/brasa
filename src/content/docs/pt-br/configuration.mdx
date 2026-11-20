@@ -1,0 +1,140 @@
+---
+title: Configuração
+description: Altere identidade, navegação, rodapé, idiomas, funcionalidades e o matiz em brasa a partir de um único arquivo tipado.
+group: Getting started
+order: 2
+sidebarLabel: Configuração
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Tabs } from '../../../components/mdx';
+import { docLink } from '../../../lib/doc-link';
+
+Não há uma pilha de dotfiles para aprender. `src/brasa.config.ts` exporta um único objeto tipado, `brasa`, importado pelos layouts, componentes, pelo helper de SEO e pelo próprio `astro.config.ts`. O TypeScript avisa quando um nome de campo está errado antes de o build avisar.
+
+## O objeto de configuração
+
+```ts
+// src/brasa.config.ts (shape, abbreviated)
+export const brasa: BrasaConfig = {
+  site: { name, tagline, description, author, github },
+  logo: { text },
+  nav: [{ label, href, external? }],
+  footer: { columns, socials, newsletter, note },
+  locales: { default, available: [{ code, label, lang }] },
+  colors: { accentHue },
+  fonts: { display, sans, mono },
+  features: { blog, docs, changelog, search },
+};
+```
+
+### Site e logo
+
+`site.name` aparece nos títulos, no grafo de SEO e no rodapé. `site.github` é mais do que um link vaidoso: as URLs de "editar esta página" nas páginas de docs são derivadas dele, então trocar de repositório reescreve todos os links de edição. `site.tagline` completa o título na homepage; `site.description` é a meta description padrão.
+
+`logo.text` é a wordmark ao lado da marca de chama. Mantenha curto — o cabeçalho usa altura fixa e a folha mobile repete o mesmo componente.
+
+### Navegação
+
+```ts
+nav: [
+  { label: 'Home', href: '/' },
+  { label: 'Docs', href: '/docs' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Styleguide', href: '/styleguide' },
+],
+```
+
+Entradas com `external: true` recebem uma seta de link externo e `target="_blank"` com `rel="noopener noreferrer"`. O cabeçalho marca um link como atual quando o caminho corresponde exatamente ou fica dentro da subárvore do link, por isso "Blog" permanece ativo nas páginas de tag e autor.
+
+<Callout variant="tip" title="A ordem é o design">
+A ordem do array é a ordem visual tanto na navegação desktop quanto na folha mobile de tela cheia, inclusive o atraso escalonado da animação de entrada. Mova uma entrada para movê-la em todos os lugares.
+</Callout>
+
+### Rodapé e newsletter
+
+`footer.columns` é uma lista de grupos de links com título. O site de referência usa quatro; a grade é `1.25fr repeat(3, 1fr)` a partir da largura média, então uma quinta coluna quebra a linha em vez de comprimir. `footer.socials` usa um nome de ícone do conjunto inline `Icon`: `github`, `x`, `discord`, `rss` ou `mail`.
+
+O formulário de newsletter é intencionalmente estático. Defina `newsletter.action` com seu endpoint (Formspree, Buttondown, sua própria rota) e o formulário envia para lá; deixe vazio e ele envia para a página atual. Nenhum rastreamento é adicionado pelo tema.
+
+### Idiomas
+
+```ts
+locales: {
+  default: 'en',
+  available: [
+    { code: 'en', label: 'English', lang: 'en' },
+    { code: 'pt-br', label: 'Português (Brasil)', lang: 'pt-BR' },
+  ],
+},
+```
+
+O idioma padrão determina o `<html lang>` emitido por `BaseLayout`. Os valores de `code` são prefixos de rota e os valores de `lang` são as strings BCP-47 usadas para hreflang. Veja <a href={docLink('internationalization', 'pt-br')}>Internacionalização</a> para a configuração de roteamento.
+
+### Flags de funcionalidades
+
+Os quatro booleanos de `features` são interruptores tipados para seus próprios layouts e condicionais — por exemplo, esconder o link do blog quando `features.blog` é false. O site de referência renderiza todas as suas seções e usa as flags como documentação do que está disponível. Se você remover uma seção da navegação, remova também a rota; um link de navegação sem página é um link quebrado.
+
+## Alterando o matiz do acento
+
+`colors.accentHue` é o único valor por trás de toda a escala em brasa. Defina-o em graus OKLCH:
+
+```ts
+colors: {
+  // 35 = deep red-orange fading into amber
+  // 145 = a mint-teal ramp; 260 = an indigo ramp
+  accentHue: 35,
+},
+```
+
+`global.css` deriva `--color-ember-*` de `var(--accent-hue)` usando passos de luminosidade e croma OKLCH, e `src/lib/color.ts` deriva a mesma escala para destaque de sintaxe e imagens OG em tempo de build. O matiz é injetado em `<html>` por `BaseLayout`, então nenhuma substituição de texto CSS acontece no build.
+
+<Callout variant="warning" title="Verifique o contraste após mudar o matiz">
+Luminosidade, não matiz, carrega o contraste. A escala mantém a luminosidade fixa enquanto o matiz gira, mas cores com matizes muito diferentes são percebidas de forma distinta. Execute novamente a suíte axe em ambos os temas após uma grande mudança de matiz.
+</Callout>
+
+O styleguide em `/styleguide` tem um slider de matiz ao vivo. Ele escreve `--accent-hue` no documento e atualiza a leitura dos tokens, então você pode testar um matiz antes de confirmá-lo na config.
+
+## Caminho base e URL do site
+
+O Astro lê duas variáveis de ambiente em `astro.config.ts`:
+
+<Tabs
+  label="Configurações por destino de deploy"
+  tabs={[
+    { id: 'pages', label: 'GitHub Pages' },
+    { id: 'custom', label: 'Domínio personalizado' },
+  ]}
+>
+  <Fragment slot="pages">
+    ```bash
+    SITE_URL=https://hadagalberto.github.io/brasa
+    PAGES_BASE_PATH=/brasa
+    npm run build
+    ```
+    Todo link interno, URL de asset, link de feed e caminho de imagem OG usa `import.meta.env.BASE_URL`, então todo o site permanece correto sob o subcaminho.
+  </Fragment>
+  <Fragment slot="custom">
+    ```bash
+    SITE_URL=https://brasa.example.com
+    PAGES_BASE_PATH=/
+    npm run build
+    ```
+    Com um domínio personalizado, o caminho base é `/` e nenhuma URL com prefixo aparece. `SITE_URL` define os links canônicos e as URLs absolutas do feed.
+  </Fragment>
+</Tabs>
+
+<Callout variant="note" title="Onde defini-las">
+No CI, coloque-as no bloco `env:` do workflow ou em variáveis do repositório. Localmente, use um arquivo `.env`. Nunca faça commit de uma URL de deploy que não seja sua.
+</Callout>
+
+## Validando uma mudança na config
+
+```bash
+npm run check   # BrasaConfig shape and all consumers
+npm run build   # routes, feeds, OG images, Pagefind index
+npm test        # links, axe, budget and screenshots
+```
+
+A config é importada no escopo do módulo pela config do Astro, então um erro de sintaxe nela falha o build antes de qualquer página renderizar — um modo de falha útil.

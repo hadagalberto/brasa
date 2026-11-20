@@ -1,0 +1,52 @@
+---
+/**
+ * Locale switcher. Renders the active language as text and the other language
+ * as a link to the same page — no JavaScript, no layout jump, correct hreflang.
+ */
+import Icon from './Icon.astro';
+import { locales, localeLang, switchLocalePath, ui, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  class?: string;
+}
+
+const { lang, class: className } = Astro.props;
+const strings = ui(lang).common;
+
+const options = locales.map((code) => ({
+  code,
+  label: code === 'en' ? 'EN' : 'PT',
+  fullLabel: code === 'en' ? 'English' : 'Português (Brasil)',
+  href: switchLocalePath(Astro.url.pathname, code),
+  active: code === lang,
+}));
+---
+
+<nav aria-label={strings.language} class:list={['inline-flex items-center gap-1', className]}>
+  <Icon name="globe" size={15} class="text-ink-3" />
+  <span class="flex items-center rounded-full border border-line bg-surface/60 p-0.5 font-mono text-[0.6875rem] font-medium tracking-[0.06em]">
+    {options.map((option) =>
+      option.active ? (
+        <span
+          class="rounded-full bg-surface-3 px-2 py-1 text-ink"
+          aria-current="true"
+          lang={localeLang[option.code]}
+          title={option.fullLabel}
+        >
+          {option.label}
+        </span>
+      ) : (
+        <a
+          href={option.href}
+          hreflang={localeLang[option.code]}
+          lang={localeLang[option.code]}
+          title={option.fullLabel}
+          class="rounded-full px-2 py-1 text-ink-3 transition-colors duration-(--dur-1) hover:bg-surface hover:text-ink"
+        >
+          {option.label}
+        </a>
+      ),
+    )}
+  </span>
+</nav>

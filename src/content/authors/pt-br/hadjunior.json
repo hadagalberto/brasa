@@ -1,0 +1,11 @@
+{
+  "name": "Hadagalberto Junior",
+  "role": "Criador do Brasa · tema e DX",
+  "bio": "Cria temas e ferramentas onde design e engenharia se recusam a ser trabalhos separados. Começou o Brasa depois de uma preview a mais abrindo com um flash branco às 3 da manhã. Acredita que a URL de deploy é um entregável de UX, escreve em português e inglês e desconfia de qualquer blog sem feed RSS.",
+  "location": "São Paulo, Brazil",
+  "links": [
+    { "label": "GitHub", "href": "https://github.com/hadagalberto", "icon": "github" },
+    { "label": "X (Twitter)", "href": "https://x.com/hadagalberto", "icon": "x" }
+  ],
+  "lang": "pt-br"
+}

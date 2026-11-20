@@ -1,0 +1,103 @@
+---
+title: Feeds ainda valem a pena
+description: Este blog publica RSS e JSON Feed de propósito, em 2026. Uma defesa da web aberta de assinaturas, um passeio por como o Brasa gera os dois feeds no build e respostas honestas às perguntas que toda equipe faz primeiro.
+author: hadjunior
+tags:
+  - cultura de engenharia
+pubDate: 2026-05-12
+lang: 'pt-br'
+---
+
+import { Accordion, Callout, Tabs } from '../../../components/mdx';
+
+O primeiro que o build deste blog produz não é o HTML — são `rss.xml` e `feed.json`, ao lado da página inicial como uma entrada de garagem e uma caixa de correio. Em 2026, publicar feeds é um ato de hospitalidade fora de moda: diz-se aos leitores que podem assinar o seu trabalho *sem um algoritmo decidindo se você existe hoje*.
+
+Achamos que isso vale dez minutos de código de build. Este post é a defesa, mais o como concreto.
+
+## Por que dois formatos e não um
+
+RSS é o sobrevivente: quinze anos de "morto" e ainda o formato de assinatura padrão de todo leitor em toda plataforma. JSON Feed é o recém-chegado que corrigiu os problemas reais do RSS — escapamento, datas, anexos — sendo um JSON entediante e bem especificado.
+
+Publicamos os dois porque custam quase nada e atendem leitores diferentes:
+
+<Tabs
+  label="Uma entrada de exemplo em cada formato"
+  tabs={[
+    { id: 'rss', label: 'rss.xml', icon: 'rss' },
+    { id: 'json', label: 'feed.json', icon: 'code' },
+  ]}
+>
+  <Fragment slot="rss">
+    ```xml
+    <item>
+      <title>Deploy previews are the pull request's missing half</title>
+      <link>https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half</link>
+      <guid isPermaLink="true">https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half</guid>
+      <pubDate>Mon, 02 Nov 2026 00:00:00 +0000</pubDate>
+      <description>A diff tells you what changed...</description>
+    </item>
+    ```
+  </Fragment>
+  <Fragment slot="json">
+    ```json
+    {
+      "id": "https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half",
+      "url": "https://brasa.cloud/blog/deploy-previews-are-the-prs-missing-half",
+      "title": "Deploy previews are the pull request's missing half",
+      "summary": "A diff tells you what changed...",
+      "date_published": "2026-11-02T00:00:00Z",
+      "tags": ["Deploy previews", "Engineering culture"],
+      "authors": [{ "name": "Hadagalberto Junior" }]
+    }
+    ```
+  </Fragment>
+</Tabs>
+
+## Como o build os produz
+
+Ambos os feeds são endpoints pré-renderizados sobre a mesma coleção de conteúdo que as páginas do blog leem — uma fonte da verdade, três projeções (páginas HTML, XML, JSON). Nada é gerado "no momento da publicação" por uma ferramenta separada, então um item do feed nunca pode divergir do artigo para o qual aponta.
+
+O endpoint do RSS monta seu XML à mão em vez de usar uma biblioteca, o que soa gratuito até que se depure o tratamento de CDATA de uma dependência à meia-noite. Custo total: ~40 linhas e uma função de escape.
+
+<Callout variant="note" title="Os três bugs de validador que todo mundo pega primeiro">
+  Seções CDATA que dão os colchetes angulares como certos; <code>pubDate</code>s formatados
+  de qualquer forma que não seja RFC 822 (leitores descartam o item silenciosamente); e um
+  <code>guid</code> ausente, que ensina a todo leitor que os posts são novos de novo. Nosso
+  teste de build verifica os três, nos dois formatos.
+</Callout>
+
+## As perguntas que toda equipe faz primeiro
+
+<Accordion
+  items={[
+    {
+      q: 'Ninguém na nossa empresa usa leitor de feed. Por que se preocupar?',
+      a: 'Seus colegas não são o público de um formato de assinatura — quem mantém blogs, newsletters e agregadores é. Feeds são como sua escrita é descoberta justamente pelos leitores que leem com profundidade: autores de newsletter em busca de material, pesquisadores montando listas de leitura, o colega de outra empresa que acompanha seu trabalho no NetNewsWire dentro do trem. O tráfego vindo de feeds é pequeno e desproporcionalmente valioso.',
+    },
+    {
+      q: 'Um feed canibaliza o tráfego que queremos no site?',
+      a: 'Um feed compete com "leitor abre seu site de vez em quando e perde a maioria dos posts", não com o tráfego que você já tem. Feeds de texto completo perdem alguns cliques e ganham a assinatura; feeds de resumo ganham o clique e perdem o hábito. Publicamos resumos com uma descrição fiel do post — o meio-termo honesto.',
+    },
+    {
+      q: 'Temos uma newsletter. Não é ela o feed moderno?',
+      a: 'Publique os dois; são promessas diferentes. A newsletter depende de confiança e de uma caixa de entrada; o feed é aberto e permanente — qualquer pessoa pode assinar sem te dar nada, nem mesmo um e-mail válido. Uma publicação que só oferece a newsletter está dizendo "ler isto exige um relacionamento conosco", que é uma escolha, e uma que seus leitores mais técnicos ouvem com clareza.',
+    },
+    {
+      q: 'Como sabemos que está funcionando?',
+      a: 'Basicamente, não se sabe, e está tudo bem — feeds são uma das últimas superfícies sem instrumentação da web, e privacidade faz parte da proposta. Acompanhamos dois indicadores indiretos honestos: contagens de assinantes informadas voluntariamente por alguns leitores e tráfego de referência vindo de ferramentas alimentadas por feeds. Se qualquer um dos dois for diferente de zero, os dez minutos estão pagando o aluguel.',
+    },
+  ]}
+/>
+
+## A página de assinatura como funcionalidade
+
+A última peça é social: feeds morrem silenciosamente quando a URL é segredo. Este blog linka seus feeds no rodapé, no cabeçalho do blog e na linha de compartilhamento de cada artigo — e o link em si é um pequeno ato de autoestima, uma afirmação de que a escrita vale ser seguida nos termos do leitor.
+
+<Callout variant="tip" title="Adote um leitor nesta semana">
+  Se nunca se viveu dentro de um leitor de feeds, o argumento fica abstrato. Vale testar
+  catorze dias: uma manhã lenta, um café, quarenta assinaturas escolhidas, nenhum ranking
+  de engajamento, nada infinito. A maioria de quem faz isso acaba publicando feeds no
+  trabalho — o formato se vende sozinho no momento em que se passa a ser o leitor.
+</Callout>
+
+A promessa original da web era de que *você* escolhe o que acompanha. Feeds são essa promessa, ainda funcionando, ainda entediantes, ainda gratuitos. Publique-os.

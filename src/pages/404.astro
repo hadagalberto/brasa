@@ -1,30 +1,42 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Button from '../components/Button.astro';
-import Container from '../components/Container.astro';
+import NotFound from '../components/NotFound.astro';
+import { ui } from '../i18n';
 ---
 
-<BaseLayout title="Page not found" noindex>
-  <section class="section-y grid min-h-[72svh] place-items-center">
-    <Container size="sm" class="text-center">
-      <p class="eyebrow justify-center">
-        <span class="eyebrow-dash" aria-hidden="true"></span>
-        Error 404
-        <span class="eyebrow-dash" aria-hidden="true"></span>
-      </p>
-      <h1 class="mt-6 font-sans font-semibold text-display-xl text-balance text-ink">
-        This ember <em class="font-display text-gradient-ember italic">burnt out</em>.
-      </h1>
-      <p class="mx-auto mt-6 max-w-[46ch] text-pretty text-body-lg text-ink-2">
-        The page you're after doesn't exist — it may have moved, or the URL lost a spark. Head back
-        home, or open the styleguide to see what Brasa is made of.
-      </p>
-      <div class="mt-9 flex flex-wrap justify-center gap-4">
-        <Button href="/">Back home</Button>
-        <Button href="/styleguide" variant="secondary">
-          Styleguide
-        </Button>
-      </div>
-    </Container>
-  </section>
+<!--
+  Static hosts serve this file for every unknown path, including /pt-br/*.
+  The inline script chooses the matching locale before paint so a Portuguese
+  URL never lands on an English error page.
+-->
+<BaseLayout title={ui('en').notFound.title} noindex>
+  <div data-locale="en">
+    <NotFound lang="en" />
+  </div>
+  <div data-locale="pt-br" hidden>
+    <NotFound lang="pt-br" />
+  </div>
+  <script is:inline>
+    (() => {
+      const portuguese = window.location.pathname.replace(/^\/+/, '').startsWith('pt-br');
+      const active = document.querySelector(
+        portuguese ? '[data-locale="pt-br"]' : '[data-locale="en"]',
+      );
+      document.querySelectorAll('[data-locale]').forEach((node) => {
+        if (node !== active) node.setAttribute('hidden', '');
+        else node.removeAttribute('hidden');
+      });
+      if (portuguese) {
+        document.documentElement.lang = 'pt-BR';
+        document.title = 'Página não encontrada · Brasa';
+        const description = document.querySelector('meta[name="description"]');
+        if (description) {
+          description.setAttribute(
+            'content',
+            'A página que você procura não existe — explore a documentação ou volte ao início.',
+          );
+        }
+      }
+    })();
+  </script>
 </BaseLayout>

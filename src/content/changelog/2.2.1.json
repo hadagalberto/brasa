@@ -1,0 +1,17 @@
+{
+  "version": "2.2.1",
+  "date": "2026-09-15",
+  "title": "Rollbacks you can trust",
+  "summary": "Every deploy is now a snapshot with a name, an author and a one-click restore path.",
+  "groups": [
+    {
+      "title": "Added",
+      "items": ["Named snapshots for production deploys", "Restore from the deploy list"]
+    },
+    {
+      "title": "Fixed",
+      "items": ["Restored previews kept the old cache key"]
+    }
+  ],
+  "lang": "en"
+}

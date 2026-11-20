@@ -4,17 +4,20 @@
  */
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
-import { authorHref } from '../../lib/posts';
+import { authorHref, authorId } from '../../lib/posts';
 import type { Author } from '../../lib/posts';
+import { ui, type Locale } from '../../i18n';
 
 interface Props {
   author: Author;
   /** Written by the same person as the post? Then skip the "More from" copy. */
   postCount: number;
+  lang?: Locale;
   class?: string;
 }
 
-const { author, postCount, class: className } = Astro.props;
+const { author, postCount, lang = author.data.lang, class: className } = Astro.props;
+const strings = ui(lang).blog;
 ---
 
 <aside
@@ -22,14 +25,20 @@ const { author, postCount, class: className } = Astro.props;
     'not-prose flex flex-col gap-6 rounded-2xl border border-line bg-surface p-6 shadow-sm sm:flex-row sm:items-start sm:p-8',
     className,
   ]}
-  aria-label={`About the author, ${author.data.name}`}
+  aria-label={
+    lang === 'pt-br'
+      ? `Sobre a autoria: ${author.data.name}`
+      : `About the author, ${author.data.name}`
+  }
 >
   <Avatar name={author.data.name} size={64} class="mt-1 sm:mt-0" />
   <div class="min-w-0">
-    <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">Written by</p>
+    <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+      {strings.writtenBy}
+    </p>
     <h2 class="mt-2 font-display text-display-sm text-ink">
       <a
-        href={authorHref(author.id)}
+        href={authorHref(authorId(author), lang)}
         class="transition-colors duration-(--dur-1) hover:text-accent"
       >
         {author.data.name}
@@ -41,10 +50,10 @@ const { author, postCount, class: className } = Astro.props;
     </p>
     <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
       <a
-        href={authorHref(author.id)}
+        href={authorHref(authorId(author), lang)}
         class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
       >
-        {postCount === 1 ? 'Read their essay' : `Read all ${postCount} essays`}
+        {strings.readEssays(postCount)}
         <Icon name="arrow-right" size={14} />
       </a>
       {author.data.links.map((link) => (

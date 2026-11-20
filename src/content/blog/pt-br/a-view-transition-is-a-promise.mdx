@@ -1,0 +1,91 @@
+---
+title: Uma view transition é uma promessa
+description: As transições de elemento compartilhado entre o índice do blog e o cabeçalho do artigo parecem mágica e se comportam como um contrato. Como o Brasa as implementa, o que o navegador de fato anima e as três maneiras de quebrar a ilusão.
+author: hadjunior
+tags:
+  - design systems
+  - performance
+pubDate: 2026-08-05
+updatedDate: 2026-10-01
+lang: 'pt-br'
+---
+
+import { Callout } from '../../../components/mdx';
+
+Clique em um cartão de post neste blog e o título do cartão não desaparece para reaparecer — ele _viaja_, pousando como o cabeçalho do artigo enquanto o resto da página se acomoda ao redor. Por baixo dos panos, trata-se de uma view transition de elemento compartilhado: o navegador captura o elemento antigo e o novo e anima entre eles. Isso custa cerca de quarenta linhas de código e zero JavaScript, e é exatamente por isso que merece respeito: o recurso é barato, mas as _expectativas que ele cria_ não são.
+
+Uma transição é a promessa de que o item clicado é o item que apareceu. Quebrada a promessa, surge a versão perturbadora — um movimento que chama atenção para a costura em vez de escondê-la.
+
+## Como a ligação funciona de fato
+
+O `<ClientRouter />` do Astro (o roteador de view transitions) faz o serviço pesado: navegar, capturar a página antiga, trocar o DOM, capturar a nova página e animar. Elementos compartilhados aderem pelo nome — o mesmo `transition:name` no bloco de título do cartão e no cabeçalho do post significa "a mesma coisa":
+
+```astro
+<!-- PostCard: the element that leaves -->
+<div transition:name={`post-${post.id}`}>
+  <h3>{post.data.title}</h3>
+</div>
+
+<!-- Post page: the element that arrives -->
+<header transition:name={`post-${post.id}`}>
+  <h1>{post.data.title}</h1>
+</header>
+```
+
+Duas regras fazem a maior parte do trabalho de qualidade:
+
+1. **Os nomes devem ser únicos por página.** Cada cartão da lista recebe `post-<slug>`; dois elementos reivindicando o mesmo nome na mesma página fazem o navegador escolher um vencedor arbitrariamente, e a animação mente.
+2. **O par deve ser estruturalmente semelhante.** O morph interpola posição e tamanho, não significado. Envolver o _mesmo_ conteúdo — título, talvez uma linha de metadados — nos dois lugares faz a geometria interpolar por estados que ainda parecem a coisa.
+
+```css
+/* The browser defines these; the design system just dresses them. */
+::view-transition-old(root) {
+  animation-duration: var(--dur-2);
+  animation-timing-function: var(--ease-out-soft);
+}
+
+::view-transition-group(post-*) {
+  animation-timing-function: var(--ease-out-soft);
+}
+```
+
+Esse segundo seletor — `post-*` — é o grupo de elemento compartilhado: o navegador pareia as capturas pelo prefixo do nome e interpola as caixas. Nossas durações ficam entre 150 e 400 ms com a curva personalizada que o resto do site usa, de modo que a navegação _soa_ como o restante da interface.
+
+<Callout variant="warning" title="O único bug de deslocamento de layout que vale temer">
+  Elementos compartilhados animam entre posições de captura, medidas no momento da troca. Se
+  o cabeçalho de chegada se desloca após a hidratação — uma troca de fonte, uma imagem
+  carregada sem espaço reservado —, a nova captura é feita no lugar errado e o elemento
+  pousa, visivelmente, errado. Reserve tudo: caixas com aspect-ratio, <code>min-height</code> no cabeçalho,{' '}
+  <code>font-display: swap</code> com preload. A transição reproduz fielmente qualquer
+  instabilidade de layout que receber.
+</Callout>
+
+## As três maneiras de quebrar a promessa
+
+Descobrimos cada uma delas do jeito difícil — ou seja, os usuários as descobriram.
+
+**Animar coisas sem relação.** Um cartão se transforma em um cabeçalho que não compartilha conteúdo algum com ele — mesma geometria, continuidade zero. O movimento vira decoração, e decoração com tanto peso visual parece bug. Correção: compartilhe nomes apenas entre elementos que _são_ a mesma coisa.
+
+**Deixar o destino fazer reflow no meio do trajeto.** Já tratado acima, mas merece um item próprio por ser o mais comum. A transição é tão estável quanto a primeira pintura do destino.
+
+**Ignorar quem é sensível a movimento.** Algumas pessoas ficam realmente enjoadas com movimentos grandes e inesperados, e `prefers-reduced-motion` é o navegador dizendo quem são. A regra é uma única media query: nela, os elementos compartilhados apenas fazem cross-fade — a _promessa_ (isto se tornou aquilo) sobrevive, o movimento não.
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+```
+
+## O que medimos
+
+A tentação com qualquer view transition é temer o custo. A conta para um índice de blog com ~10 cartões é um punhado de atributos de nome — bytes, não kilobytes. A animação em si é trabalho do compositor fora da thread principal, então a página permanece interativa durante o voo, e o orçamento total de uma navegação satisfatória fica bem dentro do nosso teto de 400 ms.
+
+O que de fato precisou de ajuste foi a _empatia da duração_: 400 ms parecem luxuosos uma vez e obstrutivos no quinto clique. Nossos números finais — 250 ms de cross-fade na raiz, 400 ms de voo do elemento compartilhado — vieram de observar pessoas _lendo_, não de gosto. Uma transição ganha seus milissegundos ao terminar antes do esperado.
+
+> O melhor feedback que já recebemos sobre o morph foi um relatório de bug dizendo que "o cabeçalho se teletransportou" — a pessoa descrevia o fallback de cross-fade na configuração de movimento reduzido, sem nunca ter visto o voo. Promessa cumprida, movimento suprimido, experiência ainda coerente.
+
+É esse o padrão inteiro: transições devem ser a _camada de continuidade_ da interface, presentes quando bem-vindas, ausentes quando não, e sempre honestas.

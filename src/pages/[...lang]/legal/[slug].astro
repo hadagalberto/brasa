@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import Container from '../../../components/Container.astro';
+import Prose from '../../../components/Prose.astro';
+import { localizedPath, normalizeLocale, ui } from '../../../i18n';
+
+export function getStaticPaths() {
+  return ['privacy', 'terms'].flatMap((slug) => [
+    { params: { lang: undefined, slug } },
+    { params: { lang: 'pt-br', slug } },
+  ]);
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const { slug } = Astro.params;
+const t = ui(lang);
+const legal = t.legal;
+const document = slug === 'privacy' ? legal.privacy : legal.terms;
+const updated = lang === 'pt-br' ? '20 de novembro de 2026' : 'November 20, 2026';
+---
+
+<BaseLayout title={document.title} description={document.description} {lang}>
+  <Container size="sm" class="section-y">
+    <Breadcrumbs
+      items={[
+        { label: lang === 'pt-br' ? 'Início' : 'Home', href: localizedPath('/', lang) },
+        { label: legal.eyebrow, href: localizedPath('/legal/privacy', lang) },
+        { label: document.title },
+      ]}
+    />
+
+    <header class="mt-10 border-b border-line pb-10">
+      <p class="eyebrow">
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+        {legal.eyebrow}
+        <span class="eyebrow-dash" aria-hidden="true"></span>
+      </p>
+      <h1 class="mt-6 text-display-lg text-balance font-display text-ink">{document.title}</h1>
+      <p class="mt-5 text-pretty text-body-lg text-ink-2">{document.intro}</p>
+      <p class="mt-6 font-mono text-xs tracking-[0.08em] text-ink-3">
+        {legal.updated}: <time datetime="2026-11-20">{updated}</time>
+      </p>
+    </header>
+
+    <div data-pagefind-body>
+      <Prose>
+        {document.sections.map((section) => (
+          <section>
+            <h2>{section.heading}</h2>
+            {section.paragraphs.map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+            {((section as { list?: string[] }).list?.length ?? 0) > 0 && (
+              <ul>
+                {((section as { list?: string[] }).list ?? []).map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+      </Prose>
+    </div>
+
+    <nav class="mt-14 flex flex-wrap gap-4 border-t border-line pt-8" aria-label={legal.eyebrow}>
+      <a
+        href={localizedPath('/legal/privacy', lang)}
+        class:list={[
+          'rounded-full border px-4 py-2 text-sm transition-colors',
+          slug === 'privacy'
+            ? 'border-accent/40 bg-accent-soft text-accent'
+            : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
+        ]}
+        aria-current={slug === 'privacy' ? 'page' : undefined}
+      >
+        {legal.privacy.title}
+      </a>
+      <a
+        href={localizedPath('/legal/terms', lang)}
+        class:list={[
+          'rounded-full border px-4 py-2 text-sm transition-colors',
+          slug === 'terms'
+            ? 'border-accent/40 bg-accent-soft text-accent'
+            : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
+        ]}
+        aria-current={slug === 'terms' ? 'page' : undefined}
+      >
+        {legal.terms.title}
+      </a>
+    </nav>
+  </Container>
+</BaseLayout>

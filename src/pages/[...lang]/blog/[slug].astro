@@ -1,0 +1,211 @@
+---
+import { render } from 'astro:content';
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Avatar from '../../../components/Avatar.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import type { Crumb } from '../../../components/Breadcrumbs.astro';
+import Container from '../../../components/Container.astro';
+import Icon from '../../../components/Icon.astro';
+import Prose from '../../../components/Prose.astro';
+import Toc from '../../../components/Toc.astro';
+import AuthorCard from '../../../components/blog/AuthorCard.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import PostMeta from '../../../components/blog/PostMeta.astro';
+import PostNav from '../../../components/blog/PostNav.astro';
+import ShareLinks from '../../../components/blog/ShareLinks.astro';
+import TagPill from '../../../components/blog/TagPill.astro';
+import {
+  authorHref,
+  formatDate,
+  getAuthor,
+  getPosts,
+  neighbours,
+  postSlug,
+  readingTimeLabel,
+  relatedPosts,
+  tagHref,
+} from '../../../lib/posts';
+import type { Post } from '../../../lib/posts';
+import { authorId } from '../../../lib/posts';
+import { locales, ui, type Locale } from '../../../i18n';
+
+export async function getStaticPaths() {
+  const paths: Array<{
+    params: { lang: string | undefined; slug: string };
+    props: { post: Post; lang: Locale };
+  }> = [];
+  for (const lang of locales) {
+    const posts = await getPosts(lang);
+    paths.push(
+      ...posts.map((post) => ({
+        params: { lang: lang === 'en' ? undefined : lang, slug: postSlug(post) },
+        props: { post, lang },
+      })),
+    );
+  }
+  return paths;
+}
+
+interface Props {
+  post: Post;
+  lang: Locale;
+}
+
+const { post, lang } = Astro.props;
+const t = ui(lang);
+const { Content, headings } = await render(post);
+
+const author = await getAuthor(post.data.author, lang);
+const allPosts = await getPosts(lang);
+const { prev, next } = neighbours(allPosts, post);
+const related = relatedPosts(allPosts, post, 2);
+const authorPosts = allPosts.filter((entry) => entry.data.author === post.data.author);
+
+const url = new URL(
+  `${import.meta.env.BASE_URL}${lang === 'pt-br' ? 'pt-br/' : ''}blog/${postSlug(post)}/`,
+  Astro.site ?? Astro.url,
+).toString();
+const ogImage = `${import.meta.env.BASE_URL}og/blog/${postSlug(post)}${lang === 'pt-br' ? '-pt-br' : ''}.png`;
+
+const crumbs: Crumb[] = [
+  { label: lang === 'pt-br' ? 'Início' : 'Home', href: lang === 'pt-br' ? '/pt-br/' : '/' },
+  { label: t.blog.allEssays, href: lang === 'pt-br' ? '/pt-br/blog' : '/blog' },
+  { label: post.data.title },
+];
+const seoCrumbs = [
+  ...crumbs
+    .filter((crumb): crumb is Crumb & { href: string } => crumb.href !== undefined)
+    .map(({ label, href }) => ({ label, href })),
+  { label: post.data.title, href: url },
+];
+const readingTime = readingTimeLabel(post.body ?? '', lang);
+const relatedData = await Promise.all(
+  related.map(async (entry) => ({ post: entry, author: await getAuthor(entry.data.author, lang) })),
+);
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  image={ogImage}
+  article={{
+    publishedTime: post.data.pubDate,
+    modifiedTime: post.data.updatedDate,
+    authorName: author.data.name,
+    authorUrl: authorHref(authorId(author), lang),
+    tags: post.data.tags,
+  }}
+  breadcrumbs={seoCrumbs}
+  {lang}
+>
+  <article class="section-y" data-post-root data-pagefind-body>
+    <Container size="sm" class="pt-2">
+      <Breadcrumbs items={crumbs} />
+    </Container>
+
+    <!-- Post header — the shared-element landing pad for card → article morphs. -->
+    <Container size="sm" class="mt-8">
+      <div transition:name={`post-${post.id}`} class="post-hero flex flex-col gap-6">
+        <ul class="flex flex-wrap items-center gap-2">
+          {post.data.tags.map((tag) => (
+            <li>
+              <TagPill label={tag} href={tagHref(tag, lang)} />
+            </li>
+          ))}
+        </ul>
+        <h1 class="font-display text-display-xl text-ink text-balance">{post.data.title}</h1>
+        <p class="max-w-[58ch] text-pretty text-body-lg text-ink-2">{post.data.description}</p>
+        <PostMeta {post} {author} />
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <ShareLinks title={post.data.title} url={url} {lang} />
+        <a
+          href={authorHref(authorId(author), lang)}
+          class="group inline-flex items-center gap-3 text-sm font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
+        >
+          <Avatar name={author.data.name} size={34} />
+          <span>
+            {author.data.name}
+            <span class="block text-xs font-normal text-ink-3">{author.data.role}</span>
+          </span>
+        </a>
+      </div>
+    </Container>
+
+    <!-- Mobile / tablet TOC: native <details>, zero JS to operate. -->
+    <Container size="md" class="mt-10 xl:hidden">
+      <details class="toc-details rounded-2xl border border-line bg-surface">
+        <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 font-mono text-xs font-medium tracking-[0.14em] text-ink-2 uppercase transition-colors duration-(--dur-1) hover:text-ink [&::-webkit-details-marker]:hidden">
+          {t.common.onThisPage}
+          <Icon
+            name="chevron-down"
+            size={14}
+            class="toc-chev transition-transform duration-(--dur-2) ease-(--ease-out-soft)"
+          />
+        </summary>
+        <div class="px-5 pt-1 pb-5">
+          <Toc headings={headings} />
+        </div>
+      </details>
+    </Container>
+
+    <Container size="md" class="mt-10">
+      <div class="grid grid-cols-1 gap-10 xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-14">
+        <div class="mx-auto w-full max-w-[44rem] xl:mx-0 xl:max-w-none">
+          <Prose>
+            <Content />
+          </Prose>
+
+          <div class="mt-14 flex flex-col gap-4 border-t border-line pt-8 not-prose">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <p class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+                {formatDate(post.data.pubDate, lang)} · {readingTime}
+              </p>
+              <ShareLinks title={post.data.title} url={url} {lang} />
+            </div>
+            <AuthorCard author={author} postCount={authorPosts.length} class="mt-4" {lang} />
+          </div>
+
+          <div class="mt-10">
+            <PostNav {prev} {next} {lang} />
+          </div>
+        </div>
+
+        <aside class="hidden xl:block">
+          <div class="sticky top-24 max-h-[calc(100dvh-8rem)] overflow-y-auto pb-8">
+            <Toc headings={headings} />
+          </div>
+        </aside>
+      </div>
+    </Container>
+
+    {relatedData.length > 0 && (
+      <Container size="md" class="mt-8">
+        <section aria-labelledby="related-heading" class="mt-16">
+          <h2 id="related-heading" class="font-display text-display-sm text-ink">
+            {t.blog.related}
+          </h2>
+          <div class="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {relatedData.map(({ post: entry, author: entryAuthor }) => (
+              <PostCard post={entry} author={entryAuthor} variant="compact" />
+            ))}
+          </div>
+        </section>
+      </Container>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  // eslint-disable-next-line astro/no-unused-css-selector
+  .toc-details[open] .toc-chev {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  import '../../../scripts/blog';
+</script>

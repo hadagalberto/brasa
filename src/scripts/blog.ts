@@ -22,7 +22,7 @@ document.addEventListener('click', (event) => {
     .then(() => {
       button.dataset.state = 'copied';
       const feedback = button.querySelector('[data-share-feedback]');
-      if (feedback) feedback.textContent = 'Link copied to clipboard';
+      if (feedback) feedback.textContent = button.dataset.copiedLabel ?? 'Link copied to clipboard';
       window.setTimeout(() => {
         delete button.dataset.state;
         if (feedback) feedback.textContent = '';

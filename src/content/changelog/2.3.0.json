@@ -1,0 +1,21 @@
+{
+  "version": "2.3.0",
+  "date": "2026-10-07",
+  "title": "Governance without the spreadsheet",
+  "summary": "SAML SSO, SCIM provisioning and an audit log arrive on Business — with the same quiet interface as everything else.",
+  "groups": [
+    {
+      "title": "Added",
+      "items": [
+        "SAML SSO and SCIM user sync",
+        "Searchable audit log",
+        "Role-based access for reviewers"
+      ]
+    },
+    {
+      "title": "Fixed",
+      "items": ["Session refresh no longer signs out idle reviewers"]
+    }
+  ],
+  "lang": "en"
+}

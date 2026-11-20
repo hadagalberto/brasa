@@ -1,0 +1,194 @@
+---
+title: Referência de componentes
+description: Todos os componentes do tema, suas props e onde são usados — com exemplos ao vivo renderizados nesta página.
+group: Reference
+order: 1
+sidebarLabel: Componentes
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Accordion, Badge, Button, Callout, Cards, Icon } from '../../../components/mdx';
+import { docLink } from '../../../lib/doc-link';
+
+O Brasa não tem framework de UI. Componentes são arquivos Astro que renderizam HTML e, quando precisam de comportamento, um pequeno módulo vanilla. Esta página é o catálogo: tabelas de propriedades mais componentes reais que você pode ver e usar aqui mesmo.
+
+## Amostra ao vivo
+
+<div class="not-prose flex flex-wrap items-center gap-3">
+  <Button href={docLink('installation', 'pt-br')} variant="primary" icon="arrow-right">
+    Link primário
+  </Button>
+  <Button href={docLink('configuration', 'pt-br')} variant="secondary">
+    Secundário
+  </Button>
+  <Button href={docLink('design-tokens', 'pt-br')} variant="ghost">
+    Ghost
+  </Button>
+</div>
+
+<div class="not-prose mt-5 flex flex-wrap items-center gap-2">
+  <Badge variant="ember">Ember</Badge>
+  <Badge variant="solid">Solid</Badge>
+  <Badge variant="outline">Outline</Badge>
+  <Badge variant="neutral">Neutral</Badge>
+</div>
+
+<Callout variant="tip" title="Este callout é o componente">
+  Ele opta por sair da tipografia de texto com `not-prose` e define seu próprio ritmo, então fica idêntico
+  em um post do blog, numa página de docs ou numa seção independente.
+</Callout>
+
+<Cards
+  items={[
+    {
+      title: 'Referência abaixo',
+      description: 'Props e uso pretendido de cada componente em src/components.',
+      href: '#foundations',
+      icon: 'book',
+      meta: 'Esta página',
+    },
+    {
+      title: 'Componentes MDX',
+      description: 'Callout, Tabs, Steps, FileTree, Cards e Accordion — com exemplos copiáveis.',
+      href: docLink('mdx-components', 'pt-br'),
+      icon: 'code',
+      meta: 'Próxima página',
+    },
+  ]}
+/>
+
+## Fundamentos
+
+### Container
+
+| Prop    | Tipo                           | Padrão  |
+| ------- | ------------------------------ | ------- |
+| `size`  | `sm \| md \| lg \| xl \| full` | `lg`    |
+| `class` | `string`                       | —       |
+
+Centraliza o conteúdo com margens laterais responsivas. `sm` é `max-w-3xl` para leitura, `md` `max-w-5xl`, `lg` `max-w-6xl` (o padrão para a maioria das seções), `xl` `max-w-7xl` para a estrutura de três colunas dos docs.
+
+### Section
+
+| Prop    | Tipo                         | Padrão    |
+| ------- | ---------------------------- | --------- |
+| `id`    | `string`                     | —         |
+| `tone`  | `default \| deep \| surface` | `default` |
+| `class` | `string`                     | —         |
+
+Aplica o padding fluido `section-y`. `deep` e `surface` adicionam uma borda finíssima e uma superfície diferente, usadas para separar as faixas alternadas da página inicial.
+
+### Heading
+
+| Prop      | Tipo                       | Padrão  |
+| --------- | -------------------------- | ------- |
+| `eyebrow` | `string`                   | —       |
+| `title`   | `string`                   | —       |
+| `lede`    | `string`                   | —       |
+| `as`      | nível de título            | `h2`    |
+| `size`    | `hero \| display-2xl \| …` | —       |
+| `align`   | `start \| center`          | `start` |
+
+O eyebrow é o rótulo monoespaçado em small-caps com um traço em brasa. O lede fica limitado a uma medida legível. Use-o para cabeçalhos de seção em vez de montar manualmente os mesmos três elementos toda vez.
+
+### Button
+
+| Prop                 | Tipo                                    | Padrão                 |
+| -------------------- | --------------------------------------- | ---------------------- |
+| `href`               | `string`                                | — (renderiza `<button>`) |
+| `variant`            | `primary \| secondary \| ghost \| link` | `primary`              |
+| `size`               | `sm \| md \| lg`                        | `md`                   |
+| `icon` / `iconStart` | `IconName`                              | —                      |
+| `type`               | `button \| submit \| reset`             | `button`               |
+| `disabled`           | `boolean`                               | `false`                |
+
+Atributos extras são repassados, então `target`, `rel` e `download` funcionam na variante âncora. `primary` é o único componente que usa o gradiente em brasa como fundo — essa escassez é intencional.
+
+### Badge
+
+`variant` aceita `ember`, `solid`, `outline` e `neutral`. Badges são rótulos não interativos; use um Button ou um TagPill quando a coisa for um link.
+
+### Card, SpotlightCard
+
+`Card` renderiza um painel de superfície (`as`: `div | article | li`) com elevação opcional no hover `interactive`. `SpotlightCard` adiciona um destaque radial que segue o ponteiro via `--sp-x`/`--sp-y`, escrito por `behaviors.ts` e desabilitado com movimento reduzido. O bento da página inicial usa ambos.
+
+### Icon
+
+Um conjunto de SVGs inline com mais de 30 ícones de traço e de marca. `name` é tipado a partir do conjunto, `size` tem como padrão 20, `strokeWidth` 2, e `class` herda `currentColor`. Passe `label` para que o ícone se anuncie; caso contrário, ele é `aria-hidden`.
+
+### Prose
+
+Envolve o conteúdo MDX nas regras tipográficas de texto longo definidas em `global.css`: títulos equilibrados, marcadores de lista em brasa, tabelas estilizadas, `kbd`, blockquotes e blocos do Expressive Code. O layout envolve `<Content />` em `<Prose>`; você raramente precisará usá-la diretamente.
+
+## Componentes de conteúdo
+
+| Componente     | Props principais                                   | Finalidade                                                                                    |
+| -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `Tabs`         | `tabs: {id,label,icon?}[]`, `label`                 | Abas WAI-ARIA com foco móvel e fallback empilhado sem JS.                                     |
+| `CodeTabs`     | `tabs: {id,label,lang,title,code}[]`                | Abas cujos painéis são blocos do Expressive Code, definidas inteiramente em dados.            |
+| `Accordion`    | `items: {q,a}[]`                                   | Lista nativa de `<details>` com animação de altura onde suportado.                             |
+| `Callout`      | `variant: note\|tip\|warning\|danger`, `title`      | Aside tonificado com rótulo monoespaçado e um ícone.                                          |
+| `Steps`        | `steps: {icon,title,body}[]`                        | Etapas numeradas com conector desenhado na rolagem; a contagem de colunas segue a da lista.    |
+| `FileTree`     | `tree: FileTreeItem[]`, `label`                     | Árvore de diretórios semântica com notas e marcadores de destaque.                            |
+| `Cards`        | `items: CardItem[]`, `columns: 2\|3`                | Grade responsiva de cards de resumo com links.                                                |
+| `Testimonial`  | `quote`, `name`, `role`                             | Citação em destaque com avatar e atribuição.                                                  |
+
+Todos os sete são reexportados de `src/components/mdx.ts`. Veja <a href={docLink('mdx-components', 'pt-br')}>componentes MDX</a> para exemplos copiáveis.
+
+## Elementos de estrutura do site
+
+### Header e Footer
+
+`Header` lê `brasa.nav` tanto para a navegação desktop quanto para a folha mobile de tela cheia, marca a subárvore ativa e hospeda o alternador de tema e o gatilho de busca. `Footer` lê `brasa.footer` para suas colunas, redes sociais, newsletter e nota. Nenhum dos dois recebe props — a config é a única fonte da verdade.
+
+### SearchDialog
+
+`<dialog>` nativo estilizado como uma paleta de comandos. `Ctrl/⌘+K` e `/` o abrem; `search.ts` importa o módulo do Pagefind sob demanda, aplica debounce nas consultas, anuncia a contagem de resultados e suporta navegação por setas. A URL base vem de `import.meta.env.BASE_URL`, então um subcaminho no Pages funciona.
+
+### ThemeToggle
+
+Pequeno botão no cabeçalho. O bootstrap inline em `BaseLayout` aplica o tema salvo antes da primeira pintura; `behaviors.ts` cuida dos cliques, atualiza `<meta name="theme-color">` e carrega o atributo pelas View Transitions.
+
+### Breadcrumbs
+
+`items: {label, href?}[]`. A última migalha não tem `href`, recebe `aria-current="page"` e também é emitida como JSON-LD por `SEO.astro`.
+
+### Pagination
+
+`page`, `totalPages`, `hrefFor(page)` e um `label` opcional. Usado pelo arquivo de posts do blog; o callback mantém o formato da URL em `lib/posts.ts` em vez de no componente.
+
+### Toc
+
+`headings: {depth,slug,text}[]` de `render()`. Renderiza apenas `h2` e `h3`, marca o item ativo via `data-active` e `aria-current`, e é usado duas vezes em posts do blog e páginas de docs (disclosure mobile + trilha desktop) com um único observer compartilhado.
+
+## Componentes específicos do blog
+
+| Componente       | Props principais                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| `PostCard`       | `post`, `author`, `variant: default\|featured\|compact`, `index`                         |
+| `AuthorCard`     | `author`, `postCount`                                                                    |
+| `PostMeta`       | `post`, `author`, `linkAuthor`                                                           |
+| `PostNav`        | `prev`, `next`                                                                           |
+| `ShareLinks`     | `title`, `url`                                                                           |
+| `TagPill`        | `label`, `href`, `count`                                                                 |
+| `Avatar`         | `name`, `size`                                                                           |
+| `Marquee`        | `label`, `speed`                                                                         |
+| `CountUp`        | `value`, `decimals`, `prefix`, `suffix`, `label`, `sub`                                  |
+| `LogoCloud`      | `caption` (as wordmarks são escritas dentro)                                             |
+| `DashboardMock`  | `class` — o dashboard de deploy do hero, feito só com CSS                                |
+| `PricingCard`    | `name`, `price`, `unit`, `blurb`, `features`, `ctaLabel`, `ctaHref`, `featured`           |
+
+`CountUp` só anima quando visível e o movimento é permitido; caso contrário, renderiza o número final. `Marquee` pausa no hover e no foco e é rotulado para leitores de tela.
+
+## Componentes de infraestrutura
+
+- **SEO** — canonical, meta, Open Graph, Twitter e JSON-LD (Organization/WebSite, BlogPosting, BreadcrumbList). `BaseLayout` passa tudo; as páginas não duplicam tags de head.
+- **ClientRouter** — o controlador de View Transitions do Astro. Islands com delegação de eventos reinicializam em `astro:page-load`, e o atributo de tema é carregado no documento entrante antes da troca.
+- **Newsletter** — formulário estático orientado por config; o `action` em `brasa.config.ts` decide para onde ele envia.
+
+<Callout variant="note" title="Adicionando um componente">
+  Coloque o arquivo `.astro` em `src/components/`, exporte-o de `mdx.ts` se os autores precisarem dele e
+  documente suas props aqui. Se precisar de JavaScript, prefira um único listener delegado em `src/scripts/`
+  a um script escopado ao componente, para manter o orçamento de JS intacto.
+</Callout>

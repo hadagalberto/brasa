@@ -1,11 +1,25 @@
 ---
 import { brasa } from '../brasa.config';
+import { localizedPath, ui, type Locale } from '../i18n';
 import Container from './Container.astro';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import Newsletter from './Newsletter.astro';
 
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const strings = ui(lang).footer;
 const year = new Date().getFullYear();
+
+function linkHref(href: string): string {
+  if (href.startsWith('http') || href.startsWith('#')) return href;
+  // Feeds are global endpoints, not localized pages.
+  if (/\.(xml|json)$/.test(href)) return `${import.meta.env.BASE_URL}${href.replace(/^\//, '')}`;
+  return localizedPath(href, lang);
+}
 ---
 
 <footer class="border-t border-line bg-canvas-deep" data-pagefind-ignore>
@@ -13,7 +27,7 @@ const year = new Date().getFullYear();
     <div class="grid grid-cols-1 gap-12 md:grid-cols-[1.25fr_repeat(3,1fr)] md:gap-8">
       <div class="max-w-xs">
         <Logo />
-        <p class="mt-5 text-sm leading-relaxed text-ink-2 text-pretty">{brasa.site.description}</p>
+        <p class="mt-5 text-sm leading-relaxed text-ink-2 text-pretty">{strings.description}</p>
         <div class="mt-6 flex items-center gap-1">
           {brasa.footer.socials.map((social) => (
             <a
@@ -27,10 +41,10 @@ const year = new Date().getFullYear();
             </a>
           ))}
         </div>
-        <Newsletter />
+        <Newsletter {lang} />
       </div>
 
-      {brasa.footer.columns.map((column) => (
+      {strings.columns.map((column) => (
         <nav aria-label={column.title}>
           <h2 class="font-mono text-xs font-medium tracking-[0.14em] text-ink-3 uppercase">
             {column.title}
@@ -39,7 +53,7 @@ const year = new Date().getFullYear();
             {column.links.map((link) => (
               <li>
                 <a
-                  href={link.href}
+                  href={linkHref(link.href)}
                   {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   class="inline-flex items-center gap-1.5 text-sm text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
                 >
@@ -54,12 +68,10 @@ const year = new Date().getFullYear();
     </div>
 
     <div class="mt-16 flex flex-col items-start justify-between gap-4 border-t border-line pt-8 sm:flex-row sm:items-center">
-      <p class="text-xs text-ink-3">
-        © {year} {brasa.site.author} · Released under the MIT license.
-      </p>
+      <p class="text-xs text-ink-3">{strings.copyright(year, brasa.site.author)}</p>
       <p class="inline-flex items-center gap-1.5 text-xs text-ink-3">
         <Icon name="flame" size={13} class="text-ember-500" />
-        {brasa.footer.note}
+        {strings.note}
       </p>
     </div>
   </Container>

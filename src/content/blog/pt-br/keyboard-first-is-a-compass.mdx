@@ -1,0 +1,63 @@
+---
+title: Priorizar o teclado é uma bússola, não uma checklist
+description: Auditar o próprio blog do Brasa para usuários de teclado nos ensinou mais do que qualquer relatório de conformidade. O que corrigimos, o que deixamos de propósito e por que "passar no axe" foi a parte menos interessante.
+author: priya-raman
+tags:
+  - acessibilidade
+pubDate: 2026-09-09
+lang: 'pt-br'
+---
+
+import { Callout } from '../../../components/mdx';
+
+Toda auditoria de acessibilidade termina do mesmo jeito: uma lista, uma nota, um suspiro de alívio quando o último item fecha. Mas conformidade é piso, não direção. A diferença apareceu na primeira vez em que revisei este blog _sem tocar no mouse_ — cinco minutos digitando encontraram mais atrito do que uma semana de ferramentas.
+
+Este post é esses cinco minutos, reconstruídos, com as correções que publicamos.
+
+## O método é constrangedoramente simples
+
+Desconecte o mouse. Depois faça as quatro coisas que um leitor de fato faz:
+
+1. Ler um artigo de cima a baixo, seguindo um link no corpo do texto.
+2. Entrar em um post a partir do índice do blog e voltar.
+3. Abrir o índice e pular para uma seção mais adiante.
+4. Chegar ao rodapé sem se perder no caminho.
+
+Tudo abaixo saiu desses quatro fluxos. Nenhuma checklist necessária — apenas a disposição de ficar entediado e levemente irritado de propósito.
+
+## O que o teclado encontrou
+
+**Links no texto não tinham estado de foco visível.** O estilo global de anel de foco cobre todo elemento interativo _exceto_ links com cor própria — navegadores suprimem o contorno padrão no momento em que se define `outline-color`, e o nosso definiu. Correção: uma regra `:focus-visible` dedicada para links, com o anel âmbar e um deslocamento de um fio de cabelo. Um seletor, significado restaurado.
+
+**O fluxo de leitura afundava em pontos de tabulação.** Cada pílula de tag, botão de compartilhar e link do autor ficava entre o leitor e o próximo parágrafo. Quem usa teclado paga por cada tecla, então um post com três tags custa três <kbd>Tab</kbd> de pedágio antes de o conteúdo continuar. Correção: não menos links — links _agrupados_. As pílulas de tag agora ficam em um único marco `nav`; o índice é uma lista só, não um passeio link por link.
+
+<Callout variant="danger" title="A armadilha a evitar">
+  Não "corrija" a densidade de tabulação com <code>tabindex="-1"</code> em links de
+  conteúdo. Remover a possibilidade de foco de links dentro de um artigo é uma falha de
+  conformidade disfarçada de polimento — quem usa teclado perde *a capacidade de
+  referenciar uma seção*, enquanto a contagem de tabs fica mais bonita. Agrupe marcos,
+  nunca ampute.
+</Callout>
+
+**O índice fixo não podia ser operado.** Nosso primeiro índice ficava ótimo e tinha um tabindex itinerante que engolia as setas quando a página estava duas telas acima do painel controlado. O IntersectionObserver acompanhava as seções lindamente; o teclado era um depois de pensado. Correção: o índice agora é uma lista simples, entediante e maravilhosa de links de âncora — <kbd>Tab</kbd> percorre, <kbd>Enter</kbd> funciona, e a seção atual leva `aria-current="true"` para que leitores de tela anunciem onde se está ao chegar.
+
+**O link para o conteúdo chegava um tab tarde demais.** O link de salto era tecnicamente o primeiro na ordem do DOM, mas escondido de um jeito que o deixava primeiro impossível e depois possível de focar no momento errado durante trocas de tema. Correção: o script de inicialização do tema agora alterna o atributo de dados _antes_ da primeira pintura, e a transição `translate` do link de salto nunca deixa a página com um link que existe mas não pode ser alcançado.
+
+## O que decidimos não corrigir
+
+A cultura da conformidade adora uma lista limpa, então vale nomear o que deixamos como estava:
+
+- **O marquee da página inicial continua se movendo quando recebe foco via teclado**, porque pausar ao focar _é_ a acomodação — o movimento continua apenas para quem usa ponteiro. Remover a animação por completo mudaria o design para todo mundo; a WCAG pede o controle de parada, não a borracha.
+- **A severidade codificada por cor nos callouts mantém ícone e título.** Poderíamos ter adicionado rótulos textuais redundantes em todo lugar, mas todo callout já _diz_ "Nota" ou "Aviso" por extenso — a cor é a redundância, não a informação.
+
+<Callout variant="note">
+  O axe-core roda em toda rota deste site na CI, nos dois temas, e deve rodar: pega
+  regressões que humanos cansaram de pegar. A lição da passada pelo teclado é apenas que
+  o teto é mais alto que a ferramenta. Um gate de CI diz o que não quebrou; cinco minutos
+  sem mouse dizem o que *parece* quebrado — e "parecer quebrado" é a métrica que seus
+  usuários de fato experimentam.
+</Callout>
+
+## A bússola
+
+Uma checklist responde "estamos em conformidade?". Uma bússola responde "qual caminho é melhor?". A segunda pergunta é a que entrega dignidade. Na dúvida, desconecte o mouse, seja seu próprio usuário por cinco minutos e confie no atrito — ele é mais honesto do que qualquer relatório, inclusive os que escrevo.

@@ -20,11 +20,69 @@ interface PagefindResult {
 }
 
 interface PagefindApi {
-  search: (query: string) => Promise<{ results: PagefindResult[] }>;
+  search: (
+    query: string,
+    options?: { filters?: Record<string, string[]> },
+  ) => Promise<{ results: PagefindResult[] }>;
 }
 
 const MAX_RESULTS = 8;
 const DEBOUNCE_MS = 140;
+
+interface SearchStrings {
+  intro: string;
+  introTitle: string;
+  introHint: string;
+  noResults: string;
+  noResultsHint: string;
+  browseDocs: string;
+  searching: string;
+  noMatches: string;
+  matchOne: string;
+  matchMany: string;
+  unavailable: string;
+  unavailableTitle: string;
+  unavailableHint: string;
+  navigate: string;
+  open: string;
+  close: string;
+  powered: string;
+  docsHref: string;
+  lang: string;
+}
+
+function S(): SearchStrings {
+  const raw = getDialog()?.dataset.searchStrings;
+  const fallback: SearchStrings = {
+    intro: 'Start typing to search the whole site.',
+    introTitle: 'Find a guide, a component or a field in the config.',
+    introHint: 'Try a topic — or jump straight to a popular page.',
+    noResults: 'Nothing matched “«q»”.',
+    noResultsHint: 'Try a shorter term, or browse the documentation.',
+    browseDocs: 'Browse all docs',
+    searching: 'Searching for “«q»”…',
+    noMatches: 'No results for “«q»”',
+    matchOne: '1 result for “«q»”',
+    matchMany: '2 results for “«q»”',
+    unavailable: 'Search index unavailable',
+    unavailableTitle: 'Search is built with the site.',
+    unavailableHint: 'Run npm run build to generate the Pagefind index.',
+    navigate: 'navigate',
+    open: 'open',
+    close: 'close',
+    powered: 'Powered by Pagefind',
+    docsHref: '/docs',
+    lang: 'en',
+  };
+  if (!raw) return fallback;
+  try {
+    return { ...fallback, ...(JSON.parse(raw) as Partial<SearchStrings>) };
+  } catch {
+    return fallback;
+  }
+}
+
+const fill = (template: string, query: string): string => template.replaceAll('«q»', query);
 
 let indexPromise: Promise<PagefindApi> | null = null;
 let debounce: number | undefined;
@@ -100,19 +158,31 @@ function showIntro(): void {
   const container = getResults();
   if (!container) return;
   container.replaceChildren();
-  setStatus('Start typing to search the whole site.');
+  const s = S();
+  const base = getDialog()?.dataset.searchBase ?? '/';
+  const localePrefix = s.lang === 'en' ? '' : `${s.lang}/`;
+  setStatus(s.intro);
 
   const empty = element('div', 'search-empty');
-  empty.append(
-    element('p', undefined, 'Find a guide, a component or a field in the config.'),
-    element('span', undefined, 'Try a topic — or jump straight to a popular page.'),
-  );
+  empty.append(element('p', undefined, s.introTitle), element('span', undefined, s.introHint));
   const chips = element('div', 'search-suggestions');
   const suggestions = [
-    { label: 'Installation', href: `${getDialog()?.dataset.searchBase ?? '/'}docs/installation` },
-    { label: 'Design tokens', href: `${getDialog()?.dataset.searchBase ?? '/'}docs/design-tokens` },
-    { label: 'Components', href: `${getDialog()?.dataset.searchBase ?? '/'}docs/components` },
-    { label: 'Deployment', href: `${getDialog()?.dataset.searchBase ?? '/'}docs/deployment` },
+    {
+      label: s.lang === 'pt-br' ? 'Instalação' : 'Installation',
+      href: `${base}${localePrefix}docs/installation`,
+    },
+    {
+      label: s.lang === 'pt-br' ? 'Tokens de design' : 'Design tokens',
+      href: `${base}${localePrefix}docs/design-tokens`,
+    },
+    {
+      label: s.lang === 'pt-br' ? 'Componentes' : 'Components',
+      href: `${base}${localePrefix}docs/components`,
+    },
+    {
+      label: s.lang === 'pt-br' ? 'Deploy' : 'Deployment',
+      href: `${base}${localePrefix}docs/deployment`,
+    },
   ];
   for (const suggestion of suggestions) {
     const chip = element('a', 'search-chip', suggestion.label);
@@ -127,14 +197,15 @@ function showNoResults(query: string): void {
   const container = getResults();
   if (!container) return;
   container.replaceChildren();
+  const s = S();
   const empty = element('div', 'search-empty');
   empty.append(
-    element('p', undefined, `Nothing matched “${query}”.`),
-    element('span', undefined, 'Try a shorter term, or browse the documentation.'),
+    element('p', undefined, fill(s.noResults, query)),
+    element('span', undefined, s.noResultsHint),
   );
   const chips = element('div', 'search-suggestions');
-  const docs = element('a', 'search-chip', 'Browse all docs');
-  docs.href = `${getDialog()?.dataset.searchBase ?? '/'}docs`;
+  const docs = element('a', 'search-chip', s.browseDocs);
+  docs.href = `${getDialog()?.dataset.searchBase ?? '/'}${s.docsHref.replace(/^\//, '')}`;
   chips.append(docs);
   empty.append(chips);
   container.append(empty);
@@ -168,10 +239,11 @@ async function runSearch(query: string, id: number): Promise<void> {
     showIntro();
     return;
   }
-  setStatus(`Searching for “${query}”…`);
+  const s = S();
+  setStatus(fill(s.searching, query));
   try {
     const pagefind = await loadIndex();
-    const found = await pagefind.search(query);
+    const found = await pagefind.search(query, { filters: { lang: [s.lang] } });
     if (id !== requestId || !getDialog()?.open) return;
 
     const data = await Promise.all(
@@ -180,22 +252,22 @@ async function runSearch(query: string, id: number): Promise<void> {
     if (id !== requestId || !getDialog()?.open) return;
 
     if (data.length === 0) {
-      setStatus(`No results for “${query}”`);
+      setStatus(fill(s.noMatches, query));
       showNoResults(query);
       return;
     }
-    setStatus(`${data.length} result${data.length === 1 ? '' : 's'} for “${query}”`);
+    setStatus(fill(data.length === 1 ? s.matchOne : s.matchMany, query));
     render(data);
   } catch {
     if (id !== requestId) return;
-    setStatus('Search index unavailable');
+    setStatus(s.unavailable);
     const container = getResults();
     if (container) {
       container.replaceChildren();
       const empty = element('div', 'search-empty');
       empty.append(
-        element('p', undefined, 'Search is built with the site.'),
-        element('span', undefined, 'Run npm run build to generate the Pagefind index.'),
+        element('p', undefined, s.unavailableTitle),
+        element('span', undefined, s.unavailableHint),
       );
       container.append(empty);
     }

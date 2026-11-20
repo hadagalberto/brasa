@@ -1,0 +1,553 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Accordion from '../../components/Accordion.astro';
+import Avatar from '../../components/Avatar.astro';
+import Button from '../../components/Button.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import Container from '../../components/Container.astro';
+import CountUp from '../../components/CountUp.astro';
+import DashboardMock from '../../components/DashboardMock.astro';
+import Heading from '../../components/Heading.astro';
+import Icon from '../../components/Icon.astro';
+import LogoCloud from '../../components/LogoCloud.astro';
+import Marquee from '../../components/Marquee.astro';
+import PricingCard from '../../components/PricingCard.astro';
+import Section from '../../components/Section.astro';
+import SpotlightCard from '../../components/SpotlightCard.astro';
+import Steps from '../../components/Steps.astro';
+import Testimonial from '../../components/Testimonial.astro';
+import { normalizeLocale, ui } from '../../i18n';
+import type { IconName } from '../../components/Icon.astro';
+import type { CodeTab } from '../../components/CodeTabs.astro';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const home = t.home;
+
+const featureIcons: IconName[] = ['link', 'chart', 'shield', 'message', 'rotate-ccw', 'bell'];
+
+const codeTabs: CodeTab[] = [
+  {
+    id: 'cli',
+    label: 'CLI',
+    icon: 'terminal',
+    lang: 'bash',
+    title: 'terminal',
+    code: [
+      '# log in once per machine',
+      'npx brasa-cloud login',
+      '',
+      '# deploy the branch you are on',
+      'brasa deploy --branch feat/ember-glow',
+      '# built in 6.2s -> https://preview-8f2k.brasa.cloud',
+      '',
+      '# tail any running preview',
+      'brasa logs --follow',
+    ].join('\n'),
+  },
+  {
+    id: 'config',
+    label: 'Config',
+    icon: 'sliders',
+    lang: 'ts',
+    title: 'brasa.config.ts',
+    code: [
+      "import { defineConfig } from 'brasa-cloud';",
+      '',
+      'export default defineConfig({',
+      "  project: 'brasa/site',",
+      "  regions: ['gru', 'iad', 'fra'],",
+      "  cache: { strategy: 'content-addressed' },",
+      '  previews: {',
+      "    retention: '30d',",
+      "    auth: 'team-sso',",
+      '    outsidePasswords: true,',
+      '  },',
+      '});',
+    ].join('\n'),
+  },
+  {
+    id: 'api',
+    label: 'API',
+    icon: 'code',
+    lang: 'bash',
+    title: 'api.brasa.cloud',
+    code: [
+      'curl -X POST https://api.brasa.cloud/v1/previews \\',
+      '  -H "Authorization: Bearer $BRASA_TOKEN" \\',
+      '  -H "Content-Type: application/json" \\',
+      '  -d \'{"branch":"feat/ember-glow"}\'',
+      '',
+      '# 201 Created',
+      '# {"url":"https://preview-8f2k.brasa.cloud","buildMs":6210}',
+    ].join('\n'),
+  },
+];
+
+const installCommand = 'npm create astro@latest -- --template hadagalberto/brasa';
+const githubUrl = 'https://github.com/hadagalberto/brasa';
+const styleguideHref = lang === 'pt-br' ? '/pt-br/styleguide' : '/styleguide';
+const names = [
+  'Marina Cole',
+  'Ravi Nair',
+  'June Park',
+  'Tomás Vieira',
+  'Anna Sørensen',
+  'Diego Fuentes',
+];
+---
+
+<BaseLayout title={home.title} description={home.description} {lang}>
+  {/* ------------------------------- Hero --------------------------------- */}
+  <section data-glow class="relative overflow-hidden">
+    <Container
+      size="xl"
+      class="pt-[calc(var(--header-h)+3.75rem)] pb-20 lg:pt-[calc(var(--header-h)+5.5rem)] lg:pb-28"
+    >
+      <div class="grid grid-cols-1 items-center gap-14 lg:grid-cols-[7fr_6fr] lg:gap-16 xl:gap-20">
+        <div>
+          <p class="eyebrow">
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+            {home.hero.eyebrow}
+          </p>
+          <h1 class="mt-7 text-hero text-balance font-sans text-ink">
+            {home.hero.title.before}
+            <em class="font-display text-gradient-ember italic">{home.hero.title.em}</em>{' '}
+            {home.hero.title.after}
+          </h1>
+          <p class="mt-7 max-w-[54ch] text-pretty text-body-lg text-ink-2">{home.hero.lede}</p>
+          <div class="mt-10 flex flex-wrap items-center gap-4">
+            <Button href="#how-it-works" size="lg" icon="arrow-right">
+              {home.hero.primary}
+            </Button>
+            <Button
+              href={githubUrl}
+              variant="secondary"
+              size="lg"
+              iconStart="github"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {home.hero.secondary}
+            </Button>
+          </div>
+          <p class="mt-7 font-mono text-xs tracking-[0.08em] text-ink-3">{home.hero.micro}</p>
+        </div>
+
+        <div>
+          <DashboardMock class="w-full" />
+        </div>
+      </div>
+
+      <LogoCloud caption={home.hero.logoCaption} class="mt-20 lg:mt-28" />
+    </Container>
+  </section>
+
+  {/* ------------------------------- Bento -------------------------------- */}
+  <Section id="features">
+    <Container size="xl">
+      <div class="reveal">
+        <Heading
+          eyebrow={home.features.eyebrow}
+          as="h2"
+          size="display-lg"
+          lede={home.features.lede}
+        >
+          <Fragment slot="title">
+            {home.features.title.before}
+            <em class="text-gradient-ember italic">{home.features.title.em}</em>{' '}
+            {home.features.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <ul class="mt-14 grid grid-cols-1 gap-4 md:grid-cols-6">
+        <li class="md:col-span-3 md:row-span-2">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[0]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[0].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[0].body}
+            </p>
+            <div class="mt-auto space-y-2.5 pt-8" aria-hidden="true">
+              <div class="flex items-center gap-3 rounded-lg border border-line bg-surface-2/60 px-3.5 py-2.5 font-mono text-xs">
+                <span class="size-2 shrink-0 rounded-full bg-ember-gradient"></span>
+                <span class="w-0 min-w-0 flex-1 truncate text-ink-2">
+                  preview-8f2k<span class="text-ink-3"> · feat/ember-glow</span>
+                </span>
+                <span class="shrink-0 font-mono text-[10px] tracking-[0.12em] text-accent uppercase">
+                  {home.features.cards[0].live}
+                </span>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg border border-line bg-surface-2/60 px-3.5 py-2.5 font-mono text-xs">
+                <span
+                  class="size-2 shrink-0 rounded-full"
+                  style="background: oklch(0.75 0.14 70)"
+                ></span>
+                <span class="w-0 min-w-0 flex-1 truncate text-ink-2">
+                  preview-q7mn<span class="text-ink-3"> · fix/header-blur</span>
+                </span>
+                <span class="shrink-0 font-mono text-[10px] tracking-[0.12em] text-ink-3 uppercase">
+                  {home.features.cards[0].building}
+                </span>
+              </div>
+              <div class="flex items-center gap-3 rounded-lg border border-line bg-surface-2/60 px-3.5 py-2.5 font-mono text-xs">
+                <span class="size-2 shrink-0 rounded-full bg-ink-3/60"></span>
+                <span class="w-0 min-w-0 flex-1 truncate text-ink-2">
+                  brasa.cloud<span class="text-ink-3"> · main</span>
+                </span>
+                <span class="shrink-0 font-mono text-[10px] tracking-[0.12em] text-ink-3 uppercase">
+                  {home.features.cards[0].production}
+                </span>
+              </div>
+            </div>
+          </SpotlightCard>
+        </li>
+
+        <li class="md:col-span-3">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[1]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[1].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[1].body}
+            </p>
+            <div class="mt-auto pt-7" aria-hidden="true">
+              <div class="flex h-2 overflow-hidden rounded-full border border-line bg-surface-2">
+                <div class="h-full w-[97%] bg-ember-gradient"></div>
+              </div>
+              <div class="mt-2.5 flex justify-between font-mono text-[10px] text-ink-3">
+                <span class="text-accent">{home.features.cards[1].hit}</span>
+                <span>{home.features.cards[1].rebuild}</span>
+              </div>
+            </div>
+          </SpotlightCard>
+        </li>
+
+        <li class="md:col-span-3">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[2]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[2].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[2].body}
+            </p>
+            <div class="mt-auto flex flex-wrap gap-2 pt-7" aria-hidden="true">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
+                <Icon name="shield" size={11} class="text-accent" /> {home.features.cards[2].sso}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
+                <Icon name="lock" size={11} class="text-accent" /> {home.features.cards[2].password}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
+                <Icon name="rotate-ccw" size={11} class="text-accent" />{' '}
+                {home.features.cards[2].revoked}
+              </span>
+            </div>
+          </SpotlightCard>
+        </li>
+
+        <li class="md:col-span-2">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[3]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[3].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[3].body}
+            </p>
+            <div class="mt-auto pt-7" aria-hidden="true">
+              <div class="flex items-start gap-2.5">
+                <Avatar name={names[0]} size={22} />
+                <p class="rounded-lg rounded-tl-sm border border-line bg-surface-2 px-3 py-2 text-xs text-ink-2">
+                  {home.features.cards[3].comment}
+                </p>
+              </div>
+              <p class="mt-2 flex items-center gap-1.5 pl-8 font-mono text-[10px] text-ink-3">
+                <Icon name="check" size={11} class="text-accent" />{' '}
+                {home.features.cards[3].approvals}
+              </p>
+            </div>
+          </SpotlightCard>
+        </li>
+
+        <li class="md:col-span-2">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[4]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[4].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[4].body}
+            </p>
+            <div class="mt-auto pt-7" aria-hidden="true">
+              <p class="inline-flex items-center gap-2 rounded-full border border-line bg-surface-2/60 px-3.5 py-2 font-mono text-[10px] tracking-[0.06em] text-ink-2">
+                <Icon name="rotate-ccw" size={12} class="text-accent" />
+                {home.features.cards[4].snapshot}
+              </p>
+            </div>
+          </SpotlightCard>
+        </li>
+
+        <li class="md:col-span-2">
+          <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
+            <Icon name={featureIcons[5]} size={22} class="text-accent" />
+            <h3 class="mt-5 font-display text-display-sm text-ink">
+              {home.features.cards[5].title}
+            </h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">
+              {home.features.cards[5].body}
+            </p>
+            <div class="mt-auto pt-7" aria-hidden="true">
+              <p class="rounded-lg rounded-tl-sm border border-line bg-surface-2 px-3 py-2.5 font-mono text-[11px]">
+                <span class="text-accent">brasa</span>
+                <span class="text-ink-3"> · </span>
+                <span class="text-ink-2">{home.features.cards[5].slack}</span>
+              </p>
+            </div>
+          </SpotlightCard>
+        </li>
+      </ul>
+    </Container>
+  </Section>
+
+  {/* --------------------------- How it works ------------------------------ */}
+  <Section id="how-it-works" tone="surface">
+    <Container size="lg">
+      <div class="reveal">
+        <Heading eyebrow={home.how.eyebrow} as="h2" size="display-lg" lede={home.how.lede}>
+          <Fragment slot="title">
+            {home.how.title.before}
+            <em class="text-gradient-ember italic">{home.how.title.em}</em> {home.how.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <div class="reveal mt-14">
+        <Steps
+          steps={home.how.steps.map((step, i) => ({
+            ...step,
+            icon: (['git-branch', 'bolt', 'link'] as IconName[])[i],
+          }))}
+        />
+      </div>
+    </Container>
+  </Section>
+
+  {/* ----------------------------- Code tabs ------------------------------- */}
+  <Section id="code">
+    <Container size="lg">
+      <div class="reveal">
+        <Heading
+          eyebrow={home.code.eyebrow}
+          as="h2"
+          size="display-lg"
+          align="center"
+          lede={home.code.lede}
+        >
+          <Fragment slot="title">
+            {home.code.title.before}{' '}
+            <em class="text-gradient-ember italic">{home.code.title.em}</em> {home.code.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <div class="reveal mt-12">
+        <CodeTabs tabs={codeTabs} label={home.code.label} class="mx-auto max-w-3xl" />
+      </div>
+    </Container>
+  </Section>
+
+  {/* ------------------------------ Metrics -------------------------------- */}
+  <Section id="metrics" tone="deep">
+    <Container size="xl">
+      <h2 class="sr-only">{home.metrics.heading}</h2>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4">
+        {home.metrics.items.map((metric) => (
+          <CountUp
+            value={metric.value}
+            decimals={'decimals' in metric ? metric.decimals : 0}
+            suffix={metric.suffix}
+            label={metric.label}
+            sub={metric.sub}
+          />
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  {/* ---------------------------- Testimonials ------------------------------ */}
+  <Section id="testimonials">
+    <Container size="xl">
+      <div class="reveal">
+        <Heading
+          eyebrow={home.testimonials.eyebrow}
+          as="h2"
+          size="display-lg"
+          align="center"
+          lede={home.testimonials.lede}
+        >
+          <Fragment slot="title">
+            {home.testimonials.title.before}{' '}
+            <em class="text-gradient-ember italic">{home.testimonials.title.em}</em>{' '}
+            {home.testimonials.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <Marquee label={home.testimonials.label} class="mt-14" speed={44}>
+        {home.testimonials.quotes.map((quote, i) => (
+          <Testimonial quote={quote} name={names[i]} role={home.testimonials.roles[i]} />
+        ))}
+      </Marquee>
+    </Container>
+  </Section>
+
+  {/* --------------------------- Pricing teaser ----------------------------- */}
+  <Section id="pricing" tone="surface">
+    <Container size="xl">
+      <div class="reveal">
+        <Heading eyebrow={home.pricing.eyebrow} as="h2" size="display-lg" lede={home.pricing.lede}>
+          <Fragment slot="title">
+            {home.pricing.title.before}{' '}
+            <em class="text-gradient-ember italic">{home.pricing.title.em}</em>{' '}
+            {home.pricing.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <div class="mt-14 grid grid-cols-1 gap-5 md:grid-cols-3">
+        {home.pricing.tiers.map((tier, i) => (
+          <div class="reveal">
+            <PricingCard
+              name={tier.name}
+              price={tier.price}
+              unit={tier.unit}
+              blurb={tier.blurb}
+              features={[...tier.features]}
+              ctaLabel={tier.cta}
+              ctaHref="#get-started"
+              featured={i === 1}
+            />
+          </div>
+        ))}
+      </div>
+
+      <p class="reveal mt-8 text-center text-sm text-ink-3">
+        {home.pricing.noteBefore}
+        <a
+          href="#faq"
+          class="ml-1 font-medium text-accent underline decoration-accent/40 underline-offset-4 transition-colors duration-(--dur-1) hover:decoration-accent"
+        >
+          {home.pricing.noteLink}
+        </a>
+        .
+      </p>
+    </Container>
+  </Section>
+
+  {/* -------------------------------- FAQ ---------------------------------- */}
+  <Section id="faq">
+    <Container size="md">
+      <div class="reveal">
+        <Heading eyebrow={home.faq.eyebrow} as="h2" size="display-lg" lede={home.faq.lede}>
+          <Fragment slot="title">
+            {home.faq.title.before} <em class="text-gradient-ember italic">{home.faq.title.em}</em>{' '}
+            {home.faq.title.after}
+          </Fragment>
+        </Heading>
+      </div>
+
+      <Accordion
+        items={home.faq.items.map((item) => ({ q: item.q, a: item.a }))}
+        class="reveal mt-12"
+      />
+    </Container>
+  </Section>
+
+  {/* ------------------------------ Final CTA ------------------------------ */}
+  <Section id="get-started" tone="deep">
+    <div data-glow class="relative overflow-hidden">
+      <Container size="md" class="py-4 text-center">
+        <div class="reveal flex flex-col items-center">
+          <p class="eyebrow">
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+            {home.cta.eyebrow}
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+          </p>
+          <h2 class="mt-6 max-w-[16ch] text-display-xl text-balance font-display text-ink">
+            {home.cta.title.before}
+            <em class="text-gradient-ember italic">{home.cta.title.em}</em> {home.cta.title.after}
+          </h2>
+          <p class="mt-6 max-w-[52ch] text-pretty text-body-lg text-ink-2">{home.cta.lede}</p>
+
+          <div class="mt-9 inline-flex max-w-full items-center gap-2 rounded-full border border-line bg-surface-2/70 py-2 pl-5 pr-2.5 shadow-sm">
+            <code class="w-0 min-w-0 flex-1 truncate font-mono text-[0.8125rem] text-ink-2">
+              <span class="select-none text-ink-3" aria-hidden="true">
+                $&nbsp;
+              </span>
+              <span id="install-command">{installCommand}</span>
+            </code>
+            <button
+              type="button"
+              data-copy="install-command"
+              data-copied-label={t.common.copied}
+              aria-label={t.common.copyLabel}
+              class="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-line bg-surface-3 text-ink-2 transition-colors duration-(--dur-1) hover:border-line-strong hover:text-ink"
+            >
+              <Icon name="copy" size={14} class="icon-copy" />
+              <Icon name="check" size={14} class="icon-check" strokeWidth={2.6} />
+              <span class="sr-only" data-copy-feedback aria-live="polite"></span>
+            </button>
+          </div>
+
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+            <Button
+              href={githubUrl}
+              size="lg"
+              iconStart="github"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {home.cta.primary}
+            </Button>
+            <Button href={styleguideHref} variant="secondary" size="lg" icon="arrow-right">
+              {home.cta.secondary}
+            </Button>
+          </div>
+        </div>
+      </Container>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  // eslint-disable-next-line astro/no-unused-css-selector
+  .icon-check {
+    display: none;
+  }
+
+  // eslint-disable-next-line astro/no-unused-css-selector
+  [data-copy][data-state='copied'] {
+    border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  }
+
+  // eslint-disable-next-line astro/no-unused-css-selector
+  [data-copy][data-state='copied'] .icon-copy {
+    display: none;
+  }
+
+  // eslint-disable-next-line astro/no-unused-css-selector
+  [data-copy][data-state='copied'] .icon-check {
+    display: inline-flex;
+    color: var(--accent);
+  }
+</style>

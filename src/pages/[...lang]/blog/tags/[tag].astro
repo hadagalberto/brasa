@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import Container from '../../../../components/Container.astro';
+import Icon from '../../../../components/Icon.astro';
+import PostCard from '../../../../components/blog/PostCard.astro';
+import { collectTags, getAuthor, getPosts, tagSlug } from '../../../../lib/posts';
+import { localizedPath, locales, normalizeLocale, ui } from '../../../../i18n';
+
+export async function getStaticPaths() {
+  const paths: Array<{ params: { lang: string | undefined; tag: string } }> = [];
+  for (const lang of locales) {
+    const posts = await getPosts(lang);
+    paths.push(
+      ...collectTags(posts).map((tag) => ({
+        params: { lang: lang === 'en' ? undefined : lang, tag: tag.slug },
+      })),
+    );
+  }
+  return paths;
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const b = t.blog.pages;
+const { tag: tagParam } = Astro.params;
+const posts = await getPosts(lang);
+const tagged = posts.filter((post) => post.data.tags.some((tag) => tagSlug(tag) === tagParam));
+const label = tagged[0]?.data.tags.find((tag) => tagSlug(tag) === tagParam) ?? '';
+
+const pageData = await Promise.all(
+  tagged.map(async (post) => ({ post, author: await getAuthor(post.data.author, lang) })),
+);
+---
+
+<BaseLayout
+  title={`${t.blog.allEssays} — ${label}`}
+  description={b.tagPage.description(label)}
+  {lang}
+>
+  <div class="section-y" data-glow>
+    <Container size="md">
+      <Breadcrumbs
+        items={[
+          { label: lang === 'pt-br' ? 'Início' : 'Home', href: localizedPath('/', lang) },
+          { label: t.blog.allEssays, href: localizedPath('/blog', lang) },
+          { label: t.blog.allTags, href: localizedPath('/blog/tags', lang) },
+          { label },
+        ]}
+      />
+
+      <header class="mt-8 flex flex-col gap-5">
+        <p class="eyebrow">
+          <Icon name="tag" size={13} />
+          {b.tagPage.eyebrow}
+        </p>
+        <h1 class="font-display text-display-lg text-ink text-balance">{label}</h1>
+        <p class="text-pretty text-body-lg text-ink-2">{b.tagPage.count(tagged.length)}</p>
+      </header>
+
+      <section aria-label={b.tagPage.aria(label)} class="mt-12">
+        <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {pageData.map(({ post, author }, index) => (
+            <li>
+              <PostCard post={post} author={author} index={index + 1} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </Container>
+  </div>
+</BaseLayout>

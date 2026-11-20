@@ -5,8 +5,9 @@
  */
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
-import { authorHref, formatDate, readingTimeLabel } from '../../lib/posts';
+import { authorHref, authorId, formatDate, readingTimeLabel } from '../../lib/posts';
 import type { Author, Post } from '../../lib/posts';
+import { ui } from '../../i18n';
 
 interface Props {
   post: Post;
@@ -17,6 +18,8 @@ interface Props {
 }
 
 const { post, author, linkAuthor = true, class: className } = Astro.props;
+const lang = post.data.lang;
+const strings = ui(lang).blog;
 ---
 
 <div class:list={['flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-3', className]}>
@@ -24,7 +27,7 @@ const { post, author, linkAuthor = true, class: className } = Astro.props;
     <Avatar name={author.data.name} size={28} />
     {linkAuthor ? (
       <a
-        href={authorHref(author.id)}
+        href={authorHref(authorId(author), lang)}
         class="font-medium text-ink-2 transition-colors duration-(--dur-1) hover:text-ink"
       >
         {author.data.name}
@@ -35,18 +38,18 @@ const { post, author, linkAuthor = true, class: className } = Astro.props;
   </span>
   <span class="inline-flex items-center gap-1.5">
     <Icon name="calendar" size={13} />
-    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate, lang)}</time>
   </span>
   <span class="inline-flex items-center gap-1.5">
     <Icon name="clock" size={13} />
-    {readingTimeLabel(post.body ?? '')}
+    {readingTimeLabel(post.body ?? '', lang)}
   </span>
   {post.data.updatedDate && (
     <span class="inline-flex items-center gap-1.5">
       <Icon name="rotate-ccw" size={13} />
-      Updated{' '}
+      {strings.updated}{' '}
       <time datetime={post.data.updatedDate.toISOString()}>
-        {formatDate(post.data.updatedDate)}
+        {formatDate(post.data.updatedDate, lang)}
       </time>
     </span>
   )}

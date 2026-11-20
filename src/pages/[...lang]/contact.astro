@@ -1,0 +1,345 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Accordion from '../../components/Accordion.astro';
+import Button from '../../components/Button.astro';
+import Container from '../../components/Container.astro';
+import Heading from '../../components/Heading.astro';
+import Icon from '../../components/Icon.astro';
+import Section from '../../components/Section.astro';
+import { brasa } from '../../brasa.config';
+import { normalizeLocale, ui } from '../../i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const c = t.contact;
+const strings = JSON.stringify(c.form.errors);
+const success = JSON.stringify({
+  title: c.form.successTitle,
+  body: c.form.successBody,
+  reset: c.form.reset,
+});
+---
+
+<BaseLayout title={lang === 'pt-br' ? 'Contato' : 'Contact'} description={c.lede} {lang}>
+  <div data-glow>
+    <Section class="pt-[calc(var(--header-h)+3.5rem)] pb-12 lg:pt-[calc(var(--header-h)+5rem)]">
+      <Container size="md">
+        <p class="eyebrow">
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+          {c.eyebrow}
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+        </p>
+        <h1 class="mt-6 text-display-xl text-balance font-display text-ink">
+          {c.title.before} <em class="text-gradient-ember italic">{c.title.em}</em> {c.title.after}
+        </h1>
+        <p class="mt-6 max-w-[64ch] text-pretty text-body-lg text-ink-2">{c.lede}</p>
+      </Container>
+    </Section>
+  </div>
+
+  <Container size="lg" class="pb-12">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <section
+        aria-labelledby="contact-form-title"
+        class="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-9"
+      >
+        <h2 id="contact-form-title" class="font-display text-display-sm text-ink">
+          {c.form.title}
+        </h2>
+        <p class="mt-2 max-w-[62ch] text-sm leading-relaxed text-ink-2 text-pretty">
+          {c.form.description}
+        </p>
+
+        <form
+          data-contact-form
+          data-errors={strings}
+          data-success={success}
+          novalidate
+          class="mt-8 space-y-6"
+        >
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label for="contact-name" class="block text-sm font-medium text-ink">
+                {c.form.name}{' '}
+                <span class="text-accent" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <input
+                id="contact-name"
+                name="name"
+                type="text"
+                required
+                minlength="2"
+                autocomplete="name"
+                placeholder={c.form.namePlaceholder}
+                aria-describedby="contact-name-error"
+                class="field mt-2"
+              />
+              <p
+                id="contact-name-error"
+                data-error-for="name"
+                class="field-error"
+                aria-live="polite"
+              ></p>
+            </div>
+
+            <div>
+              <label for="contact-email" class="block text-sm font-medium text-ink">
+                {c.form.email}{' '}
+                <span class="text-accent" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <input
+                id="contact-email"
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder={c.form.emailPlaceholder}
+                aria-describedby="contact-email-error"
+                class="field mt-2"
+              />
+              <p
+                id="contact-email-error"
+                data-error-for="email"
+                class="field-error"
+                aria-live="polite"
+              ></p>
+            </div>
+          </div>
+
+          <div>
+            <label for="contact-topic" class="block text-sm font-medium text-ink">
+              {c.form.topic}{' '}
+              <span class="text-accent" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <select
+              id="contact-topic"
+              name="topic"
+              required
+              aria-describedby="contact-topic-error"
+              class="field mt-2"
+            >
+              <option value="">{c.form.topicPlaceholder}</option>
+              {c.form.topics.map((topic) => (
+                <option value={topic}>{topic}</option>
+              ))}
+            </select>
+            <p
+              id="contact-topic-error"
+              data-error-for="topic"
+              class="field-error"
+              aria-live="polite"
+            ></p>
+          </div>
+
+          <div>
+            <label for="contact-message" class="block text-sm font-medium text-ink">
+              {c.form.message}{' '}
+              <span class="text-accent" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <textarea
+              id="contact-message"
+              name="message"
+              rows={6}
+              required
+              minlength="20"
+              placeholder={c.form.messagePlaceholder}
+              aria-describedby="contact-message-error"
+              class="field mt-2 resize-y"
+            ></textarea>
+            <p
+              id="contact-message-error"
+              data-error-for="message"
+              class="field-error"
+              aria-live="polite"
+            ></p>
+          </div>
+
+          <div>
+            <label class="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-ink-2">
+              <input
+                type="checkbox"
+                name="consent"
+                value="yes"
+                required
+                aria-describedby="contact-consent-error"
+                class="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+              />
+              <span>
+                {c.form.consent}{' '}
+                <span class="text-accent" aria-hidden="true">
+                  *
+                </span>
+              </span>
+            </label>
+            <p
+              id="contact-consent-error"
+              data-error-for="consent"
+              class="field-error"
+              aria-live="polite"
+            ></p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-4">
+            <Button type="submit" size="lg" icon="arrow-right" data-contact-submit>
+              {c.form.submit}
+            </Button>
+            <p
+              data-contact-summary
+              class="text-sm font-medium text-accent"
+              role="status"
+              aria-live="assertive"
+            ></p>
+          </div>
+        </form>
+
+        <div
+          data-contact-success
+          class="mt-8 hidden rounded-2xl border border-accent/30 bg-accent-soft p-6"
+          role="status"
+          aria-live="polite"
+        >
+          <Icon name="check" size={26} class="text-accent" />
+          <h3
+            data-success-title
+            tabindex="-1"
+            class="mt-4 font-display text-display-sm text-ink"
+          ></h3>
+          <p data-success-body class="mt-2 text-pretty leading-relaxed text-ink-2"></p>
+          <button
+            type="button"
+            data-contact-reset
+            class="mt-5 inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-2"
+          >
+            <Icon name="rotate-ccw" size={15} />
+            <span data-success-reset></span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="flex flex-col gap-4" aria-label={c.details.title}>
+        <div class="rounded-2xl border border-line bg-surface p-6">
+          <h2 class="font-mono text-[0.6875rem] font-medium tracking-[0.14em] text-ink-3 uppercase">
+            {c.details.title}
+          </h2>
+          <dl class="mt-5 space-y-5">
+            <div>
+              <dt class="flex items-center gap-2 text-sm font-medium text-ink">
+                <Icon name="mail" size={15} class="text-accent" />
+                {c.details.emailTitle}
+              </dt>
+              <dd class="mt-1 text-sm text-ink-2">{c.details.emailBody}</dd>
+            </div>
+            <div>
+              <dt class="flex items-center gap-2 text-sm font-medium text-ink">
+                <Icon name="github" size={15} class="text-accent" />
+                {c.details.githubTitle}
+              </dt>
+              <dd class="mt-1 text-sm leading-relaxed text-ink-2">{c.details.githubBody}</dd>
+            </div>
+            <div>
+              <dt class="flex items-center gap-2 text-sm font-medium text-ink">
+                <Icon name="clock" size={15} class="text-accent" />
+                {c.details.responseTitle}
+              </dt>
+              <dd class="mt-1 text-sm leading-relaxed text-ink-2">{c.details.responseBody}</dd>
+            </div>
+          </dl>
+        </div>
+        <a
+          href={brasa.site.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group rounded-2xl border border-line bg-surface p-6 transition-colors hover:border-line-strong"
+        >
+          <span class="flex items-center justify-between font-mono text-xs tracking-[0.12em] text-ink-3 uppercase">
+            GitHub
+            <Icon
+              name="arrow-up-right"
+              size={14}
+              class="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
+          </span>
+          <span class="mt-3 block font-display text-lg text-ink">hadagalberto/brasa</span>
+        </a>
+      </aside>
+    </div>
+  </Container>
+
+  <Section tone="surface">
+    <Container size="md">
+      <div class="reveal">
+        <Heading eyebrow={c.faq.eyebrow} as="h2" size="display-md" title={c.faq.title} />
+      </div>
+      <Accordion
+        items={c.faq.items.map((item) => ({ q: item.q, a: item.a }))}
+        class="reveal mt-10"
+      />
+    </Container>
+  </Section>
+</BaseLayout>
+
+<style>
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 2.875rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 0.75rem;
+    background-color: var(--canvas-deep);
+    padding: 0.7rem 1rem;
+    font-size: 0.9375rem;
+    color: var(--ink);
+    transition:
+      border-color var(--dur-2) var(--ease-out-soft),
+      box-shadow var(--dur-2) var(--ease-out-soft);
+  }
+
+  .field::placeholder {
+    color: var(--ink-3);
+  }
+
+  .field:hover {
+    border-color: color-mix(in oklab, var(--accent) 45%, var(--line-strong));
+  }
+
+  .field:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-color: var(--accent);
+  }
+
+  // eslint-disable-next-line astro/no-unused-css-selector -- set by scripts/contact.ts
+  .field[aria-invalid='true'] {
+    border-color: oklch(0.68 0.19 25);
+  }
+
+  .field-error:empty {
+    display: none;
+  }
+
+  .field-error {
+    margin-top: 0.4rem;
+    font-size: 0.8125rem;
+    color: oklch(0.75 0.16 30);
+  }
+
+  :global([data-theme='light']) .field-error {
+    color: oklch(0.5 0.17 25);
+  }
+</style>
+
+<script>
+  import '../../scripts/contact';
+</script>

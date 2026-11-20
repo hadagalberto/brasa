@@ -1,0 +1,65 @@
+---
+title: O contraste é o luxo mais silencioso de um design system
+description: Contraste alto não grita. Notas sobre como construir uma paleta que passa no AAA em texto corrido sem parecer um terminal — dos modos claros de papel quente a por que o tema escuro provavelmente precisa de menos cor do que se imagina.
+author: priya-raman
+tags:
+  - acessibilidade
+  - design systems
+pubDate: 2026-06-17
+lang: 'pt-br'
+---
+
+import { Callout } from '../../../components/mdx';
+
+A baixa visão é a deficiência que ninguém planeja ter. Aos quarenta, a maioria de nós digita com os óculos de leitura empurrados para a testa; aos sessenta, um em cada cinco tem alguma deficiência visual. Um design system que só "parece bom" para a acuidade jovem está projetando para uma versão de seus usuários que expira.
+
+Contraste é a palavra mais entediante da acessibilidade e a coisa mais luxuosa que uma paleta pode fazer. Bem feito, é invisível: a página simplesmente se lê, sob o sol, dentro do ônibus, às 2 da manhã com o modo escuro ligado. Mal feito, é a névoa de cinza sobre cinza que faz uma interface parecer barata de um jeito que ninguém consegue nomear.
+
+## O piso, dito de forma simples
+
+A WCAG 2.2 define dois pisos: AA em 4.5:1 para texto corrido e AAA em 7:1. O Brasa mantém **AAA no texto corrido** e AA em todo o resto, o que soa austero até que se confira a aritmética de uma paleta quente — basicamente, isso bane um mau hábito:
+
+| Combinação                                          | Razão  | Veredito               |
+| --------------------------------------------------- | ------ | ---------------------- |
+| Tinta (L 0.94) sobre tela (L 0.16), tema escuro     | ~13:1  | AAA, com folga         |
+| Texto meta Ink-3 (L 0.63) sobre superfície (L 0.19) | ~4.6:1 | AA — apenas legendas    |
+| Acento Ember (L 0.53) sobre papel quente (L 0.98)   | ~5.1:1 | AA para UI grande, links |
+| "Cinza médio" (#8a8a8a) sobre branco                | 3.5:1  | a falha clássica       |
+
+Repare no padrão: toda linha aprovada varia a **luminosidade**, não a matiz. É esse o luxo silencioso — uma paleta cujas combinações passam _por construção_, porque a luminosidade é o eixo em que o contraste vive.
+
+<Callout variant="tip" title="A única regra que substitui a maioria das auditorias de contraste">
+  Fixe os degraus de luminosidade e deixe croma e matiz cuidarem da identidade. Cores
+  próximas ao texto corrido ficam em valores extremos de L (tinta bem clara, superfície
+  bem escura); a luminosidade média fica reservada para títulos grandes e acentos
+  interativos. A maioria das "surpresas de contraste" são cores de luminosidade média
+  promovidas a texto pequeno.
+</Callout>
+
+## Temas escuros precisam de menos cor, não mais
+
+O reflexo ao projetar o modo escuro é aquecer tudo: clarear acentos, adicionar brilho, compensar o preto. Veja alguém com baixa visão usar o resultado e o reflexo se inverte — temas escuros falham por _ruído_, não por escuridão. Acentos saturados em luminosidade média florescem e borriam contra o quase-preto para quem tem os estouros de luz da catarata ou a duplicação do astigmatismo.
+
+O tema escuro do Brasa é basicamente onze degraus de luminosidade de neutros quentes com um acento âmbar mantido perto do topo da escala. Essa contenção se lê como elegância com acuidade plena e como _legibilidade_ com acuidade reduzida — o mesmo objeto visto de duas distâncias.
+
+> Meu modo escuro favorito de todos foi um que só entendi depois: nunca o notei, o que significa que nunca dei zoom, o que significa que li por uma hora sem pensar nos olhos nem uma vez.
+
+## O modo claro não é um detalhe secundário (e costuma ser)
+
+O sintoma está em toda captura de produto: modo escuro dirigido com carinho, modo claro com os mesmos tokens e o controle de brilho puxado. O modo claro de papel quente do Brasa reajusta a _escada inteira_, não só o fundo:
+
+- A tela vai a L 0.98 com matiz quente (80) — papel, não interruptor de luz.
+- A tinta inverte para L 0.23 — quente, levemente suave, nunca `#000`.
+- O acento fica **mais escuro e menos cromático**: o âmbar que brilha em L 0.84 sobre quase-preto chiaria no papel, então cai para L 0.52, onde mantém AA para links com uma mudança de peso.
+
+Esse último item é o que as equipes pulam, e é por isso que os links no modo claro parecem fita de advertência. Um acento não é uma cor; é uma _relação_ entre uma cor e a superfície abaixo dela.
+
+## Testar sem virar uma pessoa de planilha
+
+Três hábitos mantêm o piso sem transformar reuniões de design em aritmética:
+
+1. **Calcule, não ache.** O build deriva cada token semântico do OKLCH, então "o texto meta está em AA?" é uma chamada de função. (O post da Sofia cobre o lado matemático — veja [OKLCH, ou como parei de adivinhar cores](/pt-br/blog/oklch-or-how-i-stopped-guessing-colors).)
+2. **Teste os dois temas em toda rota.** Uma paleta que passa no escuro e falha no claro é meia paleta. Nossa execução do axe alterna os temas por rota na CI e já pegou exatamente essa classe de bug duas vezes.
+3. **Dê zoom a 200% durante as revisões de design.** Problemas de contraste e de layout compartilham um mecanismo de descoberta: pressão. Texto que sobrevive a 200% de zoom com dignidade sobrevive a tudo.
+
+Nada disso exige um único compromisso que alguém perceba. O luxo do alto contraste é exatamente esse — ninguém percebe. As pessoas apenas leem.

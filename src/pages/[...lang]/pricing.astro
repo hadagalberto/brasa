@@ -1,0 +1,243 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Accordion from '../../components/Accordion.astro';
+import Badge from '../../components/Badge.astro';
+import Button from '../../components/Button.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import Container from '../../components/Container.astro';
+import Heading from '../../components/Heading.astro';
+import Section from '../../components/Section.astro';
+import { localizedPath, normalizeLocale, ui } from '../../i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const p = t.pricing;
+const contactHref = localizedPath('/contact', lang);
+---
+
+<BaseLayout title={lang === 'pt-br' ? 'Preços' : 'Pricing'} description={p.lede} {lang}>
+  <div data-glow>
+    <Section class="pt-[calc(var(--header-h)+3.5rem)] pb-14 lg:pt-[calc(var(--header-h)+5rem)]">
+      <Container size="lg">
+        <div class="mx-auto max-w-[52rem] text-center">
+          <p class="eyebrow justify-center">
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+            {p.eyebrow}
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+          </p>
+          <h1 class="mt-6 text-display-xl text-balance font-display text-ink">
+            {p.title.before} <em class="text-gradient-ember italic">{p.title.em}</em>{' '}
+            {p.title.after}
+          </h1>
+          <p class="mx-auto mt-6 max-w-[62ch] text-pretty text-body-lg text-ink-2">{p.lede}</p>
+
+          <div
+            role="group"
+            aria-label={lang === 'pt-br' ? 'Período de cobrança' : 'Billing period'}
+            class="mt-9 inline-flex items-center gap-1 rounded-full border border-line bg-surface p-1 shadow-sm"
+            data-billing-toggle
+            data-yearly-note={p.billedYearly}
+            data-per-month={p.perMonth}
+          >
+            <button
+              type="button"
+              data-billing="monthly"
+              aria-pressed="true"
+              class="billing-option is-active rounded-full px-5 py-2 text-sm font-medium"
+            >
+              {p.monthly}
+            </button>
+            <button
+              type="button"
+              data-billing="yearly"
+              aria-pressed="false"
+              class="billing-option rounded-full px-5 py-2 text-sm font-medium"
+            >
+              {p.yearly}
+              <span class="ms-1.5 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[0.625rem] font-semibold text-accent">
+                {p.save}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {p.tiers.map((tier, index) => (
+            <article
+              class:list={[
+                'tier relative flex h-full flex-col rounded-2xl border p-6 shadow-sm transition-colors duration-(--dur-2)',
+                index === 1
+                  ? 'tier-featured border-accent/40 bg-surface'
+                  : 'border-line bg-surface hover:border-line-strong',
+              ]}
+            >
+              {index === 1 && (
+                <Badge
+                  variant="solid"
+                  class="absolute -top-3.5 left-1/2 -translate-x-1/2 shadow-sm"
+                >
+                  {p.mostPopular}
+                </Badge>
+              )}
+
+              <h2 class="font-display text-display-sm text-ink">{tier.name}</h2>
+              <p class="mt-2 min-h-[4.5rem] text-sm leading-relaxed text-ink-2 text-pretty">
+                {tier.blurb}
+              </p>
+
+              <!-- Fixed-height price slot: switching periods never shifts the layout. -->
+              <div class="mt-5 flex h-[5.75rem] flex-col justify-end border-b border-line pb-5">
+                <div class="price-row flex items-baseline gap-1.5">
+                  <span
+                    class="font-mono text-[2.125rem] leading-none font-semibold tracking-tight text-ink tabular-nums"
+                    data-price-slot
+                    data-monthly={tier.monthly}
+                    data-yearly={tier.yearly}
+                  >
+                    {tier.monthly}
+                  </span>
+                </div>
+                <p class="mt-2 h-4 font-mono text-[0.6875rem] text-ink-3">
+                  <span data-unit>{tier.unit}</span>
+                </p>
+                <p class="h-3 font-mono text-[0.625rem] text-accent" data-billing-note></p>
+              </div>
+
+              <ul class="mt-6 flex flex-1 flex-col gap-2.5">
+                {tier.features.map((feature) => (
+                  <li class="flex items-start gap-2.5 text-sm text-ink-2">
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 16 16"
+                      width="15"
+                      height="15"
+                      class="mt-0.5 shrink-0 text-accent"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m3 8.5 3.2 3.2L13 5" />
+                    </svg>
+                    <span class="text-pretty">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                href={`${contactHref}?plan=${encodeURIComponent(tier.name)}`}
+                variant={index === 1 ? 'primary' : 'secondary'}
+                class="mt-8 w-full"
+                icon="arrow-right"
+              >
+                {tier.cta}
+              </Button>
+            </article>
+          ))}
+        </div>
+      </Container>
+    </Section>
+  </div>
+
+  <Section id="compare" tone="surface">
+    <Container size="xl">
+      <div class="reveal">
+        <Heading
+          eyebrow={p.compare.eyebrow}
+          as="h2"
+          size="display-lg"
+          title={p.compare.title}
+          lede={p.compare.lede}
+        />
+      </div>
+      <ComparisonTable
+        tiers={p.tiers.map((tier) => ({ name: tier.name, featured: tier.name === 'Team' }))}
+        groups={p.compare.groups}
+        rows={p.compare.rows}
+        {lang}
+        class="reveal mt-12"
+      />
+    </Container>
+  </Section>
+
+  <Section id="faq">
+    <Container size="md">
+      <div class="reveal">
+        <Heading
+          eyebrow={p.faq.eyebrow}
+          as="h2"
+          size="display-lg"
+          title={p.faq.title}
+          lede={p.faq.lede}
+        />
+      </div>
+      <Accordion
+        items={p.faq.items.map((item) => ({ q: item.q, a: item.a }))}
+        class="reveal mt-12"
+      />
+    </Container>
+  </Section>
+
+  <Section tone="deep">
+    <Container size="md" class="text-center">
+      <div class="mx-auto max-w-[48ch]">
+        <h2 class="font-display text-display-md text-balance text-ink">
+          {p.cta.title.before} <em class="text-gradient-ember italic">{p.cta.title.em}</em>{' '}
+          {p.cta.title.after}
+        </h2>
+        <p class="mt-5 text-pretty text-body-lg text-ink-2">{p.cta.lede}</p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <Button href={localizedPath('/docs/installation', lang)} size="lg" icon="arrow-right">
+            {p.cta.primary}
+          </Button>
+          <Button href={contactHref} variant="secondary" size="lg">
+            {p.cta.secondary}
+          </Button>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</BaseLayout>
+
+<style>
+  .billing-option {
+    color: var(--ink-3);
+    transition:
+      color var(--dur-2) var(--ease-out-soft),
+      background-color var(--dur-2) var(--ease-out-soft),
+      box-shadow var(--dur-2) var(--ease-out-soft);
+  }
+
+  .billing-option:hover {
+    color: var(--ink);
+  }
+
+  .billing-option.is-active {
+    background-color: var(--surface-3);
+    color: var(--ink);
+    box-shadow: var(--elev-sm);
+  }
+
+  .tier-featured::before {
+    content: '';
+    position: absolute;
+    inset-inline: 2.5rem;
+    top: 0;
+    height: 2px;
+    border-radius: 999px;
+    background-image: var(--gradient-ember);
+  }
+
+  :global(html[data-menu-open]) .tier {
+    transition: none;
+  }
+</style>
+
+<script>
+  import '../../scripts/pricing';
+</script>

@@ -1,0 +1,21 @@
+{
+  "version": "2.2.0",
+  "date": "2026-08-22",
+  "title": "O tema cresce",
+  "summary": "O Brasa, tema Astro por trás deste site, ganhou a biblioteca completa de componentes, o manual de documentação e a busca com Pagefind.",
+  "groups": [
+    {
+      "title": "Adicionado",
+      "items": [
+        "Coleção de documentação com doze capítulos",
+        "Styleguide com exemplos ao vivo",
+        "Busca acessível pelo teclado (Ctrl K ou /)"
+      ]
+    },
+    {
+      "title": "Alterado",
+      "items": ["Tokens OKLCH passaram a definir todas as superfícies e acentos"]
+    }
+  ],
+  "lang": "pt-br"
+}

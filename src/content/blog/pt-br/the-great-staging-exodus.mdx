@@ -1,0 +1,76 @@
+---
+title: O grande êxodo do staging — um elogio fúnebre ao staging compartilhado
+description: Apagamos o servidor de staging depois de sete anos. O que o substituiu (previews por branch mais um ambiente promovido para o ensaio de release), o que quebrou no caminho e o que não sentimos falta nem um pouco.
+author: hadjunior
+tags:
+  - previews de implantação
+  - cultura de engenharia
+pubDate: 2026-09-30
+lang: 'pt-br'
+---
+
+import { Badge, Callout, Testimonial } from '../../../components/mdx';
+
+Por sete anos, nosso servidor de staging foi uma ficção compartilhada: um ambiente, trinta engenheiros, os branches inacabados de todo mundo implantados uns sobre os outros. Funcionava como funciona a geladeira compartilhada de uma cozinha comunitária — tecnicamente, e com um ressentimento contínuo de baixa intensidade. No dia em que o apagamos, quatro incidentes recorrentes distintos foram embora com ele.
+
+Esta é a história do que o substituiu, porque "matar o staging" sem a segunda metade da frase é só caos com melhor branding.
+
+## Por que o staging compartilhado morre sozinho
+
+Staging raramente falha de forma dramática. Falha como acúmulo de pequenas mentiras:
+
+- "Staging é parecido com produção" — até que as feature flags divergem, os dados de semente envelhecem e as chaves de sandbox de terceiros giram sem ninguém perceber.
+- "Vamos testar no staging antes de liberar" — mas o branch tem quatro dias e está emaranhado com outros cinco, então o que se testa é um merge que nunca vai existir.
+- "Staging caiu de novo" — e todo mundo espera, porque a alternativa é implantar código não revisado em produção.
+
+A última é a pista. Quando indisponibilidades do staging bloqueiam o trabalho de feature, seu ambiente de _preview_ se tornou silenciosamente o sistema de produção mais importante, operado sem nenhum dos cuidados devidos.
+
+<Testimonial
+  quote="Na semana em que desligamos o staging, me senti nu. Duas semanas depois, percebi que a sensação era só a ausência de fila para um ambiente compartilhado que nunca ia responder às minhas perguntas mesmo."
+  name="Marina Cole"
+  role="Head of Engineering, Alto Labs"
+/>
+
+## O que o substituiu: dois ambientes, duas funções
+
+O erro seria um único substituto. Staging fazia duas funções sem relação o tempo todo, e cada função pede sua própria ferramenta:
+
+**Função um — _feedback de revisão_: previews por branch.** Todo branch ganha uma URL isolada, efêmera, com forma de produção. É onde 90% do "teste" realmente acontece hoje: quem escreveu, quem revisa, quem desenhou, todos clicando no mesmo build rodando, dias antes de qualquer merge.
+
+**Função dois — _ensaio de release_: um ambiente promovido.** Um único ambiente de longa duração que só recebe candidatos a release, provisionado do zero pelo mesmo pipeline de produção. As notas de release são ensaiadas ali; nada mais.
+
+<Callout variant="note" title="A nomenclatura importa">
+  Mantivemos a palavra "staging" para o ambiente promovido e apagamos o compartilhado. As palavras
+  "preview" e "staging" agora significam coisas diferentes em toda conversa, e isso é metade do
+  valor — "isso precisa de staging?" virou uma pergunta com resposta, em vez de um dar de ombros.
+</Callout>
+
+## A migração, com honestidade
+
+Fizemos isso em um mês, na ordem que minimiza o grito:
+
+1. **Ligar previews em todo lugar primeiro** — adoção completa antes de tirar qualquer coisa. Isso levou duas semanas e uma demo interna de `brasa deploy --branch`.
+2. **Tirar o ensaio de release do staging** — o checklist de quem gerencia releases agora aponta para o ambiente promovido, provisionado do zero a cada candidato.
+3. **Congelar o staging por duas semanas** — anunciar a data, mantê-lo rodando, contar as reclamações. As sérias (duas) eram sobre falta de _dados de smoke test_, não sobre o ambiente em si.
+4. **Apagá-lo** — incluindo as entradas de DNS, que ficavam balanceando carga para uma máquina que havia deixado de existir meses antes. Staging nos mentiu até o fim.
+
+A etapa de congelamento merece destaque. Uma janela de duas semanas de "sem novas implantações" expôs toda dependência escondida enquanto ainda era reversível — um job agendado que apontava para o banco do staging e um (1) teste de integração que vinha passando silenciosamente contra um 404 desde a primavera.
+
+## O que quebrou, e quanto custou
+
+Dois custos reais, ambos mais baratos que a alternativa:
+
+**Os dados de semente compartilhados perderam sua casa.** A solução foi semeadura no nível do preview: todo preview parte de um pequeno conjunto anonimizado commitado no repositório, com reset de um comando. Melhor, na verdade — os dados agora versionam junto com o código que os lê.
+
+**Alguns testes de longa duração precisavam de um host.** Os que sobreviveram ao escrutínio migraram para a agenda do ambiente promovido. Os que não sobreviveram foram apagados, que é exatamente para isso que serve o "escrutínio".
+
+<Badge variant="ember">Incidentes aposentados com o staging</Badge> os quatro clássicos, para o
+registro: a de sexta à tarde "quem implantou por cima da minha migration?", o fantasma "funciona no
+staging" (não funcionava, os dados estavam velhos), a divergência de flags no dia de release e a fila.
+Especialmente a fila.
+
+## A parte que ninguém espera
+
+Apagar o staging deixou as _revisões_ mais rápidas, o que ninguém previu. Quando o ambiente promovido deixou de ser depósito de trabalho de revisão, os candidatos a release viraram algo banal — uma release passou de pequena cerimônia para re-execução agendada de um build já revisado. A parte assustadora do dia de release nunca tinha sido a implantação; era a primeira vez que alguém rodava o resultado _combinado_ de uma semana de merges. Previews revisam cada mudança ao vivo; o ensaio verifica a combinação. Separe essas funções e ambas ficam mais fáceis.
+
+Ainda montamos de vez em quando um ambiente de branch de longa duração para migrações de várias semanas — previews servem para revisão, não para residência, e saber a diferença é toda a disciplina. Mas a geladeira compartilhada da cozinha se foi, e ninguém pediu para trazê-la de volta.

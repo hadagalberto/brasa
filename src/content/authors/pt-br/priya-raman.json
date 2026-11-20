@@ -1,0 +1,8 @@
+{
+  "name": "Priya Raman",
+  "role": "Engenheira de acessibilidade",
+  "bio": "Prioriza o teclado desde 2009, quando um trackpad quebrado lhe ensinou mais sobre UX do que qualquer curso depois disso. Conduz auditorias com usuários reais de tecnologias assistivas, abre os relatórios de bugs que ninguém mais quer pegar e acredita que estados de foco são um ativo da marca.",
+  "location": "Bengaluru, India",
+  "links": [{ "label": "GitHub", "href": "https://github.com/priyaraman", "icon": "github" }],
+  "lang": "pt-br"
+}

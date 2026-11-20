@@ -1,0 +1,130 @@
+---
+title: Instalação
+description: Crie um projeto Brasa a partir do template, instale as dependências e rode a prévia local em menos de dois minutos.
+group: Getting started
+order: 1
+sidebarLabel: Instalação
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Steps, Tabs, Cards } from '../../../components/mdx';
+import { docLink } from '../../../lib/doc-link';
+
+Brasa é um tema Astro: você recebe o código-fonte, não uma dependência travada. Isso significa que todo componente, token e content collection é editável no seu repositório, e o build continua sendo um simples `astro build`.
+
+## Requisitos
+
+- **Node.js 20 ou mais recente.** A CI usa Node 22; o build não usa nenhuma API exclusiva do Node mais nova que a 20.
+- **npm.** O lockfile está versionado, então `npm ci` é a instalação reproduzível na CI e localmente.
+- **Um editor com suporte a Astro** é opcional, mas recomendado — as content collections são tipadas.
+
+<Callout variant="note" title="O que você recebe">
+O template traz a landing page, preços, blog, documentação, os esqueletos do changelog, uma 404 e um guia de estilos. Toda página contém texto de demonstração real para a "Brasa Cloud", um produto fictício de prévia de deploy — nada em `src/` é um amontoado de placeholders.
+</Callout>
+
+## Criar o projeto a partir do template
+
+<Steps
+  steps={[
+    { icon: 'terminal', title: 'Criar o projeto', body: 'Execute o comando de criação usando este repositório como template. O npm pede o nome do projeto e então extrai o tema.' },
+    { icon: 'file', title: 'Instalar as dependências', body: 'Entre na nova pasta e execute npm install. Na CI, use npm ci para respeitar o lockfile versionado.' },
+    { icon: 'bolt', title: 'Iniciar o servidor de desenvolvimento', body: 'Execute npm run dev e abra a URL localhost exibida. Alterações em MDX, CSS e componentes recarregam automaticamente.' },
+  ]}
+/>
+
+<Tabs
+  label="Comandos de instalação"
+  tabs={[
+    { id: 'npm', label: 'npm', icon: 'terminal' },
+    { id: 'pnpm', label: 'pnpm' },
+  ]}
+>
+  <Fragment slot="npm">
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    cd my-brasa-site
+    npm install
+    npm run dev
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    O template é validado com npm. O pnpm funciona se você habilitar shamefully-hoisting para os pacotes Fontsource e Expressive Code, mas o npm é o caminho suportado:
+
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    cd my-brasa-site
+    pnpm install --config.shamefully-hoist=true
+    pnpm dev
+    ```
+  </Fragment>
+</Tabs>
+
+## O que o template contém
+
+<FileTree
+  tree={[
+    { name: 'src/', children: [
+      { name: 'brasa.config.ts', note: 'configuração global do site', highlight: true },
+      { name: 'content.config.ts', note: 'esquemas Zod' },
+      { name: 'components/', note: 'ilhas Astro e UI' },
+      { name: 'content/', children: [
+        { name: 'blog/', note: 'artigos em MDX' },
+        { name: 'docs/', note: 'este manual' },
+        { name: 'authors/', note: 'perfis em JSON' },
+      ] },
+      { name: 'layouts/', note: 'BaseLayout, DocsLayout' },
+      { name: 'pages/', note: 'rotas e endpoints de OG' },
+      { name: 'scripts/', note: 'ilhas em TS puro' },
+      { name: 'styles/global.css', note: 'tokens OKLCH' },
+    ] },
+    { name: 'public/', children: [
+      { name: 'favicon.svg' },
+      { name: 'og.png', note: 'card social padrão' },
+      { name: 'robots.txt' },
+    ] },
+    { name: 'scripts/', note: 'auxiliares de build' },
+    { name: 'tests/e2e/', note: 'Playwright + axe' },
+  ]}
+/>
+
+A saída em `dist/` é gerada; `docs/screenshots/` guarda as capturas de referência. Nenhum dos dois deve ser editado manualmente.
+
+## Scripts que vale conhecer
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento do Astro com HMR. |
+| `npm run build` | Valida o frontmatter dos arquivos MDX, gera o site estático e depois cria o índice do Pagefind em `dist/`. |
+| `npm run preview` | Serve o site já gerado — é sobre ele que a suíte Playwright roda. |
+| `npm run check` | `astro check`: diagnósticos de TypeScript e dos templates, zero avisos permitidos. |
+| `npm run lint` | ESLint com o plugin do Astro. |
+| `npm run format:check` | Prettier, incluindo a ordenação de classes do Astro e do Tailwind. |
+| `npm test` | Testes e2e com Playwright, auditorias axe, orçamento de JS e capturas de referência. |
+
+<Callout variant="warning" title="Sempre faça o build antes de testar">
+O Playwright e o Lighthouse rodam sobre `astro preview`, que serve `dist/`. Se você alterar um componente e rodar `npm test` sem um build fresco, estará testando a saída anterior. A CI faz o build primeiro exatamente por isso.
+</Callout>
+
+## Verificar a instalação
+
+Execute a barreira completa de qualidade uma vez antes de fazer qualquer alteração. Um template limpo deve passar pelas quatro etapas:
+
+```bash
+npm run check
+npm run lint
+npm run build
+npm test
+```
+
+O build imprime `MDX frontmatter valid in … file(s)` antes de o Astro iniciar. Essa proteção pega o erro clássico de colocar um `import` entre as linhas de abertura e fechamento do `---` em um arquivo MDX. Se falhar, mova o import para baixo do delimitador de fechamento.
+
+## Próximos passos
+
+<Cards
+  items={[
+    { title: 'Configuração', description: 'Altere a navegação, as redes sociais, as feature flags e o matiz de destaque em um único arquivo tipado.', href: docLink('configuration', 'pt-br'), icon: 'sliders', meta: 'Próximo' },
+    { title: 'Tokens de design', description: 'Entenda a escala OKLCH antes de sobrescrever uma única cor.', href: docLink('design-tokens', 'pt-br'), icon: 'sparkles', meta: 'Aprofundar' },
+    { title: 'Criação de conteúdo', description: 'Adicione um post, uma página de documentação ou um autor sem quebrar um esquema.', href: docLink('content-authoring', 'pt-br'), icon: 'file', meta: 'Guia' },
+  ]}
+/>

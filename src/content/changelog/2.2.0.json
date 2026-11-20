@@ -1,0 +1,21 @@
+{
+  "version": "2.2.0",
+  "date": "2026-08-22",
+  "title": "The theme grows up",
+  "summary": "Brasa, the Astro theme behind this site, gained the full component library, docs manual and a Pagefind search dialog.",
+  "groups": [
+    {
+      "title": "Added",
+      "items": [
+        "Documentation collection with twelve chapters",
+        "Component styleguide with live examples",
+        "Keyboard-first search (Ctrl K or /)"
+      ]
+    },
+    {
+      "title": "Changed",
+      "items": ["OKLCH tokens drive every surface and accent"]
+    }
+  ],
+  "lang": "en"
+}

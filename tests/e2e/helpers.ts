@@ -5,6 +5,12 @@ import type { Page } from '@playwright/test';
  *  budget, link-crawl and screenshot specs. */
 export const routes = [
   '/',
+  '/pricing',
+  '/changelog',
+  '/about',
+  '/contact',
+  '/legal/privacy',
+  '/legal/terms',
   '/styleguide',
   '/docs',
   '/docs/installation',
@@ -15,6 +21,16 @@ export const routes = [
   '/blog/tags/performance',
   '/blog/authors/hadjunior',
   '/blog/page/2',
+  '/pt-br/',
+  '/pt-br/pricing',
+  '/pt-br/changelog',
+  '/pt-br/about',
+  '/pt-br/contact',
+  '/pt-br/legal/privacy',
+  '/pt-br/docs',
+  '/pt-br/docs/installation',
+  '/pt-br/blog',
+  '/pt-br/blog/deploy-previews-are-the-prs-missing-half',
 ] as const;
 export const themes = ['dark', 'light'] as const;
 export type Theme = (typeof themes)[number];

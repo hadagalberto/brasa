@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Avatar from '../../components/Avatar.astro';
+import Button from '../../components/Button.astro';
+import Container from '../../components/Container.astro';
+import CountUp from '../../components/CountUp.astro';
+import Heading from '../../components/Heading.astro';
+import Icon from '../../components/Icon.astro';
+import Section from '../../components/Section.astro';
+import type { IconName } from '../../components/Icon.astro';
+import SpotlightCard from '../../components/SpotlightCard.astro';
+import { localizedPath, normalizeLocale, ui } from '../../i18n';
+
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'pt-br' } }];
+}
+
+const lang = normalizeLocale(Astro.currentLocale);
+const t = ui(lang);
+const a = t.about;
+const valueIcons: IconName[] = ['bolt', 'sparkles', 'github'];
+---
+
+<BaseLayout title={lang === 'pt-br' ? 'Sobre' : 'About'} description={a.lede} {lang}>
+  <div data-glow>
+    <Section class="pt-[calc(var(--header-h)+3.5rem)] pb-16 lg:pt-[calc(var(--header-h)+5rem)]">
+      <Container size="md">
+        <p class="eyebrow">
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+          {a.eyebrow}
+          <span class="eyebrow-dash" aria-hidden="true"></span>
+        </p>
+        <h1 class="mt-6 text-display-xl text-balance font-display text-ink">
+          {a.title.before} <em class="text-gradient-ember italic">{a.title.em}</em> {a.title.after}
+        </h1>
+        <p class="mt-7 max-w-[64ch] text-pretty text-body-lg text-ink-2">{a.lede}</p>
+      </Container>
+    </Section>
+  </div>
+
+  <Section tone="surface">
+    <Container size="lg">
+      <div class="reveal">
+        <Heading eyebrow={a.story.eyebrow} as="h2" size="display-lg" title={a.story.title} />
+      </div>
+      <div class="reveal mt-10 grid gap-5 text-pretty text-body-lg leading-relaxed text-ink-2 lg:grid-cols-[1fr_1fr]">
+        <p>{a.story.paragraphs[0]}</p>
+        <p>{a.story.paragraphs[1]}</p>
+        <p class="lg:col-span-2 max-w-[72ch]">{a.story.paragraphs[2]}</p>
+      </div>
+    </Container>
+  </Section>
+
+  <Section>
+    <Container size="lg">
+      <div class="reveal">
+        <Heading eyebrow={a.values.eyebrow} as="h2" size="display-lg" title={a.values.title} />
+      </div>
+      <ul class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+        {a.values.items.map((item, i) => (
+          <li class="reveal">
+            <SpotlightCard class="flex h-full flex-col p-6 sm:p-7">
+              <Icon name={valueIcons[i]} size={22} class="text-accent" />
+              <h3 class="mt-5 font-display text-display-sm text-ink">{item.title}</h3>
+              <p class="mt-3 text-sm leading-relaxed text-ink-2 text-pretty">{item.body}</p>
+            </SpotlightCard>
+          </li>
+        ))}
+      </ul>
+    </Container>
+  </Section>
+
+  <Section tone="deep">
+    <Container size="xl">
+      <h2 class="sr-only">{a.numbers.heading}</h2>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4">
+        {a.numbers.items.map((item) => (
+          <CountUp value={item.value} suffix={item.suffix} label={item.label} />
+        ))}
+      </div>
+    </Container>
+  </Section>
+
+  <Section>
+    <Container size="md">
+      <div class="reveal flex flex-col gap-8 rounded-3xl border border-line bg-surface p-7 sm:flex-row sm:items-center sm:p-10">
+        <Avatar name={a.author.title} size={92} class="shrink-0 shadow-glow" />
+        <div class="min-w-0">
+          <p class="eyebrow">
+            <span class="eyebrow-dash" aria-hidden="true"></span>
+            {a.author.eyebrow}
+          </p>
+          <h2 class="mt-4 font-display text-display-sm text-ink">{a.author.title}</h2>
+          <p class="mt-1 text-sm font-medium text-accent">{a.author.role}</p>
+          <p class="mt-4 max-w-[68ch] text-pretty leading-relaxed text-ink-2">{a.author.body}</p>
+          <Button
+            href={`https://github.com/hadagalberto`}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="secondary"
+            size="sm"
+            icon="arrow-up-right"
+            class="mt-6"
+          >
+            {a.author.cta}
+          </Button>
+        </div>
+      </div>
+    </Container>
+  </Section>
+
+  <Section tone="deep">
+    <Container size="md" class="text-center">
+      <div class="mx-auto max-w-[48ch]">
+        <h2 class="font-display text-display-md text-balance text-ink">
+          {a.cta.title.before} <em class="text-gradient-ember italic">{a.cta.title.em}</em>{' '}
+          {a.cta.title.after}
+        </h2>
+        <p class="mt-5 text-pretty text-body-lg text-ink-2">{a.cta.lede}</p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <Button href={localizedPath('/docs', lang)} size="lg" icon="arrow-right">
+            {a.cta.primary}
+          </Button>
+          <Button href={localizedPath('/styleguide', lang)} variant="secondary" size="lg">
+            {a.cta.secondary}
+          </Button>
+        </div>
+      </div>
+    </Container>
+  </Section>
+</BaseLayout>

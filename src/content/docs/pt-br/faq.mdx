@@ -1,0 +1,174 @@
+---
+title: Perguntas frequentes
+description: Respostas diretas sobre licenciamento, personalização, conteúdo, busca, i18n e o pipeline de build.
+group: Resources
+order: 1
+sidebarLabel: Perguntas frequentes
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Accordion, Callout, Cards } from '../../../components/mdx';
+import { docLink } from '../../../lib/doc-link';
+
+As perguntas que surgem com mais frequência após o primeiro deploy, respondidas sem precisar abrir um ticket de suporte.
+
+## Usando o tema
+
+<Accordion
+  items={[
+    {
+      q: 'Sob qual licença o Brasa é lançado?',
+      a: 'MIT, copyright Hadagalberto Junior. Use em projetos de clientes, produtos comerciais ou no seu próprio blog. Mantenha o aviso de licença; não há nenhum requisito de atribuição além disso.',
+    },
+    {
+      q: 'Isto é um tema que eu instalo pelo npm, ou um repositório do qual eu faço fork?',
+      a: 'É um tema Astro distribuído como template. Você cria um projeto a partir do repositório e é dono de todos os arquivos. Isso é intencional: o design system, a busca e a geração de OG fazem parte do código-fonte que você pode editar.',
+    },
+    {
+      q: 'Posso usá-lo em um projeto de cliente?',
+      a: 'Sim. Aponte site.name e logo.text para o cliente, substitua o conteúdo de demonstração em src/content/, defina o matiz de destaque em brasa.config.ts e a demo passa a parecer deles.',
+    },
+    {
+      q: 'Ele requer um banco de dados ou um servidor?',
+      a: 'Não. A saída é HTML estático, CSS e pequenas ilhas de JS. As content collections são lidas no momento do build; o Pagefind gera um índice estático.',
+    },
+    {
+      q: 'Posso manter apenas a documentação e remover o blog?',
+      a: 'Sim, mas faça isso corretamente: remova as rotas e o diretório de conteúdo do blog, tire os links de navegação e do rodapé de brasa.config.ts e remova os scripts exclusivos do blog. As feature flags documentam o que está disponível; elas não excluem arquivos por você.',
+    },
+  ]}
+/>
+
+## Design e personalização
+
+<Accordion
+  items={[
+    {
+      q: 'Como altero a cor de destaque?',
+      a: 'Defina colors.accentHue em src/brasa.config.ts. A escala OKLCH ember, os acentos semânticos, os temas de sintaxe e os cards OG gerados derivam todos desse número. O guia de estilos tem um controle deslizante ao vivo para testar valores.',
+    },
+    {
+      q: 'Por que OKLCH em vez de hex?',
+      a: 'Luminosidade e croma são independentes do matiz, então o contraste é previsível e uma mudança de matiz não arruína a paleta. OKLCH também produz uma rampa mais uniforme que HSL com os mesmos números.',
+    },
+    {
+      q: 'O modo claro é um design de verdade ou um filtro?',
+      a: 'Um design de verdade. Ele tem suas próprias superfícies em papel quente, valores de tinta, elevação e luminosidade de destaque. A suíte axe audita ambos os temas em todas as rotas.',
+    },
+    {
+      q: 'Posso trocar as fontes?',
+      a: 'Sim. As fontes são pacotes Fontsource auto-hospedados, importados em BaseLayout e nomeados em global.css e src/lib/color.ts para as imagens OG. Substitua as importações, os nomes de fonte em @theme e as URLs de preload em conjunto.',
+    },
+    {
+      q: 'Por que não há flash do modo escuro ao recarregar?',
+      a: 'Um pequeno script inline em <head> lê o tema armazenado e define data-theme em <html> antes da primeira pintura. As View Transitions levam o mesmo atributo para o documento de entrada.',
+    },
+  ]}
+/>
+
+## Conteúdo e busca
+
+<Accordion
+  items={[
+    {
+      q: 'Onde escrevo posts e documentação?',
+      a: 'Arquivos MDX em src/content/blog e src/content/docs. O frontmatter é validado por esquemas Zod em src/content.config.ts; o nome do arquivo se torna o slug da URL.',
+    },
+    {
+      q: 'Por que o build do meu MDX falhou na linha 9?',
+      a: 'Quase sempre por um import colocado junto ao frontmatter. O YAML termina no segundo --- e os imports devem vir depois dele. npm run build executa scripts/verify-mdx.mjs primeiro e imprime o arquivo e a linha exatos.',
+    },
+    {
+      q: 'Como adiciono um autor?',
+      a: 'Adicione um arquivo JSON em src/content/authors com name, role, bio e links opcionais. Referencie o nome do arquivo (sem .json) no campo author de um post. Os avatares são iniciais geradas, então nenhuma imagem é necessária.',
+    },
+    {
+      q: 'Como funciona a busca?',
+      a: 'O Pagefind gera um índice estático em dist/pagefind durante npm run build. A caixa de diálogo abre com Ctrl/⌘+K ou /, carrega o índice de forma preguiçosa na primeira abertura e aceita navegação pelas setas do teclado.',
+    },
+    {
+      q: 'Por que a busca diz que o índice está indisponível?',
+      a: 'Você provavelmente executou astro build diretamente em vez de npm run build, ou está no astro dev, onde nenhum índice existe. Faça o build com o script npm e sirva com npm run preview.',
+    },
+  ]}
+/>
+
+## Build e deploy
+
+<Accordion
+  items={[
+    {
+      q: 'Qual versão do Node preciso usar?',
+      a: 'Node 20 ou mais recente; a CI usa Node 22. Fixe a mesma versão nas configurações do seu host.',
+    },
+    {
+      q: 'Por que PAGES_BASE_PATH é separado de SITE_URL?',
+      a: 'SITE_URL é a origem absoluta usada para links canônicos e feeds. PAGES_BASE_PATH é o subcaminho da URL a partir do qual o site do projeto é servido. Um repositório no GitHub Pages em /brasa precisa de ambos.',
+    },
+    {
+      q: 'Quais hosts são suportados?',
+      a: 'Qualquer host estático. O repositório inclui workflows para GitHub Pages e CI; o guia de deploy também cobre as configurações de Vercel, Netlify e Cloudflare Pages.',
+    },
+    {
+      q: 'Como verifico um deploy?',
+      a: 'Verifique se o alternador de tema persiste, se Ctrl+K retorna resultados, se os feeds carregam, se uma URL OG retorna um PNG e se uma URL inexistente renderiza a página 404 personalizada com status 404.',
+    },
+  ]}
+/>
+
+## Qualidade e acessibilidade
+
+<Accordion
+  items={[
+    {
+      q: 'O que significa “zero violações” aqui?',
+      a: 'A suíte axe roda em todas as rotas nos dois temas com as tags WCAG 2.0/2.1 A e AA e deve reportar um array de violations vazio. Uma única violação já faz a CI falhar.',
+    },
+    {
+      q: 'Quanto JavaScript uma página envia?',
+      a: 'Um teste Playwright compacta com gzip todos os scripts inline e externos em cada rota e falha acima de 20 KB. A meta para cada ilha é menos de 3 KB compactados; o Pagefind é buscado apenas sob demanda.',
+    },
+    {
+      q: 'O que as capturas de tela cobrem?',
+      a: 'O Playwright captura todas as rotas de cada tipo de página a 375 e 1440 px nos dois temas, em docs/screenshots/. São capturas de referência, regeneradas por npm test.',
+    },
+    {
+      q: 'O tema respeita a preferência por movimento reduzido?',
+      a: 'Sim. As revelações por rolagem, as contagens progressivas, o brilho do cursor, o conector das etapas e as transições de caixa de diálogo/painel degradam para conteúdo estático e totalmente visível.',
+    },
+  ]}
+/>
+
+<Callout variant="tip" title="Ainda em dúvida?">
+  Busque no manual com <kbd>/</kbd>, ou pergunte nas discussões do repositório. Se você encontrou um bug,
+  uma issue com uma URL reproduzível vale mais que uma descrição.
+</Callout>
+
+## Próximos passos
+
+<Cards
+  items={[
+    {
+      title: 'Referência de componentes',
+      description: 'Props e exemplos ao vivo de todos os componentes do tema.',
+      href: docLink('components', 'pt-br'),
+      icon: 'book',
+      meta: 'Referência',
+    },
+    {
+      title: 'Acessibilidade',
+      description: 'Foco, contraste, movimento e as verificações automatizadas por trás disso.',
+      href: docLink('accessibility', 'pt-br'),
+      icon: 'shield',
+      meta: 'Guia',
+    },
+    {
+      title: 'Instalação',
+      description: 'Volte ao começo, com os comandos exatos.',
+      href: docLink('installation', 'pt-br'),
+      icon: 'terminal',
+      meta: 'Início',
+    },
+  ]}
+/>

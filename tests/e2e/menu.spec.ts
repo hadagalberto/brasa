@@ -77,10 +77,10 @@ test('locks page scroll while open', async ({ page }) => {
 
 test('following a sheet link closes the sheet and navigates', async ({ page }) => {
   await page.locator('[data-menu-toggle]').first().click();
-  await page.locator('[data-menu] a', { hasText: 'Styleguide' }).click();
+  await page.locator('[data-menu] a', { hasText: 'Pricing' }).click();
 
   await expect(page.locator('html')).not.toHaveAttribute('data-menu-open', '');
-  await expect(page.locator('h1')).toContainText('Every token');
+  await expect(page.locator('h1')).toContainText('prices');
 });
 
 test('the sheet is hidden on desktop', async ({ page }) => {

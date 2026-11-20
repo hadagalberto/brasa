@@ -1,0 +1,21 @@
+{
+  "version": "2.3.0",
+  "date": "2026-10-07",
+  "title": "Governança sem planilha",
+  "summary": "SAML SSO, provisionamento SCIM e log de auditoria chegam ao Business — com a mesma interface discreta de sempre.",
+  "groups": [
+    {
+      "title": "Adicionado",
+      "items": [
+        "SAML SSO e sincronização de usuários por SCIM",
+        "Log de auditoria pesquisável",
+        "Acesso por função para revisores"
+      ]
+    },
+    {
+      "title": "Corrigido",
+      "items": ["Renovação de sessão não desconecta revisores ociosos"]
+    }
+  ],
+  "lang": "pt-br"
+}

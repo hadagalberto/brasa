@@ -1,0 +1,17 @@
+{
+  "version": "2.1.0",
+  "date": "2026-07-30",
+  "title": "Regiões, finalmente",
+  "summary": "Escolha onde a prévia vive. A região mais próxima vence por padrão, e o Enterprise ganha runners dedicados.",
+  "groups": [
+    {
+      "title": "Adicionado",
+      "items": [
+        "Três regiões compartilhadas de build",
+        "Seletor de região nas configurações do projeto",
+        "Regiões dedicadas para Enterprise"
+      ]
+    }
+  ],
+  "lang": "pt-br"
+}

@@ -6,22 +6,37 @@
  */
 
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { localizedPath, type Locale } from '../i18n';
 
 export type Post = CollectionEntry<'blog'>;
 export type Author = CollectionEntry<'authors'>;
 
-/** Published posts, newest first. Drafts never render anywhere. */
-export async function getPosts(): Promise<Post[]> {
-  const posts = await getCollection('blog', ({ data }) => !data.draft);
+/** Collection ids carry the locale folder; route slugs do not. */
+export function postSlug(post: Post): string {
+  return post.id.replace(/^pt-br\//, '');
+}
+
+export function authorId(author: Author): string {
+  return author.id.replace(/^pt-br\//, '');
+}
+
+/** Published posts for one locale, newest first. Drafts never render. */
+export async function getPosts(locale: Locale = 'en'): Promise<Post[]> {
+  const posts = await getCollection('blog', ({ data }) => !data.draft && data.lang === locale);
   return posts.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || a.id.localeCompare(b.id),
+    (a, b) =>
+      b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || postSlug(a).localeCompare(postSlug(b)),
   );
 }
 
-export async function getAuthor(id: string): Promise<Author> {
-  const authors = await getCollection('authors');
-  const author = authors.find((entry) => entry.id === id);
-  if (!author) throw new Error(`Unknown author id: "${id}"`);
+export async function getAuthors(locale: Locale = 'en'): Promise<Author[]> {
+  return getCollection('authors', ({ data }) => data.lang === locale);
+}
+
+export async function getAuthor(id: string, locale: Locale = 'en'): Promise<Author> {
+  const authors = await getAuthors(locale);
+  const author = authors.find((entry) => authorId(entry) === id);
+  if (!author) throw new Error(`Unknown author id: "${id}" for locale "${locale}"`);
   return author;
 }
 
@@ -32,42 +47,45 @@ const WORDS_PER_MINUTE = 200;
 /** Strips MDX/component syntax so only readable words count. */
 function readableWords(markdown: string): number {
   const text = markdown
-    // Import statements and exported frontmatter code.
     .replace(/^---[\s\S]*?---/g, '')
     .replace(/^import[\s\S]*?from\s+['"].*?['"];?$/gm, '')
-    // Component tags (<Callout …>…</Callout>) keep their inner text.
     .replace(/<\/?[A-Z][\w.]*[^>]*>/g, ' ')
-    // Code fences are skipped, not skimmed.
     .replace(/```[\s\S]*?```/g, ' ');
   const words = text.match(/[\p{L}\p{N}'’-]+/gu) ?? [];
   return words.length;
 }
 
-/** Rounded-up reading time in minutes. */
 export function readingMinutes(body: string): number {
   return Math.max(1, Math.ceil(readableWords(body) / WORDS_PER_MINUTE));
 }
 
-export function readingTimeLabel(body: string): string {
+export function readingTimeLabel(body: string, locale: Locale = 'en'): string {
   const minutes = readingMinutes(body);
-  return `${minutes} min read`;
+  return locale === 'pt-br' ? `${minutes} min de leitura` : `${minutes} min read`;
 }
 
 /* -------------------------------- Formatting ------------------------------- */
 
-const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  timeZone: 'UTC',
-});
+const DATE_FORMATS: Record<Locale, Intl.DateTimeFormat> = {
+  en: new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }),
+  'pt-br': new Intl.DateTimeFormat('pt-BR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }),
+};
 
-/** "March 4, 2025" — dates are UTC-only, so the site never shifts. */
-export function formatDate(date: Date): string {
-  return DATE_FORMAT.format(date);
+/** "March 4, 2025" / "4 de março de 2025" — UTC-only, so the site never shifts. */
+export function formatDate(date: Date, locale: Locale = 'en'): string {
+  return DATE_FORMATS[locale].format(date);
 }
 
-/** RFC 822 date for RSS items. */
 export function formatRssDate(date: Date): string {
   return date.toUTCString().replace('GMT', '+0000');
 }
@@ -75,9 +93,7 @@ export function formatRssDate(date: Date): string {
 /* --------------------------------- Tags ----------------------------------- */
 
 export interface TagInfo {
-  /** Original display label, e.g. "Deploy previews". */
   label: string;
-  /** URL slug, e.g. "deploy-previews". */
   slug: string;
   count: number;
 }
@@ -91,24 +107,34 @@ function slugify(label: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/** Synonyms across locales share one canonical URL slug. */
+const TAG_SLUGS: Record<string, string> = {
+  acessibilidade: 'accessibility',
+  'previews-de-deploy': 'deploy-previews',
+  'previews-de-implantacao': 'deploy-previews',
+  'cultura-de-engenharia': 'engineering-culture',
+};
+
 export function tagSlug(label: string): string {
-  return slugify(label);
+  const key = slugify(label);
+  return TAG_SLUGS[key] ?? key;
 }
 
-export function tagHref(label: string): string {
-  return `${import.meta.env.BASE_URL}blog/tags/${tagSlug(label)}`;
+export function tagHref(label: string, locale: Locale = 'en'): string {
+  return localizedPath(`/blog/tags/${tagSlug(label)}`, locale);
 }
 
-/** All tags with counts, most used first, then alphabetical. */
 export function collectTags(posts: Post[]): TagInfo[] {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, { label: string; count: number }>();
   for (const post of posts) {
-    for (const tag of post.data.tags) {
-      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    for (const label of post.data.tags) {
+      const slug = tagSlug(label);
+      const entry = counts.get(slug);
+      counts.set(slug, { label: entry?.label ?? label, count: (entry?.count ?? 0) + 1 });
     }
   }
   return [...counts.entries()]
-    .map(([label, count]) => ({ label, slug: slugify(label), count }))
+    .map(([slug, { label, count }]) => ({ label, slug, count }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
@@ -117,21 +143,14 @@ export function collectTags(posts: Post[]): TagInfo[] {
 export const PAGE_SIZE = 6;
 
 export interface PageSlice {
-  /** Post list for the page (featured excluded everywhere). */
   posts: Post[];
   page: number;
   totalPages: number;
-  /** null on the first page. */
   prevHref: string | null;
-  /** null on the last page. */
   nextHref: string | null;
 }
 
-export function paginate(
-  posts: Post[],
-  page: number,
-  basePath = `${import.meta.env.BASE_URL}blog`,
-): PageSlice {
+export function paginate(posts: Post[], page: number, basePath: string): PageSlice {
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
   return {
     posts: posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -148,15 +167,10 @@ export function pageHref(basePath: string, page: number): string {
 
 /* ----------------------------- Post relations ------------------------------ */
 
-/** The featured post, newest if several claim the slot. */
 export function pickFeatured(posts: Post[]): Post | undefined {
   return posts.find((post) => post.data.featured);
 }
 
-/**
- * Up to `limit` posts sharing the most tags with `post` (never itself).
- * Ties break by publication date so the list is stable across builds.
- */
 export function relatedPosts(all: Post[], post: Post, limit = 2): Post[] {
   return all
     .filter((other) => other.id !== post.id)
@@ -173,12 +187,10 @@ export function relatedPosts(all: Post[], post: Post, limit = 2): Post[] {
     .map(({ other }) => other);
 }
 
-/** Chronological neighbours of a post within the sorted list. */
 export function neighbours(posts: Post[], post: Post): { prev: Post | null; next: Post | null } {
   const index = posts.findIndex((entry) => entry.id === post.id);
   if (index === -1) return { prev: null, next: null };
   return {
-    // prev = older, next = newer (the list is newest-first).
     prev: index < posts.length - 1 ? (posts[index + 1] ?? null) : null,
     next: index > 0 ? (posts[index - 1] ?? null) : null,
   };
@@ -187,11 +199,11 @@ export function neighbours(posts: Post[], post: Post): { prev: Post | null; next
 /* --------------------------------- Feeds ----------------------------------- */
 
 export function postHref(post: Post): string {
-  return `${import.meta.env.BASE_URL}blog/${post.id}`;
+  return localizedPath(`/blog/${postSlug(post)}`, post.data.lang);
 }
 
-export function authorHref(id: string): string {
-  return `${import.meta.env.BASE_URL}blog/authors/${id}`;
+export function authorHref(id: string, locale: Locale = 'en'): string {
+  return localizedPath(`/blog/authors/${id}`, locale);
 }
 
 export { render };

@@ -1,0 +1,65 @@
+---
+title: Ler o clima — a arte de um blog legível
+description: Tempo de leitura, índices fixos, posts relacionados e toda a maquinaria invisível de uma boa página de ensaio, tratada como problema de design em vez de configuração de plugin. Por que medimos a leitura em minutos e projetamos ao mesmo tempo para quem folheia e para quem se aprofunda.
+author: sofia-marques
+tags:
+  - design systems
+  - cultura de engenharia
+pubDate: 2026-04-08
+lang: 'pt-br'
+---
+
+import { Callout } from '../../../components/mdx';
+
+Ninguém lê na web; todo mundo folheia até que algo chame a atenção, e então lê de verdade. O design honesto de um blog atende às duas fases desse comportamento: uma superfície _escanável_ — índice, tags, minutos — e uma _sala de leitura_ confortável quando alguém se decide. A maioria dos temas de blog parafusa plugins para ambas. Nós as tratamos como problemas de design, o que basicamente significa fazer uma pergunta por recurso: _que promessa isso faz à pessoa que lê?_
+
+## Tempo de leitura: uma estimativa honesta, dita com delicadeza
+
+O selo "8 min de leitura" faz uma promessa específica: _comprometer-se com isto custa mais ou menos um café_. Errar e a confiança vaza — um "4 min de leitura" que devora vinte minutos é uma traição pequena e estúpida, das que a pessoa lembra.
+
+Então a conta permanece honesta e a apresentação, humilde:
+
+- **Palavras entram, minutos saem.** Uma contagem simples de palavras do texto legível (blocos de código e marcação de componentes excluídos — ninguém lê um bloco de código a 200 ppm), a 200 palavras por minuto, arredondado para cima, com mínimo de um minuto. Sem feitiço de ponderação por seção; testamos variações contra o tempo real de leitura da nossa própria equipe e a versão simples venceu.
+- **Escrito como "~", exibido como "8 min de leitura".** Uma faixa se passando por medição é a forma mais rápida de tornar o número sem sentido.
+
+<Callout variant="tip" title="O número é para a agenda de quem folheia">
+  Tempo de leitura não tem a ver com velocidade — tem a ver com *apoio à decisão*. "Leio agora, guardo
+  para o almoço ou nunca?" é a pergunta real de quem está no índice, e um número a responde com mais
+  gentileza do que uma parede de parágrafos.
+</Callout>
+
+## O índice: um mapa que sabe onde você está
+
+Um índice em um ensaio longo é um mapa; a arte está em manter o pino "você está aqui" honesto. O nosso fica fixo em telas largas, é uma lista simples e recolhível em telas estreitas, e destaca a seção atual por meio de um IntersectionObserver que observa os títulos — a mesma marcação, degradada com elegância.
+
+Três decisões pequenas fazem quase todo o trabalho:
+
+1. **Dois níveis, no máximo.** h2 e h3; aninhamento mais profundo é um _sintoma de redação_ que o índice não deve amortecer.
+2. **Destaque, sem sequestrar a rolagem.** A entrada ativa ganha cor e um marcador em brasa; o painel nunca rola sozinho. O mapa fica parado enquanto o território se move.
+3. **Âncoras que resistem a qualquer coisa.** IDs de título são slugs estáveis, então um link profundo compartilhado continua chegando ao argumento, não ao topo da página — uma promessa tanto para quem enviou o link quanto para quem o recebe.
+
+## Posts relacionados: a promessa de "mais como este"
+
+"Posts relacionados" é o recurso mais fácil de falsificar e o mais fácil de tornar sem sentido. Ordenar por recência e chamar isso de relacionado quebra a promessa na frente de quem lê — a pessoa clicou por causa de _este_ assunto.
+
+Os nossos pontuam por tags em comum, desempate por data, limite de dois. Dois, porque o fim de um ensaio é uma porta, não um corredor de loja: um acompanhamento forte convida, três começam a parecer estratégia de retenção. E a mesma maquinaria alimenta discretamente o índice de tags e as páginas de autor — uma única noção de _afinidade_, expressa em todo lugar onde a pessoa possa querê-la.
+
+## Paginação: o arquivo que se pode segurar
+
+Rolagem infinita é uma promessa que ninguém deveria fazer a quem estuda: que não existe _onde_ no seu arquivo. Páginas numeradas são coordenadas — citáveis, marcáveis, cacheáveis — e a contagem de páginas impressa ao lado delas diz a verdade sobre quanto texto existe aqui. Nosso índice pagina de seis em seis posts, com um ensaio em destaque acima da primeira página, de modo que a porta de entrada é uma edição curada e as páginas atrás dela são o inventário honesto.
+
+## A sala de leitura em si
+
+Quando a pessoa se decide, a página precisa principalmente _sair do caminho_, que é o tipo mais difícil de design de reivindicar crédito:
+
+| Decisão                                            | Justificativa                                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Largura máxima de ~62ch                            | duas a três linhas de alfabeto; o olho volta à borda esquerda sem procurar            |
+| Tipografia fluida, um passo maior que o texto da UI | corpo com `clamp()` até 19px — texto longo merece o aumento                          |
+| Títulos com `text-wrap: balance`, parágrafos `pretty` | borda direita irregular sem palavras órfãs, cortesia da plataforma                   |
+| Preto quente fora do absoluto sobre papel quente (escuro ou claro) | o "fora" é contraste _e_ temperatura — veja o post sobre contraste           |
+| Sem intersticiais no meio do artigo                | a única promessa do ensaio é o fluxo ininterrupto                                    |
+
+> Uma boa página de ensaio é um móvel que você deixa de notar, daquele jeito específico como se deixa de notar uma cadeira que serve.
+
+O fio condutor de tudo isso: cada um desses recursos é uma _promessa com um número ou um link anexado_ — minutos, seções, coordenadas, acompanhamentos. A web está cheia de blogs que tratam quem lê como tráfego; a arte é tratá-la como leitora, com toda a maquinaria delicada que isso implica.

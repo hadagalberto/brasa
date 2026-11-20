@@ -1,0 +1,134 @@
+---
+title: Deploy
+description: Gere a saída estática e hospede-a no GitHub Pages, Vercel, Netlify ou Cloudflare Pages com o caminho base correto.
+group: Guides
+order: 3
+sidebarLabel: Deploy
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Steps, Tabs } from '../../../components/mdx';
+
+O Brasa gera um diretório `dist/` totalmente estático. Não há runtime de servidor, banco de dados nem caminho de renderização específico por ambiente. Se um host consegue servir arquivos, ele consegue hospedar o Brasa.
+
+## O contrato de build
+
+```bash
+npm ci
+npm run build
+```
+
+`npm run build` executa três etapas em ordem:
+
+1. `node scripts/verify-mdx.mjs` — valida todo bloco de frontmatter MDX.
+2. `astro build` — renderiza rotas, feeds e imagens OG, e executa os schemas de conteúdo do Astro.
+3. `pagefind --site dist` — grava o índice de busca em `dist/pagefind/`.
+
+<Callout variant="danger" title="Não pule a etapa do Pagefind">
+  Executar `astro build` diretamente produz um site em que o diálogo de busca abre mas reporta um
+  índice indisponível. Sempre use `npm run build`, ou adicione o comando do Pagefind explicitamente
+  à etapa de build do seu host.
+</Callout>
+
+O resultado:
+
+<FileTree
+  tree={[
+    {
+      name: 'dist/',
+      children: [
+        { name: 'index.html' },
+        { name: 'docs/', note: 'rotas do manual' },
+        { name: 'blog/', note: 'posts, tags, autores, paginação' },
+        { name: 'og/', note: 'cards PNG gerados' },
+        { name: 'pagefind/', note: 'índice de busca + JS', highlight: true },
+        { name: '_astro/', note: 'CSS, JS, fontes' },
+        { name: 'rss.xml', note: 'feed RSS' },
+        { name: 'feed.json', note: 'feed JSON' },
+        { name: '404.html' },
+      ],
+    },
+  ]}
+/>
+
+## Antes de publicar
+
+<Steps
+  steps={[
+    {
+      icon: 'globe',
+      title: 'Defina SITE_URL',
+      body: 'A URL canônica e todos os links absolutos do feed derivam dela. Use a origem pública final, incluindo https.',
+    },
+    {
+      icon: 'folder',
+      title: 'Defina PAGES_BASE_PATH',
+      body: 'Use / para a raiz de um domínio ou /nome-repo para um site de projeto no GitHub Pages. Mantenha idêntico nos builds locais e no CI.',
+    },
+    {
+      icon: 'check',
+      title: 'Execute a verificação completa',
+      body: 'npm run check, npm run lint, npm run build e npm test. O CI executa os mesmos comandos na mesma ordem.',
+    },
+  ]}
+/>
+
+<Tabs
+  label="Variáveis de ambiente por host"
+  tabs={[
+    { id: 'gh', label: 'GitHub Pages' },
+    { id: 'vercel', label: 'Vercel' },
+    { id: 'netlify', label: 'Netlify' },
+    { id: 'cf', label: 'Cloudflare' },
+  ]}
+>
+  <Fragment slot="gh">
+    ```bash SITE_URL=https://username.github.io/repo-name PAGES_BASE_PATH=/repo-name ``` O
+    workflow incluído publica `dist/` com a action oficial do Pages. Ele só roda em `main`; o
+    workflow de CI cuida dos pull requests. Se seu repositório estiver na raiz de um site de
+    usuário, use `/` como caminho base e omita o segmento do repo em `SITE_URL`.
+  </Fragment>
+  <Fragment slot="vercel">
+    ```bash SITE_URL=https://your-domain.example PAGES_BASE_PATH=/ ``` Preset de framework: Astro.
+    Comando de build: `npm run build`. Diretório de saída: `dist`. A versão padrão do Node na Vercel
+    é configurável — fixe o Node 22 para corresponder ao CI.
+  </Fragment>
+  <Fragment slot="netlify">
+    ```bash SITE_URL=https://your-site.netlify.app PAGES_BASE_PATH=/ ``` Comando de build: `npm run
+    build`. Diretório de publicação: `dist`. Adicione `NODE_VERSION=22` no ambiente do site. O
+    pós-processamento de assets da Netlify pode reescrever PNGs gerados; deixe-o desativado para
+    cards OG com bytes estáveis.
+  </Fragment>
+  <Fragment slot="cf">
+    ```bash SITE_URL=https://your-site.pages.dev PAGES_BASE_PATH=/ ``` Comando de build: `npm run
+    build`. Diretório de saída do build: `dist`. Defina a flag de compatibilidade do Node como
+    `nodejs_22` (ou mais novo) no `wrangler.toml` ou no painel.
+  </Fragment>
+</Tabs>
+
+## Caminhos base e links
+
+Toda URL interna passa por `import.meta.env.BASE_URL`: links de navegação, links do rodapé, alternâncias de feed, caminhos de imagem OG, o favicon e a URL do módulo do Pagefind. É por isso que a mesma fonte gera em `/` e em `/brasa/` sem uma auditoria de links.
+
+<Callout variant="warning" title="Um caminho base errado falha silenciosamente">
+  O HTML ainda renderiza, mas CSS, fontes, imagens e o índice de busca dão 404. Após mudar o caminho
+  base, abra o site publicado e verifique o console do navegador, depois execute o teste Playwright
+  "todas as URLs e assets internos resolvem" no preview com o mesmo `PAGES_BASE_PATH` definido.
+</Callout>
+
+## Cache
+
+Assets com fingerprint em `dist/_astro/` podem ser cacheados de forma imutável com segurança. Imagens OG geradas trazem `Cache-Control: public, max-age=31536000, immutable` nos headers do endpoint, mas um host estático serve o arquivo diretamente — defina um tempo de cache longo para `/og/` na config do host se quiser o mesmo comportamento.
+
+`pagefind/` deve ser cacheado com o restante da saída estática e invalidado a cada deploy. Como o índice é endereçado por conteúdo internamente, um índice desatualizado não pode ser carregado parcialmente.
+
+## Verificando o deploy
+
+```bash
+SITE_URL=https://your-domain.example PAGES_BASE_PATH=/ npm run build
+npm run preview
+npm test
+```
+
+Depois verifique, no host em produção: o alternador de tema persiste após recarregar sem flash, `Ctrl+K` retorna resultados, `/rss.xml` e `/feed.json` carregam, uma URL OG retorna um PNG, e a página 404 renderiza com seu próprio código de status.

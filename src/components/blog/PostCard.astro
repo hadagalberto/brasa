@@ -11,6 +11,7 @@ import PostMeta from './PostMeta.astro';
 import TagPill from './TagPill.astro';
 import { postHref, tagHref } from '../../lib/posts';
 import type { Author, Post } from '../../lib/posts';
+import { ui } from '../../i18n';
 
 interface Props {
   post: Post;
@@ -25,6 +26,7 @@ const { post, author, variant = 'default', index, class: className } = Astro.pro
 const featured = variant === 'featured';
 const compact = variant === 'compact';
 const href = postHref(post);
+const strings = ui(post.data.lang).blog;
 ---
 
 <article
@@ -49,13 +51,17 @@ const href = postHref(post);
     {featured && (
       <span class="inline-flex items-center gap-1.5 rounded-full bg-ember-gradient px-3 py-1 font-mono text-xs font-semibold tracking-[0.1em] text-on-accent uppercase shadow-glow">
         <Icon name="flame" size={12} />
-        Featured
+        {strings.featured}
       </span>
     )}
     <ul class:list={['flex flex-wrap items-center gap-1.5', featured && 'min-w-0']}>
       {post.data.tags.map((tag) => (
         <li>
-          <TagPill label={tag} href={tagHref(tag)} class={featured ? 'backdrop-blur-sm' : ''} />
+          <TagPill
+            label={tag}
+            href={tagHref(tag, post.data.lang)}
+            class={featured ? 'backdrop-blur-sm' : ''}
+          />
         </li>
       ))}
     </ul>

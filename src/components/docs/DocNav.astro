@@ -2,25 +2,31 @@
 /** Prev/next links for the docs manual, following the sidebar reading order. */
 import Icon from '../Icon.astro';
 import { docsHref, type Doc } from '../../lib/docs';
+import { normalizeLocale, ui, type Locale } from '../../i18n';
 
 interface Props {
   prev: Doc | null;
   next: Doc | null;
+  lang?: Locale;
 }
 
-const { prev, next } = Astro.props;
+const { prev, next, lang = normalizeLocale(prev?.data.lang ?? next?.data.lang) } = Astro.props;
+const t = ui(lang);
 ---
 
 {(prev || next) && (
-  <nav aria-label="Documentation pages" class="doc-nav not-prose">
+  <nav
+    aria-label={ui(normalizeLocale(Astro.currentLocale)).common.docsPages}
+    class="doc-nav not-prose"
+  >
     {prev ? (
       <a href={docsHref(prev)} class="doc-nav-card group">
         <span class="doc-nav-label">
           <Icon name="chevron-left" size={14} />
-          Previous
+          {t.docs.previous}
         </span>
         <span class="doc-nav-title">{prev.data.title}</span>
-        <span class="doc-nav-group">{prev.data.group}</span>
+        <span class="doc-nav-group">{t.docs.pages.groups[prev.data.group]}</span>
       </a>
     ) : (
       <span />
@@ -28,11 +34,11 @@ const { prev, next } = Astro.props;
     {next ? (
       <a href={docsHref(next)} class="doc-nav-card doc-nav-next group">
         <span class="doc-nav-label">
-          Next
+          {t.docs.next}
           <Icon name="chevron-right" size={14} />
         </span>
         <span class="doc-nav-title">{next.data.title}</span>
-        <span class="doc-nav-group">{next.data.group}</span>
+        <span class="doc-nav-group">{t.docs.pages.groups[next.data.group]}</span>
       </a>
     ) : (
       <span />

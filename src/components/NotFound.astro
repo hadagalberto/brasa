@@ -1,0 +1,90 @@
+---
+import Button from './Button.astro';
+import Container from './Container.astro';
+import Icon from './Icon.astro';
+import { localizedPath, ui, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = ui(lang).notFound;
+const suggestions = [
+  {
+    label: lang === 'pt-br' ? 'Instalação' : 'Installation',
+    href: localizedPath('/docs/installation', lang),
+  },
+  { label: lang === 'pt-br' ? 'Preços' : 'Pricing', href: localizedPath('/pricing', lang) },
+  {
+    label: lang === 'pt-br' ? 'Documentação' : 'Documentation',
+    href: localizedPath('/docs', lang),
+  },
+  { label: lang === 'pt-br' ? 'Novidades' : 'Changelog', href: localizedPath('/changelog', lang) },
+];
+---
+
+<section class="section-y grid min-h-[72svh] place-items-center" data-glow>
+  <Container size="sm" class="text-center">
+    <p class="eyebrow justify-center">
+      <span class="eyebrow-dash" aria-hidden="true"></span>
+      {t.eyebrow}
+      <span class="eyebrow-dash" aria-hidden="true"></span>
+    </p>
+    <p
+      class="mt-8 font-mono text-[clamp(5rem,18vw,10rem)] leading-none font-semibold tracking-[-0.06em] text-gradient-ember tabular-nums"
+      aria-hidden="true"
+    >
+      404
+    </p>
+    <h1 class="sr-only">{t.title}</h1>
+    <p class="mt-4 text-display-md text-balance font-display text-ink">
+      {t.heading.before} <em class="text-gradient-ember italic">{t.heading.em}</em>
+      {t.heading.after}
+    </p>
+    <p class="mx-auto mt-6 max-w-[46ch] text-pretty text-body-lg text-ink-2">{t.body}</p>
+
+    <div class="mx-auto mt-8 flex max-w-md items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-start shadow-sm">
+      <Icon name="search" size={17} class="shrink-0 text-accent" />
+      <button
+        type="button"
+        data-search-open
+        aria-haspopup="dialog"
+        aria-controls="search-dialog"
+        aria-expanded="false"
+        class="w-full cursor-pointer bg-transparent py-1.5 text-sm text-ink-2 transition-colors hover:text-ink"
+      >
+        {t.searchPlaceholder}
+      </button>
+      <kbd class="hidden rounded border border-line-strong px-1.5 py-0.5 font-mono text-[0.625rem] text-ink-3 sm:inline">
+        /
+      </kbd>
+    </div>
+
+    <div class="mt-9 flex flex-wrap justify-center gap-4">
+      <Button href={localizedPath('/', lang)}>{t.primary}</Button>
+      <Button href={localizedPath('/docs', lang)} variant="secondary">
+        {t.secondary}
+      </Button>
+    </div>
+
+    <div class="mt-14 border-t border-line pt-8">
+      <p class="font-mono text-[0.6875rem] tracking-[0.14em] text-ink-3 uppercase">
+        {t.suggestions}
+      </p>
+      <ul class="mt-4 flex flex-wrap justify-center gap-2">
+        {suggestions.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3 py-1.5 text-xs text-ink-2 transition-colors duration-(--dur-1) hover:border-accent/40 hover:text-accent"
+            >
+              {item.label}
+              <Icon name="arrow-up-right" size={12} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </Container>
+</section>

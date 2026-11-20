@@ -1,0 +1,103 @@
+---
+title: Desempenho
+description: A arquitetura estática, as fontes auto-hospedadas, o orçamento de JS e as verificações do Lighthouse que mantêm rápido todos os tipos de página.
+group: Guides
+order: 5
+sidebarLabel: Desempenho
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, FileTree, Tabs, Steps } from '../../../components/mdx';
+
+Velocidade aqui é um recurso, medido e não prometido. A meta da SPEC é Lighthouse **0,98 ou mais em todas as quatro categorias** para a página inicial, um post do blog, uma página de documentação e a página de preços, com CLS abaixo de 0,02 e menos de 20 KB de JavaScript compactado com gzip por página.
+
+## Por que é rápido por construção
+
+<FileTree
+  tree={[
+    { name: 'Static HTML', note: 'sem servidor, sem hidratação' },
+    { name: 'Vanilla TS islands', note: '< 3 KB compactados cada' },
+    { name: 'Tailwind CSS v4', note: 'CSS-first, compilado uma vez' },
+    { name: 'Self-hosted fonts', note: 'variáveis, com subconjunto, pré-carregadas' },
+    { name: 'Pagefind', note: 'índice estático sob demanda' },
+    { name: 'OG images', note: 'renderizadas no momento do build' },
+  ]}
+/>
+
+Não há runtime de ilhas React, nem framework de roteamento no cliente, nem busca de dados durante a navegação. `ClientRouter` cuida das View Transitions trocando HTML e executando novamente pequenos módulos com delegação de eventos em `astro:page-load`.
+
+## Orçamento de JavaScript
+
+`tests/e2e/budget.spec.ts` coleta todos os scripts externos e inline de uma página, compacta o código com gzip e falha acima de 20 KB. O módulo de comportamento do tema é pequeno porque usa delegação de eventos: um listener por tipo de evento, nenhum handler por elemento.
+
+<Tabs
+  label="O que é entregue"
+  tabs={[
+    { id: 'always', label: 'Em toda página' },
+    { id: 'lazy', label: 'Carregado sob demanda' },
+  ]}
+>
+  <Fragment slot="always">
+    - Bootstrap de tema inline sem flash no `<head>` (algumas centenas de bytes).
+    - `behaviors.ts` — tema, menu, cabeçalho de rolagem, brilho, spotlights, contagem progressiva, botões de copiar.
+    - `search.ts` — atalhos e ligação da caixa de diálogo. Seu índice **não** é buscado até a caixa abrir.
+  </Fragment>
+  <Fragment slot="lazy">
+    - `pagefind/pagefind.js` e os pedaços do índice — buscados no primeiro Ctrl/⌘+K ou `/`.
+    - Observer do índice do blog e módulo de link de compartilhamento — apenas nos posts.
+    - Gaveta da documentação e observer do índice — apenas nas páginas de docs.
+    - Script do botão de copiar do Expressive Code — apenas onde existe um bloco de código.
+  </Fragment>
+</Tabs>
+
+<Callout variant="tip" title="Mantenha o orçamento ao adicionar recursos">
+Prefira delegação de eventos e um único listener `astro:page-load` em vez de scripts por componente. Se um recurso for pesado, carregue-o na interação — o padrão do Pagefind serve para mais do que busca.
+</Callout>
+
+## Fontes
+
+Fraunces, Geist e Geist Mono são empacotadas do Fontsource como arquivos woff2 variáveis, com subconjunto latim e latim-estendido e `font-display: swap`. As duas variações de Fraunces usadas no hero são pré-carregadas em `BaseLayout`:
+
+```html
+<link rel="preload" as="font" type="font/woff2" href="…fraunces-latin-opsz-normal.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="…fraunces-latin-opsz-italic.woff2" crossorigin />
+```
+
+Um teste de layout verifica que esses preloads existem e retornam 200, e outro confere que as quatro variações realmente resolvem no navegador. A auto-hospedagem elimina uma consulta DNS e uma conexão com terceiros do caminho crítico.
+
+## Estabilidade do layout
+
+O CLS se mantém baixo porque:
+
+- O tema é aplicado por um script inline antes da primeira pintura — sem flash da paleta errada.
+- O alternador mensal/anual de preços troca o texto dentro de uma linha com altura fixa.
+- Imagens e cards OG têm dimensões conhecidas; não há ilustrações de hero injetadas.
+- As animações de revelação usam apenas `opacity` e `transform`, nunca propriedades de layout, e são desativadas com movimento reduzido.
+- O menu mobile é uma sobreposição fixa, não um elemento de fluxo que aparece depois do carregamento.
+
+## Busca sem custo de runtime
+
+O Pagefind gera um índice estático no momento do build. A caixa de diálogo de busca renderiza instantaneamente com sugestões; só quando o usuário digita é que a ilha importa `/pagefind/pagefind.js`, busca os pedaços relevantes e renderiza os cards de resultado. Uma consulta em um site de 100 páginas transfere alguns poucos pedaços pequenos, em vez de um índice do site inteiro no cliente.
+
+## Medindo
+
+<Steps
+  steps={[
+    { icon: 'bolt', title: 'Gere a saída real', body: 'npm run build — o Lighthouse lê dist/, não o servidor de desenvolvimento. A pontuação do servidor de dev não tem sentido.' },
+    { icon: 'chart', title: 'Execute o Lighthouse CI', body: 'npx @lhci/cli autorun para mobile, depois o mesmo comando com --collect.settings.preset=desktop. Os resultados ficam locais em .lighthouseci/.' },
+    { icon: 'shield', title: 'Execute a barreira do Playwright', body: 'npm test verifica o orçamento de JS, erros no console, resolução de links, axe, estouro responsivo e capturas de tela.' },
+  ]}
+/>
+
+<Callout variant="warning" title="Audite um build de produção, não um servidor de dev aquecido">
+Middlewares do modo dev, scripts sem minificação e saída ausente do Pagefind distorcem a pontuação. Se uma verificação do Lighthouse falhar, inspecione o relatório JSON em `.lighthouseci/` antes de alterar o código — a auditoria que falhou nomeia o elemento ou a requisição exata.
+</Callout>
+
+## Mantendo a velocidade
+
+1. Não adicione um framework de UI por uma única interação; uma ilha em JS puro é suficiente.
+2. Não adicione novas fontes a menos que substituam uma variação existente — cada preload compete com o hero.
+3. Gere imagens no momento do build ou coloque-as em `public/` com dimensões explícitas.
+4. Proteja novas animações com `@supports (animation-timeline: view())` e `prefers-reduced-motion`.
+5. Rode novamente ambos os presets do Lighthouse após qualquer mudança no markup do head, nas fontes ou no caminho crítico do CSS.

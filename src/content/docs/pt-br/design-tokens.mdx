@@ -1,0 +1,146 @@
+---
+title: Tokens de design
+description: A paleta OKLCH, a escala tipográfica fluida, os raios e os tokens de movimento — e a forma segura de sobrescrevê-los.
+group: Getting started
+order: 3
+sidebarLabel: Tokens de design
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Callout, Tabs, FileTree } from '../../../components/mdx';
+
+Toda decisão visual no Brasa é uma custom property. Componentes nunca fixam uma cor, um tamanho de fonte ou uma curva de easing, então uma sobrescrita intencional muda o sistema inteiro em vez de um único botão.
+
+## Onde os tokens ficam
+
+<FileTree
+  tree={[
+    { name: 'src/styles/global.css', note: 'todos os tokens', highlight: true, children: [
+      { name: '@theme', note: 'primitivos: fontes, escala em brasa, tipografia' },
+      { name: ':root', note: 'tokens semânticos do tema escuro' },
+      { name: "[data-theme='light']", note: 'tokens semânticos do tema claro' },
+      { name: '@theme inline', note: 'utilitários Tailwind' },
+      { name: '@utility', note: 'eyebrow, reveal, section-y' },
+    ] },
+    { name: 'src/lib/color.ts', note: 'matemática OKLCH para OG + código' },
+    { name: 'src/brasa.config.ts', note: 'entrada de accentHue' },
+  ]}
+/>
+
+Há duas camadas. **Primitivos** em `@theme` descrevem o que existe (a escala em brasa, a rampa tipográfica). **Tokens semânticos** em `:root` e `[data-theme='light']` descrevem o que as coisas significam (`--canvas`, `--ink`, `--accent`). Componentes consomem os semânticos; os primitivos os alimentam.
+
+## Cor
+
+O tema é dark-first. `:root` é a paleta escura e `[data-theme='light']` sobrescreve os mesmos nomes. Nenhum preto ou branco puro aparece em lugar algum.
+
+| Token | Escuro | Claro | Usado para |
+| --- | --- | --- | --- |
+| `--canvas` | `oklch(0.16 0.012 40)` | `oklch(0.98 0.01 80)` | Fundo da página |
+| `--surface` | `oklch(0.19 0.014 42)` | `oklch(0.992 0.006 82)` | Cards, callouts, campos de entrada |
+| `--surface-2` | `oklch(0.225 0.016 44)` | `oklch(0.965 0.01 80)` | Hover, chips, linhas elevadas |
+| `--ink` | `oklch(0.94 0.008 85)` | `oklch(0.23 0.022 50)` | Corpo e títulos |
+| `--ink-2` | `oklch(0.76 0.014 78)` | `oklch(0.42 0.024 55)` | Textos secundários |
+| `--ink-3` | `oklch(0.63 0.016 72)` | `oklch(0.52 0.024 60)` | Metadados, legendas |
+| `--accent` | brasa brilhante | brasa profunda | Links, anéis de foco, destaques |
+
+Superfícies são estratificadas por **luminosidade**, não por bordas. O token hairline `--line` é um `color-mix()` de ink e transparência, nunca um cinza separado que sai de sincronia quando o tema alterna.
+
+### A escala em brasa
+
+`--color-ember-50` a `--color-ember-950` são gerados a partir de `--accent-hue` em passos fixos de croma e luminosidade. O gradiente característico é:
+
+```css
+--gradient-ember: linear-gradient(
+  100deg,
+  oklch(0.65 0.21 var(--accent-hue)),
+  oklch(0.82 0.16 calc(var(--accent-hue) + 40))
+);
+```
+
+Ele é aplicado ao CTA primário, aos acentos do anel de foco, aos marcadores de lista, ao brilho do hero e aos estados selecionados. É deliberadamente raro — quando tudo brilha, nada é uma chamada para ação.
+
+<Callout variant="tip" title="Mude um número, reestilize tudo">
+Defina `colors.accentHue` em `src/brasa.config.ts`. `BaseLayout` o injeta como `--accent-hue` em `<html>`, a escala CSS é recalculada, `src/lib/color.ts` recalcula os temas de sintaxe e o renderizador OG recalcula os cards sociais. Nenhuma busca e substituição necessária.
+</Callout>
+
+## Tipografia
+
+Três fontes variáveis auto-hospedadas, com subconjunto para latin e latin-ext e `font-display: swap`:
+
+- **Fraunces Variable** — fonte de display, com optical sizing, usada em títulos e na palavra de destaque em itálico.
+- **Geist Variable** — UI e corpo.
+- **Geist Mono Variable** — eyebrows, metadados, rótulos de código e botões de aba.
+
+A rampa tipográfica usa `clamp()` para que os tamanhos escalem entre breakpoints em vez de saltar:
+
+| Token | Faixa |
+| --- | --- |
+| `--text-hero` | `3.25rem` → `9rem` |
+| `--text-display-2xl` | `2.75rem` → `5.75rem` |
+| `--text-display-xl` | `2.375rem` → `4.25rem` |
+| `--text-display-md` | `1.625rem` → `2.375rem` |
+| `--text-body-lg` | `1.0625rem` → `1.1875rem` |
+
+Tamanhos grandes recebem tracking mais apertado; títulos usam `text-wrap: balance`, parágrafos `text-wrap: pretty`.
+
+<Tabs
+  label="Usando os tokens tipográficos"
+  tabs={[
+    { id: 'tailwind', label: 'Tailwind' },
+    { id: 'css', label: 'CSS puro' },
+  ]}
+>
+  <Fragment slot="tailwind">
+    ```astro
+    <h1 class="font-display text-display-xl text-ink text-balance">
+      Deploy previews that people actually open
+    </h1>
+    ```
+  </Fragment>
+  <Fragment slot="css">
+    ```css
+    .page-title {
+      font-family: var(--font-display);
+      font-size: var(--text-display-xl);
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    ```
+  </Fragment>
+</Tabs>
+
+## Raios, elevação e movimento
+
+Os raios vão de `--radius-xs` (`0.375rem`) a `--radius-3xl` (`2rem`). Cards usam `lg`/`xl`, diálogos `xl`, chips pequenos `full`.
+
+Sombras são tingidas de quente e estratificadas: `--elev-sm`, `--elev-md`, `--elev-lg` e `--glow`. Elas mudam de cor entre temas, então um card escuro mantém sua profundidade sobre papel quente.
+
+Movimento é rápido e deliberado:
+
+```css
+--dur-1: 150ms;  /* hover, color */
+--dur-2: 250ms;  /* transform, disclosure */
+--dur-3: 400ms;  /* sheets, large transitions */
+--ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+```
+
+`reveal` usa `animation-timeline: view()` por trás de `@supports`. Navegadores sem esse recurso, e qualquer pessoa com `prefers-reduced-motion: reduce`, recebem conteúdo visível sem animação. A mesma proteção vale para o conector de etapas desenhado na rolagem e para as métricas com contagem crescente.
+
+## Sobrescreva com segurança
+
+<Callout variant="warning" title="Sobrescreva semântica, não primitivos, nos componentes">
+Adicione ou altere valores de `:root` e `[data-theme='light']` em `global.css`. Não substitua `--color-ember-*` em um componente — esses são os primitivos compartilhados usados também pelo código de destaque e pelas imagens OG.
+</Callout>
+
+Para reestilizar uma única subárvore (o styleguide faz isso para mostrar ambos os temas ao mesmo tempo), redeclare os tokens semânticos naquele elemento:
+
+```css
+.theme-sample {
+  --canvas: oklch(0.98 0.01 80);
+  --ink: oklch(0.23 0.022 50);
+  color-scheme: light;
+}
+```
+
+Após qualquer mudança de paleta, execute `npm run check`, `npm run build` e `npm test`. A suíte axe audita ambos os temas em toda rota, e a suíte de capturas grava novas imagens em `docs/screenshots/` para você inspecionar o resultado.

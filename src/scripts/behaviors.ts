@@ -258,7 +258,7 @@ document.addEventListener('click', (event) => {
     .then(() => {
       trigger.dataset.state = 'copied';
       const feedback = trigger.querySelector('[data-copy-feedback]');
-      if (feedback) feedback.textContent = 'Copied to clipboard';
+      if (feedback) feedback.textContent = trigger.dataset.copiedLabel ?? 'Copied to clipboard';
       window.setTimeout(() => {
         delete trigger.dataset.state;
         if (feedback) feedback.textContent = '';

@@ -1,0 +1,205 @@
+---
+title: Componentes MDX
+description: Exemplos ao vivo e sintaxe pronta para copiar de Callout, Tabs, Steps, FileTree, Cards e Accordion.
+group: Reference
+order: 2
+sidebarLabel: Componentes MDX
+updated: 2026-11-20
+lang: 'pt-br'
+---
+
+import { Accordion, Callout, Cards, FileTree, Steps, Tabs } from '../../../components/mdx';
+import { docLink } from '../../../lib/doc-link';
+
+Todos os seis componentes abaixo são renderizados nesta página, não capturados como imagem. O que você vê é o que seus leitores veem. Importe-os em uma única linha no início de qualquer corpo MDX:
+
+```mdx
+import { Accordion, Callout, Cards, FileTree, Steps, Tabs } from '../../../components/mdx';
+```
+
+## Callout
+
+Quatro variantes correspondem a quatro níveis de severidade. `title` é opcional — omita-o e o componente usa o rótulo da variante.
+
+<div class="not-prose flex flex-col gap-3">
+  <Callout variant="note" title="Nota">Contexto neutro. Use para informações que o leitor precisa, mas sobre as quais não pode agir.</Callout>
+  <Callout variant="tip" title="Dica">Um atalho ou uma recomendação. A borda em ember-300 a distingue à primeira vista.</Callout>
+  <Callout variant="warning" title="Aviso">Um erro que custa tempo. A borda esquenta em direção ao laranja.</Callout>
+  <Callout variant="danger" title="Perigo">Perda de dados ou um build quebrado. A borda mais forte do conjunto.</Callout>
+</div>
+
+````mdx
+<Callout variant="warning" title="Always build before testing">
+Playwright serves `dist/`, so `npm test` without a fresh build tests stale output.
+</Callout>
+````
+
+## Tabs
+
+Um padrão de abas WAI-ARIA completo: setas do teclado, Home/End, tabindex móvel, `aria-controls`/`aria-labelledby`. Sem JavaScript, a lista de abas desaparece e ambos os painéis são renderizados empilhados, então o conteúdo nunca fica preso atrás de um botão.
+
+<Tabs
+  label="Gerenciadores de pacotes"
+  tabs={[
+    { id: 'npm', label: 'npm', icon: 'terminal' },
+    { id: 'pnpm', label: 'pnpm', icon: 'bolt' },
+  ]}
+>
+  <Fragment slot="npm">
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    npm install
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```bash
+    npm create astro@latest -- --template hadagalberto/brasa
+    pnpm install --config.shamefully-hoist=true
+    ```
+  </Fragment>
+</Tabs>
+
+O `id` no array `tabs` deve corresponder a um `<Fragment slot="…">`. O conteúdo do painel mantém a tipografia de texto corrido; apenas os botões das abas ficam de fora.
+
+````mdx
+<Tabs
+  label="Package managers"
+  tabs={[
+    { id: 'npm', label: 'npm', icon: 'terminal' },
+    { id: 'pnpm', label: 'pnpm', icon: 'bolt' },
+  ]}
+>
+  <Fragment slot="npm">
+    ```bash
+    npm install
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```bash
+    pnpm install
+    ```
+  </Fragment>
+</Tabs>
+````
+
+## Steps
+
+Etapas numeradas com um conector que se desenha conforme a rolagem. A grade se adapta ao comprimento da lista — três etapas formam uma fileira de três, quatro formam um 2×2 organizado, então nenhuma etapa fica sozinha. Com movimento reduzido, o conector completo é renderizado imediatamente.
+
+<Steps
+  steps={[
+    { icon: 'terminal', title: 'Instalar', body: 'Crie o projeto a partir do template e instale as dependências com npm.' },
+    { icon: 'sliders', title: 'Configurar', body: 'Defina a identidade do site, a navegação e o matiz de destaque em um único arquivo.' },
+    { icon: 'bolt', title: 'Publicar', body: 'Gere a saída estática e publique dist/ em qualquer lugar.' },
+  ]}
+/>
+
+````mdx
+<Steps
+  steps={[
+    { icon: 'terminal', title: 'Install', body: 'Scaffold the template.' },
+    { icon: 'sliders', title: 'Configure', body: 'Set the accent hue.' },
+    { icon: 'bolt', title: 'Ship', body: 'Deploy dist/.' },
+  ]}
+/>
+````
+
+<Callout variant="warning" title="Os ícones são tipados">
+`icon` é validado em relação ao conjunto inline `Icon` no momento do build. Um erro de digitação como `rocket-ship` faz `astro check` falhar. Use os nomes exportados por `Icon.astro`: `bolt`, `terminal`, `book`, `check`, `code`, `file`, `folder`, `git-branch`, `link`, `message`, `search`, `sliders`, `globe`, `users`, `shield`, `chart`, `sparkles` e os ícones de marcas.
+</Callout>
+
+## FileTree
+
+Uma lista aninhada semântica para estruturas de projeto. A profundidade é representada por recuo mais uma guia de linha fina, nunca conectores pixel-perfect, então a árvore continua legível quando o tamanho da fonte aumenta. `note` adiciona uma anotação em mono; `highlight` marca a entrada da qual o texto ao redor está falando.
+
+<FileTree
+  label="Projeto de exemplo"
+  tree={[
+    { name: 'src/', children: [
+      { name: 'brasa.config.ts', note: 'edite primeiro', highlight: true },
+      { name: 'content.config.ts' },
+      { name: 'components/', children: [
+        { name: 'Callout.astro' },
+        { name: 'mdx.ts', note: 'barrel' },
+      ] },
+    ] },
+    { name: 'astro.config.ts', note: 'caminho base' },
+  ]}
+/>
+
+````mdx
+<FileTree
+  tree={[
+    { name: 'src/', children: [
+      { name: 'brasa.config.ts', note: 'edit first', highlight: true },
+      { name: 'content.config.ts' },
+    ] },
+    { name: 'astro.config.ts', note: 'base path' },
+  ]}
+/>
+````
+
+## Cards
+
+Uma grade responsiva de cards com link. `columns` é `2` por padrão e `3` quando você precisa de uma visão compacta. Cada item recebe um `title`, `description`, `href`, um `icon` opcional e um rótulo `meta` opcional em mono.
+
+<Cards
+  columns={3}
+  items={[
+    { title: 'Instalação', description: 'Crie o projeto e rode o tema localmente.', href: docLink('installation', 'pt-br'), icon: 'terminal', meta: 'Comece aqui' },
+    { title: 'Tokens', description: 'Recolora o site inteiro a partir de um matiz.', href: docLink('design-tokens', 'pt-br'), icon: 'sparkles', meta: 'Design' },
+    { title: 'Deploy', description: 'Publique a saída estática em qualquer host.', href: docLink('deployment', 'pt-br'), icon: 'globe', meta: 'Publicar' },
+  ]}
+/>
+
+````mdx
+<Cards
+  columns={3}
+  items={[
+    { title: 'Installation', description: 'Scaffold and run the theme locally.', href: docLink('installation', 'pt-br'), icon: 'terminal', meta: 'Start here' },
+    { title: 'Tokens', description: 'Recolor the whole site from one hue.', href: docLink('design-tokens', 'pt-br'), icon: 'sparkles', meta: 'Design' },
+  ]}
+/>
+````
+
+<Callout variant="note" title="Os links respeitam o caminho base">
+`docLink('installation', 'pt-br')` de `src/lib/doc-link.ts` prefixa `import.meta.env.BASE_URL`, então o mesmo MDX renderiza `/docs/installation` em um domínio personalizado e `/brasa/docs/installation` no GitHub Pages. Caminhos absolutos fixos quebrariam sob um subcaminho.
+</Callout>
+
+## Accordion
+
+Elementos `<details>` nativos, então abrem sem JavaScript e funcionam com teclado e tecnologia assistiva. A altura é animada com `::details-content` e `interpolate-size` onde suportado; nos demais casos, o painel abre instantaneamente.
+
+<Accordion
+  items={[
+    { q: 'O acordeão precisa de JavaScript?', a: 'Não. Cada item é um par details/summary nativo. A animação opcional de altura é um aprimoramento progressivo protegido por uma verificação @supports.' },
+    { q: 'Dois itens podem ficar abertos ao mesmo tempo?', a: 'Sim. Não há atributo name nos elementos details, então cada item mantém seu próprio estado — útil quando os leitores comparam respostas.' },
+    { q: 'O que acontece com movimento reduzido?', a: 'A duração da transição vira zero e o painel abre imediatamente. O conteúdo nunca fica escondido atrás de uma animação.' },
+  ]}
+/>
+
+````mdx
+<Accordion
+  items={[
+    { q: 'Does it need JavaScript?', a: 'No — each item is a native details/summary pair.' },
+    { q: 'Can two items be open?', a: 'Yes, each keeps its own state.' },
+  ]}
+/>
+````
+
+## Combinando componentes
+
+Os componentes se combinam livremente porque cada um define sua própria tipografia. Um padrão comum em documentação é um callout que introduz um exemplo com abas:
+
+````mdx
+<Callout variant="tip" title="Pick your package manager">
+  Both commands produce the same project.
+</Callout>
+
+<Tabs tabs={[{ id: 'npm', label: 'npm' }, { id: 'pnpm', label: 'pnpm' }]}>
+  <Fragment slot="npm">npm install</Fragment>
+  <Fragment slot="pnpm">pnpm install</Fragment>
+</Tabs>
+````
+
+Se algum componente parecer errado dentro do texto corrido, verifique se a raiz dele tem `not-prose` — essa classe faz seus filhos saírem das regras globais de texto, para que o espaçamento próprio do componente prevaleça.
