@@ -25,7 +25,10 @@ module.exports = {
       // would hit an interstitial, so pin the preview server to 127.0.0.1.
       startServerCommand: 'npm run preview -- --host 127.0.0.1',
       url: urls,
-      numberOfRuns: 1,
+      // A single run swings ±0.02 on performance (measured 0.97–0.99 locally on
+      // an unchanged build), so a 0.98 bar on one sample is a coin flip. Three
+      // runs asserted on the median keep the same bar without the noise.
+      numberOfRuns: 3,
       settings: {
         // "mobile" is Lighthouse's default preset; passing it explicitly is an
         // error, so only set `preset` for the desktop run.
@@ -37,6 +40,7 @@ module.exports = {
       },
     },
     assert: {
+      aggregationMethod: 'median-run',
       assertions: {
         'categories:performance': ['error', { minScore }],
         'categories:accessibility': ['error', { minScore }],
