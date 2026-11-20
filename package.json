@@ -29,6 +29,9 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
+    "lhci": "npm run lhci:mobile && npm run lhci:desktop",
+    "lhci:mobile": "node scripts/lighthouse.mjs --mobile",
+    "lhci:desktop": "node scripts/lighthouse.mjs --desktop",
     "og": "node scripts/generate-og.mjs"
   },
   "dependencies": {

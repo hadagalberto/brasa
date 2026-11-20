@@ -175,9 +175,13 @@ const isActive = (href: string): boolean => {
     transition: opacity var(--dur-2) var(--ease-out-soft);
   }
 
-  // The attribute is toggled by scripts/behaviors.ts once the page scrolls.
-  // eslint-disable-next-line astro/no-unused-css-selector
-  header[data-scrolled]::before {
+  /* The attribute is toggled by scripts/behaviors.ts on every scroll (and on
+     page load with a restored scroll position), so the glass background must
+     key off it. NOTE: use CSS comments here — `//` is invalid CSS and silently
+     swallows the rule when Astro compiles the <style> block. */
+  /* :global() keeps this runtime-only state selector lint-clean and intentional;
+     the header is a single, site-wide landmark so dropping the scope is safe. */
+  :global(header[data-scrolled]::before) {
     opacity: 1;
   }
 

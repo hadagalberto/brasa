@@ -371,6 +371,18 @@
   }
 }
 
+/* Deterministic capture mode -------------------------------------------------
+   Setting `data-capture` on <html> pins every scroll/entrance animation to its
+   final state. Full-page screenshots, PDFs and visual-diff tests set this so
+   they capture the complete layout instead of freezing offscreen `reveal`
+   elements at opacity 0. This is a capture-only escape hatch — real visitors
+   never get the attribute, so they still see the intended motion. */
+html[data-capture] :is(.reveal, [data-reveal]) {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* --------------------------------------------------------------------------
    Prose — typography for long-form MDX content.
    Layered under utilities on purpose: MDX drops structural components

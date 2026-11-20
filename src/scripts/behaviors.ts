@@ -14,7 +14,6 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 type Theme = 'dark' | 'light';
 
-let header: HTMLElement | null = null;
 let scrollTicking = false;
 
 /* ---------------------------------- Theme --------------------------------- */
@@ -130,6 +129,15 @@ document.addEventListener('keydown', (event) => {
 
 /* --------------------------------- Scroll --------------------------------- */
 
+/** Keep the sticky header's glass state in sync with the real scroll offset.
+ *  Querying the element every time (instead of a cached reference) makes this
+ *  correct for programmatic scrolls, restored scroll positions on load, View
+ *  Transitions and bfcache restores alike. */
+function syncHeader(): void {
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  header?.toggleAttribute('data-scrolled', window.scrollY > 0);
+}
+
 window.addEventListener(
   'scroll',
   () => {
@@ -137,11 +145,16 @@ window.addEventListener(
     scrollTicking = true;
     requestAnimationFrame(() => {
       scrollTicking = false;
-      header?.toggleAttribute('data-scrolled', window.scrollY > 8);
+      syncHeader();
     });
   },
   { passive: true },
 );
+
+// Restored scroll position / bfcache navigation can settle without a scroll
+// event; `pageshow` and immediate init close that gap.
+window.addEventListener('pageshow', syncHeader);
+syncHeader();
 
 /* ------------------------------ View transitions -------------------------- */
 
@@ -152,8 +165,7 @@ document.addEventListener('astro:before-swap', (event) => {
 });
 
 document.addEventListener('astro:page-load', () => {
-  header = document.querySelector<HTMLElement>('[data-header]');
-  header?.toggleAttribute('data-scrolled', window.scrollY > 8);
+  syncHeader();
   syncThemeColor();
   initGlow();
   initSpotlight();
@@ -203,7 +215,7 @@ const COUNTUP_DURATION = 1400;
 
 /** Count-up metrics: animate once, only when visible, only when motion is OK. */
 function initCountUp(): void {
-  if (reducedMotion.matches) return;
+  if (reducedMotion.matches || root.hasAttribute('data-capture')) return;
 
   document.querySelectorAll<HTMLElement>('[data-countup]').forEach((element) => {
     if (element.dataset.wired) return;
