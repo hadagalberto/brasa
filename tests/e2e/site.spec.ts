@@ -20,8 +20,19 @@ test('every route renders with zero console errors', async ({ page }) => {
 });
 
 test('all internal links and assets resolve', async ({ page }) => {
+  // Crawls every route; checking each distinct URL once keeps this linear in
+  // the number of links instead of pages x links (slow macOS runners timed out).
+  test.setTimeout(240_000);
   const base = new URL(page.url()).origin;
   const seen = new Set<string>();
+  const checked = new Map<string, number>();
+  const statusOf = async (path: string): Promise<number> => {
+    const cached = checked.get(path);
+    if (cached !== undefined) return cached;
+    const status = (await page.request.get(path)).status();
+    checked.set(path, status);
+    return status;
+  };
   const queue: string[] = [...routes];
 
   while (queue.length > 0) {
@@ -52,8 +63,7 @@ test('all internal links and assets resolve', async ({ page }) => {
     for (const href of targets) {
       const url = new URL(href, base);
       const path = `${url.pathname}${url.search}`;
-      const asset = await page.request.get(path);
-      expect(asset.status(), `link ${href} (from ${route})`).toBeLessThan(400);
+      expect(await statusOf(path), `link ${href} (from ${route})`).toBeLessThan(400);
       if (!seen.has(url.pathname) && !path.includes('.')) {
         queue.push(url.pathname);
       }
@@ -74,8 +84,9 @@ test('all internal links and assets resolve', async ({ page }) => {
     });
     for (const asset of assets) {
       const url = new URL(asset, base);
-      const response = await page.request.get(`${url.pathname}${url.search}`);
-      expect(response.status(), `asset ${asset} (from ${route})`).toBe(200);
+      expect(await statusOf(`${url.pathname}${url.search}`), `asset ${asset} (from ${route})`).toBe(
+        200,
+      );
     }
   }
 });
