@@ -18,6 +18,7 @@ import type { SeoArticle, SeoCrumb } from '../components/SEO.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SearchDialog from '../components/SearchDialog.astro';
+import Analytics from '../components/Analytics.astro';
 
 interface Props {
   title: string;
@@ -63,18 +64,22 @@ const strings = ui(lang).common;
     </script>
     <SEO {title} {description} {type} {noindex} {image} {article} {breadcrumbs} {lang} />
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title={`${brasa.site.name} — RSS`}
-      href={`${import.meta.env.BASE_URL}rss.xml`}
-    />
-    <link
-      rel="alternate"
-      type="application/feed+json"
-      title={`${brasa.site.name} — JSON Feed`}
-      href={`${import.meta.env.BASE_URL}feed.json`}
-    />
+    {brasa.features.blog && (
+      <>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${brasa.site.name} — RSS`}
+          href={`${import.meta.env.BASE_URL}rss.xml`}
+        />
+        <link
+          rel="alternate"
+          type="application/feed+json"
+          title={`${brasa.site.name} — JSON Feed`}
+          href={`${import.meta.env.BASE_URL}feed.json`}
+        />
+      </>
+    )}
     <link rel="preload" as="font" type="font/woff2" href={frauncesNormal} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={frauncesItalic} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={geistNormal} crossorigin />
@@ -91,11 +96,13 @@ const strings = ui(lang).common;
       {strings.skipLink}
     </a>
     <Header {lang} />
-    <main id="main" tabindex="-1" class="relative flex-1">
+    <main id="main" tabindex="-1" data-pagefind-body class="relative flex-1">
       <slot />
     </main>
     <Footer {lang} />
-    <SearchDialog {lang} />
+    {brasa.features.search && <SearchDialog {lang} />}
+    <Analytics />
+    <slot name="analytics" />
     <script>
       import '../scripts/behaviors';
       import '../scripts/search';

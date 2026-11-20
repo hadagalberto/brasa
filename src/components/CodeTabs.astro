@@ -39,7 +39,7 @@ codeTabsSequence += 1;
 const uid = `code-tabs-${codeTabsSequence.toString(36)}`;
 ---
 
-<div data-code-tabs class:list={['not-prose', className]}>
+<div data-code-tabs data-pagefind-ignore class:list={['not-prose', className]}>
   <div role="tablist" aria-label={label} class="flex flex-wrap gap-1.5">
     {tabs.map((tab, index) => (
       <button

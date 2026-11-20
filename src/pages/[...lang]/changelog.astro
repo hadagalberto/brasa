@@ -48,7 +48,7 @@ const releases = await getReleases(lang);
   </div>
 
   <Container size="md" class="pb-12">
-    <ol class="relative space-y-4 border-s border-line ps-6 sm:ps-8" data-pagefind-body>
+    <ol class="relative space-y-4 border-s border-line ps-6 sm:ps-8">
       {releases.map((release, index) => (
         <li id={`v${release.data.version}`} class="relative scroll-mt-24">
           <span

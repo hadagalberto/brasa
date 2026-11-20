@@ -7,11 +7,20 @@
  * arrow-key navigation through the results.
  */
 
+interface PagefindSubResult {
+  title?: string;
+  url: string;
+  anchor?: { element?: string; id?: string; text?: string };
+  excerpt?: string;
+}
+
 interface PagefindData {
   url: string;
   excerpt: string;
   title?: string;
   meta?: Record<string, string>;
+  /** Pagefind's heading-anchored results for this page, when available. */
+  sub_results?: PagefindSubResult[];
 }
 
 interface PagefindResult {
@@ -143,6 +152,14 @@ function pathLabel(url: string): string {
   }
 }
 
+/** Pagefind returns root-relative URLs; keep them under a configured base path. */
+function withBase(url: string): string {
+  const base = (getDialog()?.dataset.searchBase ?? '/').replace(/\/$/, '');
+  return base && !url.startsWith(`${base}/`)
+    ? `${base}${url.startsWith('/') ? '' : '/'}${url}`
+    : url;
+}
+
 function element<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className?: string,
@@ -217,8 +234,9 @@ function render(data: PagefindData[]): void {
   container.replaceChildren();
 
   for (const item of data) {
+    const group = element('div', 'search-result-group');
     const link = element('a', 'search-result');
-    link.href = item.url;
+    link.href = withBase(item.url);
     link.setAttribute('data-search-result', '');
 
     const top = element('span', 'search-result-top');
@@ -230,7 +248,28 @@ function render(data: PagefindData[]): void {
     // Pagefind escapes source content and only adds <mark> highlights.
     excerpt.innerHTML = item.excerpt;
     link.append(top, excerpt);
-    container.append(link);
+    group.append(link);
+
+    // Section-anchored sub-results let a reader jump straight to the heading
+    // that matched, instead of landing at the top of a long manual page.
+    const sections = (item.sub_results ?? [])
+      .filter((sub) => Boolean(sub.anchor?.id) && sub.url.includes('#'))
+      .slice(0, 3);
+    if (sections.length > 0) {
+      const row = element('div', 'search-result-sections');
+      for (const sub of sections) {
+        const anchor = element(
+          'a',
+          'search-result-section',
+          sub.title ?? sub.anchor?.text ?? 'Section',
+        );
+        anchor.href = withBase(sub.url);
+        row.append(anchor);
+      }
+      group.append(row);
+    }
+
+    container.append(group);
   }
 }
 
@@ -309,7 +348,7 @@ document.addEventListener('click', (event) => {
   const element = getDialog();
   if (!element?.open) return;
   // Clicking a result closes the dialog; the link handles navigation.
-  if (target.closest('[data-search-result], .search-chip')) element.close();
+  if (target.closest('[data-search-result], .search-result-section, .search-chip')) element.close();
   else if (target === element) element.close();
 });
 
@@ -354,6 +393,7 @@ document.addEventListener('keydown', (event) => {
   }
 
   const links = [
+    // Arrows move through primary results; section chips stay Tab-reachable.
     ...element.querySelectorAll<HTMLAnchorElement>('[data-search-result], .search-chip'),
   ];
   const active = document.activeElement;

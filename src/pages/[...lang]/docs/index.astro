@@ -27,7 +27,7 @@ const startHere = s.startHere.cards.map((card, index) => ({
 ---
 
 <BaseLayout title={t.docs.title} description={s.description} {lang}>
-  <div data-pagefind-body>
+  <div>
     <section
       class="docs-index-hero relative overflow-hidden pt-14 pb-16 lg:pt-20 lg:pb-20"
       data-glow
@@ -116,7 +116,9 @@ const startHere = s.startHere.cards.map((card, index) => ({
           </div>
           <p class="max-w-[32ch] text-sm text-ink-3 text-pretty">{s.startHere.lede}</p>
         </div>
-        <Cards items={startHere} columns={3} class="mt-8" />
+        <div data-pagefind-ignore>
+          <Cards items={startHere} columns={3} class="mt-8" />
+        </div>
       </section>
 
       <div class="mt-20 flex flex-col gap-16">

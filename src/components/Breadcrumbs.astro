@@ -19,7 +19,11 @@ const { items } = Astro.props;
 const lang = normalizeLocale(Astro.currentLocale);
 ---
 
-<nav aria-label={lang === 'pt-br' ? 'Trilha de navegação' : 'Breadcrumb'} class="not-prose">
+<nav
+  aria-label={lang === 'pt-br' ? 'Trilha de navegação' : 'Breadcrumb'}
+  data-pagefind-ignore
+  class="not-prose"
+>
   <ol class="flex flex-wrap items-center gap-1.5 font-mono text-xs text-ink-3">
     {items.map((item, index) => (
       <>

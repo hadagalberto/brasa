@@ -23,7 +23,7 @@ const lang = normalizeLocale(Astro.currentLocale);
 const { headings, label = ui(lang).common.onThisPage } = Astro.props;
 ---
 
-<div class="toc" hidden={headings.length === 0}>
+<div class="toc" data-pagefind-ignore hidden={headings.length === 0}>
   <nav data-toc aria-label={label}>
     <p class="eyebrow toc-label">
       <span class="eyebrow-dash" aria-hidden="true"></span>

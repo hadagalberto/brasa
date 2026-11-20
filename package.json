@@ -19,8 +19,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/verify-mdx.mjs && astro build && pagefind --site dist",
+    "build": "node scripts/verify-mdx.mjs && astro build && node scripts/prepare-pagefind.mjs && pagefind --site dist",
     "verify:mdx": "node scripts/verify-mdx.mjs",
+    "prepare:pagefind": "node scripts/prepare-pagefind.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "lint": "eslint .",

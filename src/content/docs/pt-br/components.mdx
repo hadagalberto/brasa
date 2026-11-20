@@ -9,6 +9,10 @@ lang: 'pt-br'
 ---
 
 import { Accordion, Badge, Button, Callout, Cards, Icon } from '../../../components/mdx';
+import Bento from '../../../components/Bento.astro';
+import ComparisonTable from '../../../components/ComparisonTable.astro';
+import LocaleSwitcher from '../../../components/LocaleSwitcher.astro';
+import SpotlightCard from '../../../components/SpotlightCard.astro';
 import { docLink } from '../../../lib/doc-link';
 
 O Brasa não tem framework de UI. Componentes são arquivos Astro que renderizam HTML e, quando precisam de comportamento, um pequeno módulo vanilla. Esta página é o catálogo: tabelas de propriedades mais componentes reais que você pode ver e usar aqui mesmo.
@@ -181,11 +185,63 @@ Pequeno botão no cabeçalho. O bootstrap inline em `BaseLayout` aplica o tema s
 
 `CountUp` só anima quando visível e o movimento é permitido; caso contrário, renderiza o número final. `Marquee` pausa no hover e no foco e é rotulado para leitores de tela.
 
+## Componentes de layout e comparação
+
+### Bento
+
+`class?`. Uma grade de seis colunas em telas médias e uma coluna no celular. Os filhos são `<li>` comuns; varie o tamanho com `md:col-span-*` / `md:row-span-*`. A home usa seis cartões com `SpotlightCard`.
+
+<div class="not-prose">
+  <Bento>
+    <li class="md:col-span-4">
+      <SpotlightCard class="flex h-full flex-col p-6">
+        <Icon name="bolt" size={20} class="text-accent" />
+        <h3 class="mt-4 font-display text-lg text-ink">Célula larga</h3>
+        <p class="mt-2 text-sm text-ink-2">Quatro de seis colunas no desktop.</p>
+      </SpotlightCard>
+    </li>
+    <li class="md:col-span-2">
+      <SpotlightCard class="flex h-full flex-col p-6">
+        <Icon name="sparkles" size={20} class="text-accent" />
+        <h3 class="mt-4 font-display text-lg text-ink">Célula estreita</h3>
+        <p class="mt-2 text-sm text-ink-2">Duas colunas ao lado.</p>
+      </SpotlightCard>
+    </li>
+  </Bento>
+</div>
+
+### ComparisonTable
+
+`tiers: {name, featured?}[]`, `groups: string[]`, `rows: {label, values}[]`, `lang`. Uma única fonte gera uma tabela semântica com cabeçalho fixo no desktop e cartões empilhados no celular. Usado na página de preços.
+
+<div class="not-prose mt-6">
+  <ComparisonTable
+    tiers={[{ name: 'Inicial' }, { name: 'Equipe', featured: true }]}
+    groups={['Núcleo']}
+    rows={[
+      { label: 'Prévias', values: ['10 / mês', 'Ilimitadas'] },
+      { label: 'Rollbacks', values: [false, true] },
+    ]}
+    lang="pt-br"
+  />
+</div>
+
+### LocaleSwitcher
+
+`lang`, `class?`. Um menu compacto dos idiomas configurados que preserva a página atual. Presente no cabeçalho e na sheet mobile.
+
+<div class="not-prose mt-6">
+  <LocaleSwitcher lang="pt-br" />
+</div>
+
 ## Componentes de infraestrutura
 
-- **SEO** — canonical, meta, Open Graph, Twitter e JSON-LD (Organization/WebSite, BlogPosting, BreadcrumbList). `BaseLayout` passa tudo; as páginas não duplicam tags de head.
+- **SEO** — canonical, meta, Open Graph, Twitter e JSON-LD (Organization, WebSite, BlogPosting, BreadcrumbList). `BaseLayout` passa tudo; as páginas não duplicam tags de head.
 - **ClientRouter** — o controlador de View Transitions do Astro. Islands com delegação de eventos reinicializam em `astro:page-load`, e o atributo de tema é carregado no documento entrante antes da troca.
 - **Newsletter** — formulário estático orientado por config; o `action` em `brasa.config.ts` decide para onde ele envia.
+- **Contato** — formulário acessível com validação no cliente. `contact.action` em `brasa.config.ts` (ou `CONTACT_FORM_ACTION`) envia submissões válidas a um endpoint estático; vazio mantém o painel de sucesso local.
+- **Analytics** — ponto de extensão intencionalmente vazio no `BaseLayout` (além de um `slot="analytics"`). Nenhum rastreamento vem por padrão.
+- **Toggles de recursos** — `brasa.features` (`blog`, `docs`, `changelog`, `search`) controla quais seções aparecem na navegação, no rodapé, nos feeds e no diálogo de busca.
 
 <Callout variant="note" title="Adicionando um componente">
   Coloque o arquivo `.astro` em `src/components/`, exporte-o de `mdx.ts` se os autores precisarem dele e

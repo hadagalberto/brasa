@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Accordion from '../../components/Accordion.astro';
 import Avatar from '../../components/Avatar.astro';
+import Bento from '../../components/Bento.astro';
 import Button from '../../components/Button.astro';
 import CodeTabs from '../../components/CodeTabs.astro';
 import Container from '../../components/Container.astro';
@@ -165,7 +166,7 @@ const names = [
         </Heading>
       </div>
 
-      <ul class="mt-14 grid grid-cols-1 gap-4 md:grid-cols-6">
+      <Bento>
         <li class="md:col-span-3 md:row-span-2">
           <SpotlightCard class="reveal flex h-full flex-col p-6 sm:p-7">
             <Icon name={featureIcons[0]} size={22} class="text-accent" />
@@ -315,7 +316,7 @@ const names = [
             </div>
           </SpotlightCard>
         </li>
-      </ul>
+      </Bento>
     </Container>
   </Section>
 

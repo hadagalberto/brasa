@@ -1,0 +1,17 @@
+---
+/**
+ * Bento grid — a six-column layout on medium screens and up, one column on
+ * phones. Children are ordinary <li> elements; use `md:col-span-*` and
+ * `md:row-span-*` to vary their size. Pair with SpotlightCard for the Brasa
+ * spotlight hover. No JavaScript.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<ul class:list={['bento mt-14 grid grid-cols-1 gap-4 md:grid-cols-6', className]}>
+  <slot />
+</ul>

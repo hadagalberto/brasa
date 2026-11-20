@@ -64,6 +64,35 @@ test.describe('search dialog', () => {
     expect(await results.first().locator('mark').count()).toBeGreaterThan(0);
   });
 
+  test('excerpts contain prose, not raw code, and link to anchored sections', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.keyboard.press('Control+k');
+    await page.locator(`${dialogSelector} [data-search-input]`).fill('tokens');
+
+    const results = page.locator(`${dialogSelector} [data-search-result]`);
+    await expect(results.first()).toBeVisible({ timeout: 15_000 });
+    expect(await results.count()).toBeGreaterThan(0);
+
+    const excerpts = await page
+      .locator(`${dialogSelector} .search-result-excerpt`)
+      .allTextContents();
+    expect(excerpts.length).toBeGreaterThan(0);
+    for (const excerpt of excerpts) {
+      expect(excerpt).not.toContain('{');
+      expect(excerpt).not.toContain('=>');
+      expect(excerpt).not.toContain('href:');
+      expect(excerpt).not.toContain('@theme');
+    }
+
+    // Pagefind computes sub-results from IDs on headings; surface them so a
+    // reader jumps straight to the matching section.
+    const sections = page.locator(`${dialogSelector} .search-result-section`);
+    expect(await sections.count()).toBeGreaterThan(0);
+    const href = await sections.first().getAttribute('href');
+    expect(href).toContain('#');
+  });
+
   test('arrow keys and Enter navigate results', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');

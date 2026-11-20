@@ -88,6 +88,16 @@ export interface BrasaConfig {
     changelog: boolean;
     search: boolean;
   };
+  /** Deploy base path (also read from PAGES_BASE_PATH by astro.config.ts). */
+  basePath: string;
+  contact: {
+    /**
+     * Static form endpoint. Empty = client-side validation demo with an
+     * accessible success panel; set to Formspree/Buttondown/your own POST URL
+     * and valid submissions are forwarded there instead.
+     */
+    action: string;
+  };
 }
 
 export const brasa: BrasaConfig = {
@@ -210,4 +220,23 @@ export const brasa: BrasaConfig = {
     changelog: true,
     search: true,
   },
+  basePath: process.env.PAGES_BASE_PATH ?? '/',
+  contact: {
+    action: process.env.CONTACT_FORM_ACTION ?? '',
+  },
 };
+
+/** Map a route or feed path to the feature toggle that controls it. */
+export function featureForPath(path: string): keyof BrasaConfig['features'] | null {
+  if (/^\/blog(\/|$)/.test(path) || /^\/?(rss\.xml|feed\.json)$/.test(path)) return 'blog';
+  if (/^\/docs(\/|$)/.test(path)) return 'docs';
+  if (/^\/changelog(\/|$)/.test(path)) return 'changelog';
+  if (/^\/search(\/|$)/.test(path)) return 'search';
+  return null;
+}
+
+/** True when a navigation path is enabled by the current configuration. */
+export function featureEnabled(path: string): boolean {
+  const feature = featureForPath(path);
+  return feature === null || brasa.features[feature];
+}

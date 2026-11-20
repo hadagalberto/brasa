@@ -7,8 +7,12 @@ on:
 
 jobs:
   quality:
-    name: format, lint, check, build, e2e, Lighthouse
-    runs-on: ubuntu-latest
+    name: format, lint, check, build, e2e, axe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -34,25 +38,35 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install Playwright browsers
+      # --with-deps shells out to apt-get and only exists on Linux runners.
+      - name: Install Playwright browsers (Linux system deps)
+        if: runner.os == 'Linux'
         run: npx playwright install chromium --with-deps
+
+      - name: Install Playwright browsers (macOS / Windows)
+        if: runner.os != 'Linux'
+        run: npx playwright install chromium
 
       - name: Test (Playwright + axe)
         run: npm run test
         env:
           CI: 'true'
 
+      # Lighthouse is an audit, not a portability gate: run it once on Linux
+      # with the same wrapper used locally so CI and developers agree.
       - name: Lighthouse CI (mobile preset)
-        run: npx @lhci/cli autorun
+        if: runner.os == 'Linux'
+        run: npm run lhci:mobile
 
       - name: Lighthouse CI (desktop preset)
-        run: npx @lhci/cli autorun --collect.settings.preset=desktop
+        if: runner.os == 'Linux'
+        run: npm run lhci:desktop
 
       - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.os }}
           path: |
             playwright-report/
             .lighthouseci/

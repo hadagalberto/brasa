@@ -95,23 +95,33 @@ test.describe('count-up metrics', () => {
     await page.goto('/');
 
     const first = page.locator('[data-countup]').first();
-    await first.scrollIntoViewIfNeeded();
-    await first.evaluate((el) => {
-      void new Promise<void>((resolve) => {
-        const check = () => {
-          if (el instanceof HTMLElement && el.dataset.started === '1') resolve();
-          else requestAnimationFrame(check);
-        };
-        check();
+    // Record every rendered value. A real animation produces several distinct
+    // frames between 0 and the target; a static number produces only one, and
+    // this never races the browser's frame timing.
+    await page.evaluate(() => {
+      type FrameWindow = Window & { __countFrames?: string[] };
+      const el = document.querySelector<HTMLElement>('[data-countup]');
+      if (!el) return;
+      (window as FrameWindow).__countFrames = [];
+      const observer = new MutationObserver(() => {
+        (window as FrameWindow).__countFrames?.push(el.textContent ?? '');
       });
+      observer.observe(el, { childList: true, characterData: true, subtree: true });
     });
 
-    // The count-up just began: the number is on its way up, not parked at 41.
-    const midAnimation = await first.textContent();
-    expect(midAnimation).not.toBe('41k+');
+    const frames = () =>
+      page.evaluate(() => (window as Window & { __countFrames?: string[] }).__countFrames ?? []);
 
+    await first.scrollIntoViewIfNeeded();
+    // The static markup already reads "41k+", so wait for the observer to see
+    // the animation's intermediate values instead of sampling at frame zero.
+    await expect.poll(async () => new Set(await frames()).size).toBeGreaterThan(2);
     await expect(first).toHaveText('41k+', { timeout: 4000 });
     await expect(page.locator('[data-countup]').nth(3)).toHaveText('132');
+
+    const captured = await frames();
+    expect(new Set(captured).size).toBeGreaterThan(2);
+    expect(captured.some((frame) => frame !== '0k+' && frame !== '41k+')).toBe(true);
   });
 
   test('stay static under reduced motion', async ({ page }) => {

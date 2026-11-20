@@ -61,7 +61,18 @@ const fullTitle =
     ? `${brasa.site.name} — ${brasa.site.tagline}`
     : `${title} · ${brasa.site.name}`;
 
-const graph: object[] = [];
+const graph: object[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': new URL('/#organization', site).toString(),
+    name: brasa.site.name,
+    description: brasa.site.description,
+    url: site.toString(),
+    logo: new URL('favicon.svg', site).toString(),
+    sameAs: [brasa.site.github],
+  },
+];
 
 if (article && type === 'article') {
   graph.push({
@@ -79,7 +90,7 @@ if (article && type === 'article') {
       name: article.authorName,
       ...(article.authorUrl ? { url: new URL(article.authorUrl, site).toString() } : {}),
     },
-    publisher: { '@type': 'Organization', name: brasa.site.name },
+    publisher: { '@id': new URL('/#organization', site).toString() },
     mainEntityOfPage: { '@type': 'WebPage', '@id': canonical.toString() },
   });
 } else {
@@ -89,6 +100,7 @@ if (article && type === 'article') {
     name: brasa.site.name,
     description: brasa.site.description,
     url: site.toString(),
+    publisher: { '@id': new URL('/#organization', site).toString() },
     author: {
       '@type': 'Person',
       name: brasa.site.author,

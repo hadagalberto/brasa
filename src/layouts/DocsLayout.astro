@@ -49,7 +49,9 @@ const edit = editUrl(doc, brasa.site.github);
 <BaseLayout {title} {description} breadcrumbs={seoCrumbs} image={ogImagePath(doc)} {lang}>
   <div class="docs-shell pb-8">
     <Container size="xl" class="pt-9 lg:pt-12">
-      <Breadcrumbs items={crumbs} />
+      <div data-pagefind-ignore>
+        <Breadcrumbs items={crumbs} />
+      </div>
 
       <header class="docs-heading mt-8 max-w-[52rem]">
         <p class="eyebrow">
@@ -72,7 +74,10 @@ const edit = editUrl(doc, brasa.site.github);
         </div>
       </header>
 
-      <div class="mt-8 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 lg:hidden">
+      <div
+        data-pagefind-ignore
+        class="mt-8 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 lg:hidden"
+      >
         <span class="font-mono text-[0.6875rem] tracking-[0.12em] text-ink-3 uppercase">
           {groupLabel}
         </span>
@@ -91,7 +96,10 @@ const edit = editUrl(doc, brasa.site.github);
       </div>
 
       {headings.length > 0 && (
-        <details class="docs-toc mt-5 rounded-2xl border border-line bg-surface xl:hidden">
+        <details
+          data-pagefind-ignore
+          class="docs-toc mt-5 rounded-2xl border border-line bg-surface xl:hidden"
+        >
           <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 font-mono text-xs font-medium tracking-[0.14em] text-ink-2 uppercase transition-colors duration-(--dur-1) hover:text-ink [&::-webkit-details-marker]:hidden">
             {s.onThisPage}
             <Icon
@@ -107,18 +115,21 @@ const edit = editUrl(doc, brasa.site.github);
       )}
 
       <div class="docs-grid mt-10 grid grid-cols-1 gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[13rem_minmax(0,1fr)_12rem] xl:gap-9">
-        <aside class="hidden lg:block" aria-label={s.sections}>
+        <aside data-pagefind-ignore class="hidden lg:block" aria-label={s.sections}>
           <div class="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto pb-8">
             <DocsSidebar {docs} currentId={doc.id} {lang} />
           </div>
         </aside>
 
-        <article class="min-w-0" data-pagefind-body>
+        <article class="min-w-0">
           <Prose>
             <slot />
           </Prose>
 
-          <div class="docs-end mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 not-prose">
+          <div
+            data-pagefind-ignore
+            class="docs-end mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 not-prose"
+          >
             <a
               href={edit}
               target="_blank"
@@ -136,13 +147,13 @@ const edit = editUrl(doc, brasa.site.github);
             <p class="font-mono text-xs text-ink-3">MIT · open source · built with Astro</p>
           </div>
 
-          <div class="mt-8 not-prose">
+          <div data-pagefind-ignore class="mt-8 not-prose">
             <DocNav {prev} {next} {lang} />
           </div>
         </article>
 
         {headings.length > 0 && (
-          <aside class="hidden xl:block" aria-label={s.onThisPage}>
+          <aside data-pagefind-ignore class="hidden xl:block" aria-label={s.onThisPage}>
             <div class="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto pb-8">
               <Toc {headings} />
               <a
@@ -159,7 +170,13 @@ const edit = editUrl(doc, brasa.site.github);
     </Container>
   </div>
 
-  <dialog id="docs-drawer" data-docs-drawer aria-label={s.navigation} class="docs-drawer">
+  <dialog
+    id="docs-drawer"
+    data-docs-drawer
+    data-pagefind-ignore
+    aria-label={s.navigation}
+    class="docs-drawer"
+  >
     <div class="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
       <span class="font-mono text-xs font-medium tracking-[0.14em] text-ink-2 uppercase">
         {s.title}

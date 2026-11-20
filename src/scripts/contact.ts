@@ -120,6 +120,16 @@ function bindContact(): void {
     }
 
     if (summary) summary.textContent = '';
+
+    // A configured static endpoint takes precedence over the local demo:
+    // validation still runs client-side, then the browser posts natively.
+    const endpoint = form.dataset.contactAction?.trim();
+    if (endpoint) {
+      form.action = endpoint;
+      form.submit();
+      return;
+    }
+
     form.hidden = true;
     if (panel) {
       const title = panel.querySelector<HTMLElement>('[data-success-title]');

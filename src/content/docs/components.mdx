@@ -8,6 +8,10 @@ updated: 2026-11-20
 ---
 
 import { Accordion, Badge, Button, Callout, Cards, Icon } from '../../components/mdx';
+import Bento from '../../components/Bento.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import LocaleSwitcher from '../../components/LocaleSwitcher.astro';
+import SpotlightCard from '../../components/SpotlightCard.astro';
 import { docLink } from '../../lib/doc-link';
 
 Brasa has no UI framework. Components are Astro files that render HTML and, when they need behavior, a tiny vanilla module. This page is the catalogue: property tables plus real components you can see and use right here.
@@ -180,11 +184,63 @@ Small button in the header. The inline bootstrap in `BaseLayout` applies the sto
 
 `CountUp` only animates when visible and motion is allowed; otherwise it renders the final number. `Marquee` pauses on hover and focus and is labelled for screen readers.
 
+## Layout and comparison components
+
+### Bento
+
+`class?`. A six-column grid on medium screens and a single column on phones. Children are plain `<li>` elements; vary their size with `md:col-span-*` / `md:row-span-*`. The home page's six feature cards use it with `SpotlightCard`.
+
+<div class="not-prose">
+  <Bento>
+    <li class="md:col-span-4">
+      <SpotlightCard class="flex h-full flex-col p-6">
+        <Icon name="bolt" size={20} class="text-accent" />
+        <h3 class="mt-4 font-display text-lg text-ink">Wide cell</h3>
+        <p class="mt-2 text-sm text-ink-2">Four of six columns on desktop.</p>
+      </SpotlightCard>
+    </li>
+    <li class="md:col-span-2">
+      <SpotlightCard class="flex h-full flex-col p-6">
+        <Icon name="sparkles" size={20} class="text-accent" />
+        <h3 class="mt-4 font-display text-lg text-ink">Narrow cell</h3>
+        <p class="mt-2 text-sm text-ink-2">Two columns beside it.</p>
+      </SpotlightCard>
+    </li>
+  </Bento>
+</div>
+
+### ComparisonTable
+
+`tiers: {name, featured?}[]`, `groups: string[]`, `rows: {label, values}[]`, `lang`. One source of truth renders a semantic table with a sticky header on desktop and stacked plan cards on phones. Used by the pricing page.
+
+<div class="not-prose mt-6">
+  <ComparisonTable
+    tiers={[{ name: 'Starter' }, { name: 'Team', featured: true }]}
+    groups={['Core']}
+    rows={[
+      { label: 'Previews', values: ['10 / month', 'Unlimited'] },
+      { label: 'Rollbacks', values: [false, true] },
+    ]}
+    lang="en"
+  />
+</div>
+
+### LocaleSwitcher
+
+`lang`, `class?`. A compact menu of the configured locales that preserves the current page path. Rendered in the header and in the mobile sheet.
+
+<div class="not-prose mt-6">
+  <LocaleSwitcher lang="en" />
+</div>
+
 ## Infrastructure components
 
-- **SEO** — canonical, meta, Open Graph, Twitter and JSON-LD (Organization/WebSite, BlogPosting, BreadcrumbList). `BaseLayout` passes everything in; pages do not duplicate head tags.
+- **SEO** — canonical, meta, Open Graph, Twitter and JSON-LD (Organization, WebSite, BlogPosting, BreadcrumbList). `BaseLayout` passes everything in; pages do not duplicate head tags.
 - **ClientRouter** — Astro's View Transitions controller. Event-delegated islands reinitialize on `astro:page-load`, and the theme attribute is carried into the incoming document before swap.
 - **Newsletter** — config-driven static form; `action` in `brasa.config.ts` decides where it posts.
+- **Contact** — accessible form with client-side validation. `contact.action` in `brasa.config.ts` (or `CONTACT_FORM_ACTION`) forwards valid submissions to a static endpoint; empty means the local success panel.
+- **Analytics** — an intentionally empty extension point in `BaseLayout` (plus a `slot="analytics"`). No tracking ships by default.
+- **Feature toggles** — `brasa.features` (`blog`, `docs`, `changelog`, `search`) controls which sections appear in navigation, footer, feeds and the search dialog.
 
 <Callout variant="note" title="Adding a component">
   Put the `.astro` file in `src/components/`, export it from `mdx.ts` if authors need it, and

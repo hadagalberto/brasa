@@ -3,13 +3,14 @@ import { test } from '@playwright/test';
 import { routes, themes } from './helpers';
 
 /**
- * Captures reference screenshots for every page type at 375 and 1440 widths
- * in both themes, saved to docs/screenshots/ (used by the README).
+ * Captures reference screenshots for every page type at 375, 768 and 1440
+ * widths in both themes, saved to docs/screenshots/ (used by the README).
  */
 test.describe('reference screenshots', () => {
   for (const route of routes) {
     for (const [width, height] of [
       [375, 720],
+      [768, 1024],
       [1440, 900],
     ] as const) {
       for (const theme of themes) {
@@ -38,14 +39,16 @@ test.describe('reference screenshots', () => {
     }
   }
 
-  test('404 — 1440px — dark', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/definitely-a-broken-url');
-    await page.evaluate(() => {
-      document.documentElement.setAttribute('data-capture', '');
-      return document.fonts.ready;
+  for (const width of [375, 768, 1440] as const) {
+    test(`404 — ${width}px — dark`, async ({ page }) => {
+      await page.setViewportSize({ width, height: width === 375 ? 720 : 900 });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto('/definitely-a-broken-url');
+      await page.evaluate(() => {
+        document.documentElement.setAttribute('data-capture', '');
+        return document.fonts.ready;
+      });
+      await page.screenshot({ path: `docs/screenshots/404-${width}-dark.png` });
     });
-    await page.screenshot({ path: 'docs/screenshots/404-1440-dark.png' });
-  });
+  }
 });

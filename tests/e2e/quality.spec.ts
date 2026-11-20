@@ -78,10 +78,11 @@ test.describe('reveal visibility (review finding 2)', () => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
 
-    const hidden = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLElement>('.reveal')].filter(
-        (el) => Number(getComputedStyle(el).opacity) < 1,
-      ).length,
+    const hidden = await page.evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLElement>('.reveal')].filter(
+          (el) => Number(getComputedStyle(el).opacity) < 1,
+        ).length,
     );
     expect(hidden, 'reveals hidden from reduced-motion users').toBe(0);
   });
@@ -140,7 +141,12 @@ test.describe('reveal visibility (review finding 2)', () => {
 });
 
 test.describe('Cumulative Layout Shift', () => {
-  const routes = ['/', '/pricing', '/docs/installation', '/blog/deploy-previews-are-the-prs-missing-half'];
+  const routes = [
+    '/',
+    '/pricing',
+    '/docs/installation',
+    '/blog/deploy-previews-are-the-prs-missing-half',
+  ];
 
   for (const route of routes) {
     test(`${route} stays under CLS 0.02 across a full scroll`, async ({ page }) => {

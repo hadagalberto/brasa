@@ -20,6 +20,7 @@ const strings = ui(lang).blog;
 
 {(prev || next) && (
   <nav
+    data-pagefind-ignore
     aria-label={lang === 'pt-br' ? 'Navegação entre artigos' : 'Post navigation'}
     class="not-prose grid grid-cols-1 gap-4 sm:grid-cols-2"
   >

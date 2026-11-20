@@ -197,7 +197,19 @@
     scroll-padding-top: calc(var(--header-h) + 1rem);
   }
 
+  /* Reduced motion is global, not per-component: no entrance, transition or
+     scroll animation may keep running when the visitor asks for less motion.
+     This also keeps automated contrast audits sampling settled final colors. */
   @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
     html {
       scroll-behavior: auto;
     }

@@ -1,5 +1,5 @@
 ---
-import { brasa } from '../brasa.config';
+import { brasa, featureEnabled } from '../brasa.config';
 import { localizedPath, ui, unlocalizedPath, type Locale } from '../i18n';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
@@ -12,7 +12,7 @@ interface Props {
 
 const { lang } = Astro.props;
 const strings = ui(lang).common;
-const nav = ui(lang).nav;
+const nav = ui(lang).nav.filter((item) => featureEnabled(item.href));
 const currentPath = unlocalizedPath(Astro.url.pathname).replace(/\/$/, '') || '/';
 
 const isActive = (href: string): boolean => {
@@ -46,21 +46,23 @@ const isActive = (href: string): boolean => {
     </nav>
 
     <div class="flex items-center gap-2">
-      <button
-        type="button"
-        data-search-open
-        aria-haspopup="dialog"
-        aria-controls="search-dialog"
-        aria-expanded="false"
-        aria-label={strings.searchOpenLabel}
-        class="hidden h-9 items-center gap-2 rounded-full border border-line bg-surface/60 pe-2 ps-3 text-sm text-ink-3 transition-colors duration-(--dur-1) hover:border-line-strong hover:text-ink sm:inline-flex lg:w-48"
-      >
-        <Icon name="search" size={14} />
-        <span class="lg:me-auto">{strings.search}</span>
-        <kbd class="hidden rounded border border-line-strong px-1.5 py-0.5 font-mono text-[0.625rem] leading-none text-ink-3 lg:inline">
-          /
-        </kbd>
-      </button>
+      {brasa.features.search && (
+        <button
+          type="button"
+          data-search-open
+          aria-haspopup="dialog"
+          aria-controls="search-dialog"
+          aria-expanded="false"
+          aria-label={strings.searchOpenLabel}
+          class="hidden h-9 items-center gap-2 rounded-full border border-line bg-surface/60 pe-2 ps-3 text-sm text-ink-3 transition-colors duration-(--dur-1) hover:border-line-strong hover:text-ink sm:inline-flex lg:w-48"
+        >
+          <Icon name="search" size={14} />
+          <span class="lg:me-auto">{strings.search}</span>
+          <kbd class="hidden rounded border border-line-strong px-1.5 py-0.5 font-mono text-[0.625rem] leading-none text-ink-3 lg:inline">
+            /
+          </kbd>
+        </button>
+      )}
       <LocaleSwitcher {lang} class="hidden sm:inline-flex" />
       <a
         href={brasa.site.github}
@@ -106,20 +108,22 @@ const isActive = (href: string): boolean => {
       </button>
     </div>
 
-    <div class="px-6 sm:px-10">
-      <button
-        type="button"
-        data-search-open
-        aria-haspopup="dialog"
-        aria-controls="search-dialog"
-        aria-expanded="false"
-        class="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-start text-sm text-ink-2 transition-colors duration-(--dur-1) hover:border-line-strong hover:text-ink"
-      >
-        <Icon name="search" size={16} class="text-accent" />
-        {strings.searchMobile}
-        <Icon name="arrow-right" size={15} class="ms-auto opacity-60" />
-      </button>
-    </div>
+    {brasa.features.search && (
+      <div class="px-6 sm:px-10">
+        <button
+          type="button"
+          data-search-open
+          aria-haspopup="dialog"
+          aria-controls="search-dialog"
+          aria-expanded="false"
+          class="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-start text-sm text-ink-2 transition-colors duration-(--dur-1) hover:border-line-strong hover:text-ink"
+        >
+          <Icon name="search" size={16} class="text-accent" />
+          {strings.searchMobile}
+          <Icon name="arrow-right" size={15} class="ms-auto opacity-60" />
+        </button>
+      </div>
+    )}
 
     <nav
       aria-label={strings.mainNavMobile}

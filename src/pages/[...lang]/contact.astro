@@ -58,6 +58,9 @@ const success = JSON.stringify({
           data-contact-form
           data-errors={strings}
           data-success={success}
+          data-contact-action={brasa.contact.action}
+          action={brasa.contact.action || undefined}
+          method={brasa.contact.action ? 'post' : undefined}
           novalidate
           class="mt-8 space-y-6"
         >

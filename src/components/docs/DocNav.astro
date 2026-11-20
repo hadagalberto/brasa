@@ -16,6 +16,7 @@ const t = ui(lang);
 
 {(prev || next) && (
   <nav
+    data-pagefind-ignore
     aria-label={ui(normalizeLocale(Astro.currentLocale)).common.docsPages}
     class="doc-nav not-prose"
   >

@@ -241,6 +241,45 @@ const clientStrings = {
   }
 
   /* Result markup is built by search.ts at runtime. */
+  :global(.search-result-group) {
+    display: block;
+    border-radius: var(--radius-md);
+    transition: background-color var(--dur-1) var(--ease-out-soft);
+  }
+
+  :global(.search-result-group:focus-within) {
+    background-color: color-mix(in oklab, var(--accent) 8%, transparent);
+  }
+
+  :global(.search-result-sections) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0 0.875rem 0.75rem 2.75rem;
+  }
+
+  :global(.search-result-section) {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
+    text-decoration: none;
+    transition:
+      color var(--dur-1) var(--ease-out-soft),
+      border-color var(--dur-1) var(--ease-out-soft);
+  }
+
+  :global(.search-result-section:hover),
+  :global(.search-result-section:focus-visible) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
   :global(.search-result) {
     display: block;
     border-radius: var(--radius-md);

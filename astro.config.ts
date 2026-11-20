@@ -8,7 +8,7 @@ import { brasa } from './src/brasa.config';
 import { brasaEcThemes } from './src/lib/ec-themes';
 
 const SITE_URL = process.env.SITE_URL ?? 'https://hadagalberto.github.io/brasa';
-const BASE_PATH = process.env.PAGES_BASE_PATH ?? '/';
+const BASE_PATH = brasa.basePath;
 
 const ecThemes = brasaEcThemes(brasa.colors.accentHue);
 

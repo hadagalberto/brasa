@@ -81,33 +81,97 @@ test.describe('layout invariants (the visual contract)', () => {
     expect(clip).toBe('text');
   });
 
-  test('the sticky header turns translucent after scrolling', async ({ page }) => {
+  test('the sticky header gains an opaque-enough background after scrolling in both themes', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/styleguide');
 
-    const before = await page.evaluate(() => {
-      const header = document.querySelector('[data-header]');
-      return {
-        position: header ? getComputedStyle(header).position : null,
-        scrolled: header?.hasAttribute('data-scrolled') ?? null,
-        blur: header ? getComputedStyle(header, '::before').backdropFilter : null,
-      };
-    });
-    expect(before.position).toBe('sticky');
-    expect(before.scrolled).toBe(false);
+    const state = () =>
+      page.evaluate(() => {
+        const header = document.querySelector<HTMLElement>('[data-header]');
+        if (!header) return null;
+        const before = getComputedStyle(header, '::before');
+        const alpha = before.backgroundColor.match(/\/\s*([\d.]+)\s*\)/);
+        return {
+          position: getComputedStyle(header).position,
+          scrollY: window.scrollY,
+          scrolled: header.hasAttribute('data-scrolled'),
+          opacity: Number(before.opacity),
+          backgroundAlpha: alpha ? Number(alpha[1]) : 1,
+          backgroundColor: before.backgroundColor,
+          blur: before.backdropFilter,
+        };
+      });
 
-    await page.evaluate(() => window.scrollTo(0, 240));
-    await page.waitForTimeout(100);
+    for (const theme of themes) {
+      await page.goto('/styleguide');
+      await page.evaluate((next) => {
+        document.documentElement.dataset.theme = next;
+        // goto() can restore a scroll offset from the previous loop iteration.
+        window.scrollTo(0, 0);
+      }, theme);
+      await expect.poll(async () => (await state())?.opacity).toBe(0);
 
-    const after = await page.evaluate(() => {
-      const header = document.querySelector('[data-header]');
-      return {
-        scrolled: header?.hasAttribute('data-scrolled') ?? null,
-        blur: header ? getComputedStyle(header, '::before').backdropFilter : null,
-      };
-    });
-    expect(after.scrolled).toBe(true);
-    expect(String(after.blur)).toContain('blur');
+      const before = await state();
+      expect(before?.position).toBe('sticky');
+      expect(before?.scrolled).toBe(false);
+      expect(before?.opacity).toBe(0);
+
+      // The exact scenario from the review: a programmatic scroll of 1,500px.
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      await expect.poll(async () => (await state())?.scrolled).toBe(true);
+      // The glass fades in over --dur-2; poll until the transition settles.
+      await expect.poll(async () => (await state())?.opacity).toBe(1);
+
+      const after = await state();
+      expect(after?.scrollY).toBeGreaterThan(0);
+      expect(after?.scrolled).toBe(true);
+      expect(after?.opacity).toBe(1);
+      expect(after?.backgroundAlpha).toBeGreaterThan(0.5);
+      expect(after?.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+      expect(String(after?.blur)).toContain('blur');
+    }
+  });
+
+  test('the header glass is applied to a restored scroll position on load in both themes', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    for (const theme of themes) {
+      await page.goto('/docs/installation');
+      await page.evaluate((next) => {
+        document.documentElement.dataset.theme = next;
+        window.scrollTo(0, 0);
+      }, theme);
+      await expect.poll(async () => await page.evaluate(() => window.scrollY)).toBe(0);
+
+      // A bfcache/history restore can settle the scroll offset without firing
+      // a scroll event. Reproduce that path by dispatching `pageshow` after
+      // setting the offset, which is exactly what behaviors.ts listens for.
+      await page.evaluate(() => {
+        window.scrollTo(0, 1200);
+        window.dispatchEvent(new Event('pageshow'));
+      });
+
+      const read = () =>
+        page.evaluate(() => {
+          const header = document.querySelector<HTMLElement>('[data-header]');
+          if (!header) return null;
+          return {
+            scrollY: window.scrollY,
+            scrolled: header.hasAttribute('data-scrolled'),
+            opacity: Number(getComputedStyle(header, '::before').opacity),
+          };
+        });
+      await expect.poll(async () => (await read())?.scrolled).toBe(true);
+      await expect.poll(async () => (await read())?.opacity).toBe(1);
+
+      const state = await read();
+      expect(state?.scrollY).toBeGreaterThan(0);
+      expect(state?.scrolled).toBe(true);
+      expect(state?.opacity).toBe(1);
+    }
   });
 
   test('spotlight cards track the cursor with custom properties', async ({ page }) => {

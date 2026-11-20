@@ -27,7 +27,7 @@ interface Props {
 const { tree, label = 'Project files', class: className } = Astro.props;
 ---
 
-<ul class:list={['filetree not-prose', className]} aria-label={label}>
+<ul class:list={['filetree not-prose', className]} aria-label={label} data-pagefind-ignore>
   {tree.map(function render(item: FileTreeItem) {
     return (
       <li class="filetree-item" data-highlight={item.highlight ? '' : undefined}>
